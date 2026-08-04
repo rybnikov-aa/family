@@ -21,12 +21,17 @@ app.use('/api/health', healthRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Start the server when the file is executed directly (production bundle:
-// `npm run build` -> `npm start` -> `node dist/app.cjs`). In development the
-// Vite dev server mounts `app` itself, so we must not listen here.
+// Start the server when this module is run as the production server.
+// The deploy script runs the bundle under pm2, which loads the script through
+// its own fork container, so `process.argv[1]` points to the pm2 wrapper and
+// NOT to this file — that is why we treat `NODE_ENV=production` (set by the
+// deploy script) as the primary signal, and keep the direct-run check as a
+// fallback. In development the Vite dev server mounts `app` itself, so we
+// must not listen here (NODE_ENV is `development` there).
 const isMainEntry =
-  process.argv[1] !== undefined &&
-  fileURLToPath(import.meta.url) === resolve(process.argv[1]);
+  env.NODE_ENV === 'production' ||
+  (process.argv[1] !== undefined &&
+    fileURLToPath(import.meta.url) === resolve(process.argv[1]));
 
 if (isMainEntry) {
   app.listen(env.PORT, () => {

@@ -80,3 +80,69 @@ npm install
 ## Проверка
 
 После `npm run dev` откройте http://localhost:5173 — страница покажет статус бэкенда (ответ `/api/health`).
+
+## Деплой на family.rybnikov.su
+
+Публикация выполняется скриптом `scripts/deploy.mjs` (команда `npm run deploy`). Он собирает проект, загружает файлы по SSH (scp) и разворачивает их на сервере:
+
+| Что | Куда на сервере |
+| --- | --------------- |
+| Фронтенд (`frontend/dist`) | `/var/www/family.rybnikov.su/public_html` |
+| Бэкенд (`backend/dist` + `package.json`) | `/var/www/family.rybnikov.su/server` |
+
+После загрузки скрипт на сервере: обновляет файлы, ставит production-зависимости (`npm install --omit=dev`) и перезапускает приложение под `pm2` (`pm2 restart family-backend`, при первом запуске — `pm2 start dist/app.cjs`). Если `pm2` на сервере не установлен (или не виден в PATH), скрипт сам найдёт его в типовых местах либо установит глобально (`npm install -g pm2`).
+
+**Очистка каталогов на сервере:**
+
+- `/var/www/family.rybnikov.su/public_html` — сама папка **никогда не удаляется**. При деплое удаляются только файлы верхнего уровня (`index.html` и т.п.) и подпапка `assets/` (результат сборки Vite), а прочие подпапки (например `.well-known`) сохраняются.
+- `/var/www/family.rybnikov.su/server` — папка не удаляется, содержимое очищается, **`.env` сохраняется** (не перезаписывается и не удаляется).
+
+Посмотреть, что именно выполняется на сервере, без деплоя:
+
+```bash
+node scripts/deploy.mjs --print-script
+```
+
+```bash
+npm run deploy                  # сборка + публикация + рестарт
+npm run deploy -- --no-build    # без локальной сборки
+npm run deploy -- --no-restart  # без перезапуска pm2
+```
+
+### Настройка
+
+Параметры задаются в корневом файле `.env` (загружается скриптом автоматически, в git не коммитится). Шаблон — `.env.example`:
+
+```bash
+DEPLOY_HOST=family.rybnikov.su   # SSH host
+DEPLOY_USER=rybnikov             # SSH user
+DEPLOY_PORT=22                   # SSH port
+DEPLOY_FRONTEND_DIR=/var/www/family.rybnikov.su/public_html
+DEPLOY_BACKEND_DIR=/var/www/family.rybnikov.su/server
+DEPLOY_PM2_APP=family-backend    # pm2 app name
+
+# Optional: bin directory with node/npm ON THE SERVER, if the remote script
+# cannot auto-detect them (e.g. /home/rybnikov/.nvm/versions/node/v20.19.0/bin)
+# DEPLOY_NODE_PATH=
+```
+
+В неинтерактивной SSH-сессии PATH часто минимален, поэтому Node.js, установленный через nvm или в нестандартный каталог, может быть не виден. Серверный скрипт сам ищет `node`/`npm`: подключает профили пользователя (`~/.profile`, `~/.bashrc`, `nvm.sh`) и проверяет типовые пути (`~/.nvm/...`, `/usr/local/bin`, `/usr/bin` и др.). Если этого мало — задайте `DEPLOY_NODE_PATH` (каталог с `node`/`npm` на сервере).
+
+Проверить итоговую конфигурацию без деплоя:
+
+```bash
+node scripts/deploy.mjs --print-config
+```
+
+Пример с другим пользователем и портом (PowerShell, переменные окружения имеют приоритет над `.env`):
+
+```powershell
+$env:DEPLOY_USER = "ubuntu"; $env:DEPLOY_PORT = "2222"; npm run deploy
+```
+
+### Требования
+
+- На машине разработки установлен OpenSSH-клиент (`ssh`/`scp`) — встроен в Windows 10+.
+- Рекомендуется настроить **SSH-ключ** (`ssh-keygen` + `ssh-copy-id`), чтобы деплой шёл без запросов пароля. Пароль/ключ нигде не хранятся — скрипт только вызывает ssh/scp.
+- На сервере установлены `node`/`npm` и `pm2`, а также `.env` в `/var/www/family.rybnikov.su/server` с нужными значениями (`PORT`, `CORS_ORIGIN=https://family.rybnikov.su` и т.д.).
+- Для отдачи статики фронтенда и проксирования `/api` на порт бэкенда на сервере должен быть настроен веб-сервер (например, nginx).

@@ -1,0 +1,77 @@
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name family.rybnikov.su;
+    root /var/www/family.rybnikov.su/public_html;
+    index index.html index.htm;
+
+    # SSL сертификаты (acme.sh)
+    ssl_certificate /root/.acme.sh/family.rybnikov.su_ecc/fullchain.cer;
+    ssl_certificate_key /root/.acme.sh/family.rybnikov.su_ecc/family.rybnikov.su.key;
+
+    # Настройки SSL
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    # Безопасные заголовки
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # Основной блок
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    # Проксирование API-запросов к бэкенду (pm2: family-backend, порт 3000)
+    location /api/ {
+        # Без слэша в конце proxy_pass сохраняет полный URI:
+        # /api/health -> http://127.0.0.1:3000/api/health
+        proxy_pass http://127.0.0.1:3000;
+
+        # HTTP/1.1 и передача заголовков клиента
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Таймауты
+        proxy_connect_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # Отчеты по ремонту
+    location /renovation/ {
+        alias /var/www/family.rybnikov.su/public_html/renovation/;
+
+        # Если есть index.html — показываем его
+        index index.html index.htm;
+
+        # Автоиндексация (если нет index.html)
+        autoindex on;
+        autoindex_exact_size off;
+        autoindex_localtime on;
+
+        # Правильная обработка для alias
+        try_files $uri $uri/ =404;
+
+        # Кеширование статики на 1 час
+        location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
+            expires 1h;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+
+    # Запрет доступа к скрытым файлам
+    location ~ /\. {
+        deny all;
+    }
+
+    # Логи
+    access_log /var/log/nginx/family.rybnikov.su_access.log;
+    error_log /var/log/nginx/family.rybnikov.su_error.log;
+}
