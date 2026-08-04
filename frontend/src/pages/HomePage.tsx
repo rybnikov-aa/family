@@ -1,24 +1,105 @@
-import StatusCard from '../components/StatusCard';
+import SectionCard from '../components/SectionCard';
 import { useHealth } from '../hooks/useHealth';
 
+const stats = [
+  { icon: '🏠', value: '2026', label: 'дата регистрации' },
+  { icon: '📁', value: '4', label: 'активных раздела' },
+  { icon: '⚡', value: '40%', label: 'ремонт', href: '/renovation/' },
+];
+
+const sections = [
+  {
+    icon: '🛠',
+    title: 'Ремонт',
+    description: 'Техническая документация, фотофиксация, сметы и логи.',
+    tag: '→ активный проект',
+    href: '/renovation/',
+    highlight: true,
+  },
+  { icon: '📋', title: 'Дневник', description: 'События, даты, маршруты. Хронология семьи.', tag: 'архив' },
+  {
+    icon: '📊',
+    title: 'Рецепты',
+    description: 'Кулинарные алгоритмы и ингредиенты.',
+    tag: 'база знаний',
+  },
+  { icon: '🗂', title: 'Фотоархив', description: 'Снимки, события, люди. Визуальный ряд.', tag: 'медиатека', href: 'https://immich.rybnikov-aa-home.netcraze.link/' },
+  {
+    icon: '📌',
+    title: 'Планы',
+    description: 'Цели, задачи, дорожная карта развития.',
+    tag: 'стратегия',
+  },
+];
+
 function HomePage() {
-  const { data, error, loading } = useHealth();
+  const { error, loading } = useHealth();
+  const statusValue = error ? 'офлайн' : loading ? 'проверка…' : 'online';
 
   return (
-    <section className="home">
-      <h1>Family App</h1>
-      <p className="home__subtitle">React + TypeScript frontend</p>
+    <div className="container">
+      <header className="header">
+        <div className="brand">
+          <h1>
+             <span>•</span>
+          </h1>
+          <div className="sub">family.rybnikov.su</div>
+        </div>
+        <nav className="nav">
+          <a href="#" className="active">
+            Главная
+          </a>
+          <a href="#sections">Разделы</a>
+          <a href="/renovation/" className="renov-link">
+            Ремонт
+          </a>
+        </nav>
+      </header>
 
-      <div className="status-grid">
-        <StatusCard label="Frontend" value="Running" tone="ok" />
-        <StatusCard
-          label="Backend"
-          value={loading ? 'Checking…' : error ?? data?.status ?? 'Unknown'}
-          tone={error ? 'error' : 'ok'}
-        />
-        {data && <StatusCard label="Environment" value={data.environment} />}
+      <section className="hero">
+        <h2>
+          Семейное <strong>цифровое пространство</strong>
+        </h2>
+        <p> Документация, архивы, фотографии, планы и&nbsp;данные.</p>
+      </section>
+
+      <div className="stats">
+        {stats.map((stat) => (
+          <div className="stat-item" key={stat.label}>
+            <span className="icon">{stat.icon}</span>
+            <div className="info">
+              <span className="value">{stat.value}</span>
+              <span className="label">
+                {stat.href ? <a href={stat.href}>{stat.label}</a> : stat.label}
+              </span>
+            </div>
+          </div>
+        ))}
+        <div className="stat-item">
+          <span className="icon">📡</span>
+          <div className="info">
+            <span className="value">{statusValue}</span>
+            <span className="label">статус</span>
+          </div>
+        </div>
       </div>
-    </section>
+
+      <div id="sections" className="grid">
+        {sections.map((section) => (
+          <SectionCard key={section.title} {...section} />
+        ))}
+      </div>
+
+      <footer className="footer">
+        <span className="copy">© 2026 family.rybnikov.su</span>
+        <span>
+          <a href="/renovation/">Ремонт</a>
+          <a href="#">Дневник</a>
+          <a href="#">Рецепты</a>
+          <a href="https://immich.rybnikov-aa-home.netcraze.link/">Архив</a>
+        </span>
+      </footer>
+    </div>
   );
 }
 
