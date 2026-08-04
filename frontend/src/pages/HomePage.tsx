@@ -1,5 +1,6 @@
 import SectionCard from '../components/SectionCard';
 import StatusCard from '../components/StatusCard';
+import ThemeToggle from '../components/ThemeToggle';
 import { useHealth } from '../hooks/useHealth';
 
 const stats = [
@@ -63,15 +64,18 @@ function HomePage() {
           </h1>
           <div className="sub">family.rybnikov.su</div>
         </div>
-        <nav className="nav">
-          <a href="#" className="active">
-            Главная
-          </a>
-          <a href="#sections">Разделы</a>
-          <a href="/renovation/" className="renov-link">
-            Ремонт
-          </a>
-        </nav>
+        <div className="header-actions">
+          <nav className="nav">
+            <a href="#" className="active">
+              Главная
+            </a>
+            <a href="#sections">Разделы</a>
+            <a href="/renovation/" className="renov-link">
+              Ремонт
+            </a>
+          </nav>
+          <ThemeToggle />
+        </div>
       </header>
 
       <section className="hero">
