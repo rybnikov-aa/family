@@ -1,4 +1,5 @@
 import SectionCard from '../components/SectionCard';
+import StatusCard from '../components/StatusCard';
 import { useHealth } from '../hooks/useHealth';
 
 const stats = [
@@ -16,14 +17,25 @@ const sections = [
     href: '/renovation/',
     highlight: true,
   },
-  { icon: '📋', title: 'Дневник', description: 'События, даты, маршруты. Хронология семьи.', tag: 'архив' },
+  {
+    icon: '📋',
+    title: 'Дневник',
+    description: 'События, даты, маршруты. Хронология семьи.',
+    tag: 'архив',
+  },
   {
     icon: '📊',
     title: 'Рецепты',
     description: 'Кулинарные алгоритмы и ингредиенты.',
     tag: 'база знаний',
   },
-  { icon: '🗂', title: 'Фотоархив', description: 'Снимки, события, люди. Визуальный ряд.', tag: 'медиатека', href: 'https://immich.rybnikov-aa-home.netcraze.link/' },
+  {
+    icon: '🗂',
+    title: 'Фотоархив',
+    description: 'Снимки, события, люди. Визуальный ряд.',
+    tag: 'медиатека',
+    href: 'https://immich.rybnikov-aa-home.netcraze.link/',
+  },
   {
     icon: '📌',
     title: 'Планы',
@@ -34,14 +46,20 @@ const sections = [
 
 function HomePage() {
   const { error, loading } = useHealth();
-  const statusValue = error ? 'офлайн' : loading ? 'проверка…' : 'online';
+
+  // Фронтенд считается работоспособным, пока страница отрисована.
+  const frontendValue = 'online';
+  const frontendTone = 'ok';
+
+  const backendValue = error ? 'офлайн' : loading ? 'проверка…' : 'online';
+  const backendTone = error ? 'error' : loading ? 'muted' : 'ok';
 
   return (
     <div className="container">
       <header className="header">
         <div className="brand">
           <h1>
-             <span>•</span>
+            <span>•</span>
           </h1>
           <div className="sub">family.rybnikov.su</div>
         </div>
@@ -78,7 +96,7 @@ function HomePage() {
         <div className="stat-item">
           <span className="icon">📡</span>
           <div className="info">
-            <span className="value">{statusValue}</span>
+            <span className="value">{backendValue}</span>
             <span className="label">статус</span>
           </div>
         </div>
@@ -92,6 +110,10 @@ function HomePage() {
 
       <footer className="footer">
         <span className="copy">© 2026 family.rybnikov.su</span>
+        <span className="footer-status">
+          <StatusCard label="фронтенд" value={frontendValue} tone={frontendTone} />
+          <StatusCard label="бэкенд" value={backendValue} tone={backendTone} />
+        </span>
         <span>
           <a href="/renovation/">Ремонт</a>
           <a href="#">Дневник</a>
