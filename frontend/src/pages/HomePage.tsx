@@ -1,6 +1,7 @@
 import SectionCard from '../components/SectionCard';
-import StatusCard from '../components/StatusCard';
-import ThemeToggle from '../components/ThemeToggle';
+import PageLayout from '../components/PageLayout';
+import { RenovationIcon, DiaryIcon, NewsIcon, PhotoIcon, PlansIcon } from '../components/icons';
+import { ROUTES } from '../routes';
 import { useHealth } from '../hooks/useHealth';
 
 const stats = [
@@ -11,7 +12,8 @@ const stats = [
 
 const sections = [
   {
-    icon: '🛠',
+    icon: RenovationIcon,
+    color: '#e8872e',
     title: 'Ремонт',
     description: 'Техническая документация, фотофиксация, сметы и логи.',
     tag: '→ активный проект',
@@ -19,26 +21,31 @@ const sections = [
     highlight: true,
   },
   {
-    icon: '📋',
+    icon: DiaryIcon,
+    color: '#3b82f6',
     title: 'Дневник',
     description: 'События, даты, маршруты. Хронология семьи.',
     tag: 'архив',
   },
   {
-    icon: '📊',
-    title: 'Рецепты',
-    description: 'Кулинарные алгоритмы и ингредиенты.',
-    tag: 'база знаний',
+    icon: NewsIcon,
+    color: '#14b8a6',
+    title: 'Новости',
+    description: 'Анонсы, события и хроника семьи.',
+    tag: 'лента',
+    href: ROUTES.news,
   },
   {
-    icon: '🗂',
+    icon: PhotoIcon,
+    color: '#a855f7',
     title: 'Фотоархив',
     description: 'Снимки, события, люди. Визуальный ряд.',
     tag: 'медиатека',
     href: 'https://immich.rybnikov-aa-home.netcraze.link/',
   },
   {
-    icon: '📌',
+    icon: PlansIcon,
+    color: '#ec4899',
     title: 'Планы',
     description: 'Цели, задачи, дорожная карта развития.',
     tag: 'стратегия',
@@ -48,36 +55,10 @@ const sections = [
 function HomePage() {
   const { error, loading } = useHealth();
 
-  // Фронтенд считается работоспособным, пока страница отрисована.
-  const frontendValue = 'online';
-  const frontendTone = 'ok';
-
   const backendValue = error ? 'офлайн' : loading ? 'проверка…' : 'online';
-  const backendTone = error ? 'error' : loading ? 'muted' : 'ok';
 
   return (
-    <div className="container">
-      <header className="header">
-        <div className="brand">
-          <h1>
-            <span>•</span>
-          </h1>
-          <div className="sub">family.rybnikov.su</div>
-        </div>
-        <div className="header-actions">
-          <nav className="nav">
-            <a href="#" className="active">
-              Главная
-            </a>
-            <a href="#sections">Разделы</a>
-            <a href="/renovation/" className="renov-link">
-              Ремонт
-            </a>
-          </nav>
-          <ThemeToggle />
-        </div>
-      </header>
-
+    <PageLayout>
       <section className="hero">
         <h2>
           Семейное <strong>цифровое пространство</strong>
@@ -111,21 +92,7 @@ function HomePage() {
           <SectionCard key={section.title} {...section} />
         ))}
       </div>
-
-      <footer className="footer">
-        <span className="copy">© 2026 family.rybnikov.su</span>
-        <span className="footer-status">
-          <StatusCard label="фронтенд" value={frontendValue} tone={frontendTone} />
-          <StatusCard label="бэкенд" value={backendValue} tone={backendTone} />
-        </span>
-        <span>
-          <a href="/renovation/">Ремонт</a>
-          <a href="#">Дневник</a>
-          <a href="#">Рецепты</a>
-          <a href="https://immich.rybnikov-aa-home.netcraze.link/">Архив</a>
-        </span>
-      </footer>
-    </div>
+    </PageLayout>
   );
 }
 
