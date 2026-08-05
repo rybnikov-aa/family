@@ -15,14 +15,21 @@ export async function fetchHealth(): Promise<HealthResponse> {
   return res.json() as Promise<HealthResponse>;
 }
 
-export interface VpsEntry {
-  flag: string;
+export interface VpsServiceStatus {
   name: string;
+  type: string;
   address: string;
-  panel: string;
+  online: boolean;
+  latencyMs: number | null;
+  error: string | null;
 }
 
-export interface VpsStatus extends VpsEntry {
+export interface VpsStatus {
+  country: string;
+  name: string;
+  ip: string;
+  panel: string;
+  services: VpsServiceStatus[];
   online: boolean;
   latencyMs: number | null;
   error: string | null;

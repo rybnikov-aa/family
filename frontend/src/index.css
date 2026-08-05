@@ -316,6 +316,286 @@ body {
   text-decoration: underline;
 }
 
+/* Clickable stat item */
+button.stat-item {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.stat-item:hover .stat-item__icon {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--link-hover);
+}
+button.stat-item:focus-visible {
+  outline: 2px solid var(--link-hover);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* Modal: детализация доступности VPS */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.5);
+}
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-container);
+  width: 100%;
+  max-width: 560px;
+  max-height: 82vh;
+  overflow-y: auto;
+  padding: 28px;
+}
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.modal__head h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  letter-spacing: -0.01em;
+}
+.modal__close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.modal__close:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.modal__summary {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.modal__summary strong {
+  color: var(--text-strong);
+}
+.modal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.modal__vps {
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 16px;
+  background: var(--card-bg);
+}
+.modal__vps-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.modal__vps-flag {
+  width: 24px;
+  height: 16px;
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+.modal__vps-name {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.modal__vps-ip {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.modal__vps-panel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 5px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.modal__vps-panel svg {
+  width: 14px;
+  height: 14px;
+}
+.modal__vps-panel:hover {
+  color: var(--link-hover);
+  background: var(--surface-hover);
+}
+.modal__vps-head-end {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.modal__vps-ip-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 12px;
+}
+.modal__vps-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+/* Всплывающие подсказки к иконкам (копирование, панель) */
+.modal__vps-copy,
+.modal__vps-panel {
+  position: relative;
+}
+.modal__vps-copy::after,
+.modal__vps-panel::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--text-strong);
+  color: var(--surface);
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1;
+  padding: 5px 8px;
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+  box-shadow: var(--shadow-card);
+}
+.modal__vps-copy:hover::after,
+.modal__vps-copy:focus-visible::after,
+.modal__vps-panel:hover::after,
+.modal__vps-panel:focus-visible::after {
+  opacity: 1;
+}
+.modal__vps-copy svg {
+  width: 13px;
+  height: 13px;
+}
+.modal__vps-copy:hover {
+  color: var(--link-hover);
+  background: var(--surface-muted);
+}
+.modal__vps-copy--copied {
+  color: #16a34a;
+}
+.modal__badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 20px;
+}
+.modal__badge--ok {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+.modal__badge--warning {
+  background: rgba(249, 115, 22, 0.15);
+  color: #ea580c;
+}
+.modal__badge--error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+.modal__badge--checking,
+.modal__badge--unknown {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+.modal__services {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.modal__service {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+.modal__service-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.modal__service-dot--ok {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+.modal__service-dot--error {
+  background: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+.modal__service--muted {
+  color: var(--text-faint);
+}
+.modal__service-name {
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+}
+.modal__service-name:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
 /* Grid */
 .grid {
   display: grid;

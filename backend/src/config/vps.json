@@ -1,10 +1,30 @@
 {
   "vps": [
     {
-      "flag": "🇪🇺",
-      "name": "jnhl",
-      "address": "https://jhnl.rybnikov.su:51981/qaVfkyoyQYaK6VoMgM",
-      "panel": "https://panel.example.com"
+      "country": "nl",
+      "name": "jhnl",
+      "ip": "150.251.139.253",
+      "panel": "https://my.justhost.asia/",
+      "services": [
+        {
+          "name": "3x-ui",
+          "type": "http",
+          "address": "https://jhnl.rybnikov.su:51981/qaVfkyoyQYaK6VoMgM"
+        }
+      ]
+    },
+    {
+      "country": "de",
+      "name": "jhde",
+      "ip": "206.251.50.74",
+      "panel": "https://my.justhost.asia/",
+      "services": [
+        {
+          "name": "3x-ui",
+          "type": "http",
+          "address": "https://jhde.rybnikov.su:56303/qjRiWDfIjj72nXbztb"
+        }
+      ]
     }
   ]
 }

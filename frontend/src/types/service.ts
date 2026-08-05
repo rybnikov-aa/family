@@ -16,7 +16,7 @@ export interface ServiceStatus {
   id: string;
   /** Название сервиса (подпись) */
   label: string;
-  /** Значение для отображения (напр. «online», «40%», «2026») */
+  /** Значение для отображения (напр. «100%», «40%», «2026») */
   value: string;
   /** Актуальное состояние сервиса */
   state: ServiceState;
@@ -24,4 +24,6 @@ export interface ServiceStatus {
   href?: string;
   /** Иконка сервиса */
   icon: ComponentType<IconProps>;
+  /** Обработчик клика по карточке (напр. открыть детализацию) */
+  onClick?: () => void;
 }

@@ -1,6 +1,8 @@
+import { useMemo, useState } from 'react';
 import SectionCard from '../components/SectionCard';
 import PageLayout from '../components/PageLayout';
 import ServiceStats from '../components/ServiceStats';
+import VpsDetailsModal from '../components/VpsDetailsModal';
 import { RenovationIcon, DiaryIcon, NewsIcon, PhotoIcon, PlansIcon } from '../components/icons';
 import { ROUTES } from '../routes';
 import { useServices } from '../hooks/useServices';
@@ -48,7 +50,17 @@ const sections = [
 ];
 
 function HomePage() {
-  const services = useServices();
+  const { services, vps } = useServices();
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  // Карточка VPS открывает модалку с детализацией доступности.
+  const items = useMemo(
+    () =>
+      services.map((service) =>
+        service.id === 'vps' ? { ...service, onClick: () => setDetailsOpen(true) } : service,
+      ),
+    [services],
+  );
 
   return (
     <PageLayout>
@@ -59,13 +71,15 @@ function HomePage() {
         <p> Документация, архивы, фотографии, планы и&nbsp;данные.</p>
       </section>
 
-      <ServiceStats services={services} />
+      <ServiceStats services={items} />
 
       <div id="sections" className="grid">
         {sections.map((section) => (
           <SectionCard key={section.title} {...section} />
         ))}
       </div>
+
+      {detailsOpen && <VpsDetailsModal statuses={vps} onClose={() => setDetailsOpen(false)} />}
     </PageLayout>
   );
 }
