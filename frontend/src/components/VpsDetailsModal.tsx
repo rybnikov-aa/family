@@ -136,7 +136,7 @@ function VpsDetailsModal({
                   {vps.services.length > 0 ? (
                     vps.services.map((service) => (
                       <li key={service.name} className="modal__service">
-                        {/^https?:\/\//i.test(service.address) ? (
+                        {service.type === 'http' ? (
                           <a
                             className="modal__service-name"
                             href={service.address}

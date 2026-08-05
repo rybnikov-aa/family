@@ -49,6 +49,7 @@
 9. **Доработки модалки** → индикаторы сервисов вместо текста, ссылка на панель управления (шестерёнка), IP + кнопка копирования, тултипы, выравнивание.
 10. **Кнопка «Обновить»** → на главной у метрики доступности и в заголовке окна детализации.
 11. **Исправление расчёта** → при недоступных сервисах, но доступном IP, VPS должна показывать 50%, а не 0%.
+12. **Хранилище VPS → SQLite** → список VPS перенесён из `config/vps.json` в SQLite (`node:sqlite`); наполняется вручную, правки в рантайме без пересборки.
 
 ### 3.2. Функциональные требования
 
@@ -62,7 +63,7 @@
 
 - 2.1 Сервис с id `backend` заменён на сервис `vps`.
 - 2.2 Проверка доступности VPS выполняется на бэкенде (`GET /api/vps`).
-- 2.3 Список VPS хранится в отдельном конфиг-файле на бэкенде.
+- 2.3 Список VPS хранится в SQLite на бэкенде (наполняется вручную).
 - 2.4 Каждая запись VPS содержит: страну (ISO-код), отображаемое имя, IP, ссылку на панель хостера, список сервисов.
 
 **FR-3. Проверка доступности VPS.**
@@ -103,7 +104,7 @@
 - **NFR-2. Производительность:** результаты проверки VPS кэшируются на бэкенде (30 с) и дедуплицируются (in-flight); IP-проверка завершается по первой успешной пробе (короткое замыкание).
 - **NFR-3. Адаптивность:** блок состояния и модалка адаптивны (grid/flex, перенос строк).
 - **NFR-4. Доступность (a11y):** кликабельные карточки доступны с клавиатуры (Enter/Space), кнопки имеют `aria-label`, у иконок тултипы.
-- **NFR-5. Конфигурируемость:** список VPS меняется правкой конфиг-файла без изменения кода.
+- **NFR-5. Конфигурируемость:** список VPS хранится в SQLite и меняется правкой БД без изменения кода и пересборки бандла.
 
 ---
 
@@ -123,8 +124,9 @@ family (монорепозиторий, npm workspaces)
 ├── backend/    Express 5 + Vite (vite-plugin-node), pm2
 │   └── src/
 │       ├── app.ts                    — монтаж роутов
-│       ├── config/vps.json           — конфиг VPS
-│       ├── config/vps.ts             — загрузчик + типы
+│       ├── config/vps.ts             — типы + экспорт vpsEntries (из БД)
+│       ├── db/database.ts            — соединение SQLite (node:sqlite)
+│       ├── db/vpsRepository.ts       — чтение VPS из БД
 │       ├── services/vpsChecker.ts    — проверка доступности
 │       ├── controllers/vpsController.ts
 │       └── routes/{health,vps}.ts
@@ -135,43 +137,52 @@ family (монорепозиторий, npm workspaces)
 
 - **Презентация отделена от логики.** `ServiceStats` получает готовый список `ServiceStatus[]` и только рисует; источники данных — хуки.
 - **Проверки — на бэкенде.** Фронтенд не знает, как проверяется доступность; он получает готовые статусы.
-- **Конфигурация декларативная** (JSON), типизируется через загрузчик.
+- **Конфигурация в SQLite.** Список VPS хранится в БД (`backend/data/vps.sqlite`), читается рантаймом; наполняется вручную (через SQL/клиент БД).
 
 ---
 
 ## 5. Данные и конфигурация
 
-### 5.1. Конфиг VPS (`backend/src/config/vps.json`)
+### 5.1. Хранилище VPS — SQLite (`backend/data/vps.sqlite`)
 
-Формат — **JSON** (выбран: без новых зависимостей, нативно типизируется `resolveJsonModule`, Vite бандлит импорт, diff-friendly в git).
+Список VPS хранится в **SQLite** (встроенный модуль `node:sqlite`, без новых зависимостей — в духе изначального выбора JSON). Файл БД лежит по пути из `env.DB_PATH` (по умолчанию `data/vps.sqlite` рядом с бэкендом), не попадает в git и не затирается при деплое.
 
-```json
-{
-  "vps": [
-    {
-      "country": "nl",
-      "name": "jhnl",
-      "ip": "150.251.139.253",
-      "panel": "https://my.justhost.asia/",
-      "services": [
-        {
-          "name": "3x-ui",
-          "type": "http",
-          "address": "https://jhnl.rybnikov.su:51981/qaVfkyoyQYaK6VoMgM"
-        },
-        { "name": "OpenConnect", "type": "ocserv", "address": "jhnl.rybnikov.su" }
-      ]
-    }
-  ]
-}
+Схема (см. `backend/src/db/database.ts`):
+
+```sql
+CREATE TABLE vps (
+  id      INTEGER PRIMARY KEY AUTOINCREMENT,
+  country TEXT NOT NULL,
+  name    TEXT NOT NULL UNIQUE,
+  ip      TEXT NOT NULL,
+  panel   TEXT NOT NULL
+);
+
+CREATE TABLE vps_services (
+  id      INTEGER PRIMARY KEY AUTOINCREMENT,
+  vps_id  INTEGER NOT NULL REFERENCES vps(id) ON DELETE CASCADE,
+  name    TEXT NOT NULL,
+  type    TEXT NOT NULL,
+  address TEXT NOT NULL
+);
 ```
 
-### 5.2. Схема записи VPS
+### 5.2. Наполнение БД
+
+БД наполняется вручную (SQL-скриптом или клиентом SQLite) — автоматического импорта из `vps.json` нет. Схема таблиц создаётся автоматически при первом обращении (`CREATE TABLE IF NOT EXISTS` в `database.ts`). Пример вставки:
+
+```sql
+INSERT INTO vps (country, name, ip, panel) VALUES ('nl', 'jhnl', '150.251.139.253', 'https://my.justhost.asia/');
+INSERT INTO vps_services (vps_id, name, type, address)
+  VALUES (last_insert_rowid(), '3x-ui', 'http', 'https://jhnl.rybnikov.su:51981/qaVfkyoyQYaK6VoMgM');
+```
+
+### 5.3. Схема записи VPS
 
 | Поле                 | Тип    | Описание                                                                                                      |
 | -------------------- | ------ | ------------------------------------------------------------------------------------------------------------- |
 | `country`            | string | ISO-код страны для флага (напр. `eu`, `nl`, `de`); рендерится картинкой с `https://flagcdn.com/{country}.svg` |
-| `name`               | string | Отображаемое имя VPS                                                                                          |
+| `name`               | string | Отображаемое имя VPS (уникальное)                                                                             |
 | `ip`                 | string | IP-адрес для проверки доступности                                                                             |
 | `panel`              | string | Ссылка на панель управления хостера                                                                           |
 | `services[]`         | array  | Список сервисов                                                                                               |
@@ -179,13 +190,13 @@ family (монорепозиторий, npm workspaces)
 | `services[].type`    | string | Тип проверки: `http` / `ocserv`                                                                               |
 | `services[].address` | string | Адрес для проверки (URL или хост:порт)                                                                        |
 
-### 5.3. Типы (бэкенд, `config/vps.ts`)
+### 5.4. Типы (бэкенд, `config/vps.ts`)
 
 - `VpsEntry` — запись конфига (country, name, ip, panel, services).
 - `VpsServiceConfig` — конфигурация сервиса (name, type, address).
 - `VpsStatus extends VpsEntry` — результат проверки VPS (+ `online`, `latencyMs`, `error`, `checkedAt`, `services[]`).
 - `VpsServiceStatus` — результат проверки сервиса (+ `online`, `latencyMs`, `error`).
-- Валидация: неполные записи/сервисы отбрасываются (лог-предупреждение).
+- Загрузка: `vpsEntries` читается из БД через `db/vpsRepository.ts` при старте модуля.
 
 ---
 
@@ -356,7 +367,7 @@ $$
 ### 11.2. Сервис VPS
 
 - [ ] В блоке есть карточка VPS (заменяет прежний «бэкенд»).
-- [ ] Список VPS хранится в `backend/src/config/vps.json`; правка конфига меняет проверку без изменения кода.
+- [ ] Список VPS хранится в SQLite (`backend/data/vps.sqlite`); правка БД меняет проверку без изменения кода и пересборки.
 - [ ] Каждая запись содержит `country`, `name`, `ip`, `panel`, `services[]`.
 
 ### 11.3. Проверка доступности
@@ -394,16 +405,16 @@ $$
 
 ### 11.8. Трассируемость требований
 
-| Требование                    | Критерии приёмки | Реализация                                                                  |
-| ----------------------------- | ---------------- | --------------------------------------------------------------------------- |
-| FR-1 Блок состояния сервисов  | §11.1            | `ServiceStats`, `useServices`, `types/service.ts`, `icons.tsx`              |
-| FR-2 Сервис VPS               | §11.2            | `backend/config/vps.json`, `backend/config/vps.ts`, `backend/routes/vps.ts` |
-| FR-3 Проверка доступности VPS | §11.3            | `backend/services/vpsChecker.ts`                                            |
-| FR-4 Процент доступности      | §11.4            | `frontend/utils/availability.ts`, `hooks/useServices.ts`                    |
-| FR-5 Детализация              | §11.5            | `VpsDetailsModal.tsx`, `icons.tsx`                                          |
-| FR-6 Кнопка «Обновить»        | §11.6            | `useVps.ts`, `api/client.ts`, `ServiceStats.tsx`, `VpsDetailsModal.tsx`     |
-| FR-7 Тема и иконки            | §11.7            | `ThemeToggle.tsx`, `icons.tsx`, `index.css`                                 |
-| NFR-1…NFR-5                   | раздел 3.3       | см. карту файлов (§14)                                                      |
+| Требование                    | Критерии приёмки | Реализация                                                                                                |
+| ----------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------- |
+| FR-1 Блок состояния сервисов  | §11.1            | `ServiceStats`, `useServices`, `types/service.ts`, `icons.tsx`                                            |
+| FR-2 Сервис VPS               | §11.2            | `backend/db/database.ts`, `backend/db/vpsRepository.ts`, `backend/config/vps.ts`, `backend/routes/vps.ts` |
+| FR-3 Проверка доступности VPS | §11.3            | `backend/services/vpsChecker.ts`                                                                          |
+| FR-4 Процент доступности      | §11.4            | `frontend/utils/availability.ts`, `hooks/useServices.ts`                                                  |
+| FR-5 Детализация              | §11.5            | `VpsDetailsModal.tsx`, `icons.tsx`                                                                        |
+| FR-6 Кнопка «Обновить»        | §11.6            | `useVps.ts`, `api/client.ts`, `ServiceStats.tsx`, `VpsDetailsModal.tsx`                                   |
+| FR-7 Тема и иконки            | §11.7            | `ThemeToggle.tsx`, `icons.tsx`, `index.css`                                                               |
+| NFR-1…NFR-5                   | раздел 3.3       | см. карту файлов (§14)                                                                                    |
 
 ### 11.9. Поведенческие сценарии (Given/When/Then)
 
@@ -452,16 +463,16 @@ $$
 
 ## 12. Решения и обоснования (ADR-lite)
 
-| #     | Решение                                                          | Альтернативы           | Обоснование                                                                                               |
-| ----- | ---------------------------------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------- |
-| ADR-1 | Конфиг VPS — JSON-файл                                           | YAML/TOML/TS-файл      | Без новых зависимостей; `resolveJsonModule` уже включён; Vite бандлит импорт; типизируется; diff-friendly |
-| ADR-2 | Проверка VPS на бэкенде, фронт только рисует                     | Проверка на фронтенде  | Единая точка проверки, кэш, доступ к сети из Node                                                         |
-| ADR-3 | Флаг — ISO-код страны + flagcdn                                  | Эмодзи-флаги           | Windows не рендерит эмодзи-флаги (показывает «EU» буквами)                                                |
-| ADR-4 | IP-проверка: базовые порты 22/443/80 + порты сервисов            | Только порты сервисов  | Развязка «машина жива» от «сервис работает» → IP доступен, сервис лежит = 50%, а не 0%                    |
-| ADR-5 | ocserv: TCP 443 + UDP/DTLS-проба                                 | Только TCP             | OpenConnect использует UDP/DTLS; TCP может быть закрыт при живом канале                                   |
-| ADR-6 | Кликабельная карточка VPS — `<div role="button">`, не `<button>` | `<button>`             | Позволяет вложить кнопку «Обновить» (невалидно «button в button»)                                         |
-| ADR-7 | Кнопка «Обновить» — внутри карточки рядом со значением           | Отдельная ячейка грида | Не ломает сетку статистики; интуитивно «рядом с метрикой»                                                 |
-| ADR-8 | `fetchVps(force)` → `?refresh=1`                                 | Опрос по таймеру       | Явное действие пользователя, без лишнего трафика                                                          |
+| #     | Решение                                                          | Альтернативы                           | Обоснование                                                                                                              |
+| ----- | ---------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| ADR-1 | Хранилище VPS — SQLite (`node:sqlite`)                           | JSON/YAML/TOML/TS-файл, better-sqlite3 | Без новых зависимостей (встроенный `node:sqlite`); правки в рантайме без пересборки бандла; в будущем — история проверок |
+| ADR-2 | Проверка VPS на бэкенде, фронт только рисует                     | Проверка на фронтенде                  | Единая точка проверки, кэш, доступ к сети из Node                                                                        |
+| ADR-3 | Флаг — ISO-код страны + flagcdn                                  | Эмодзи-флаги                           | Windows не рендерит эмодзи-флаги (показывает «EU» буквами)                                                               |
+| ADR-4 | IP-проверка: базовые порты 22/443/80 + порты сервисов            | Только порты сервисов                  | Развязка «машина жива» от «сервис работает» → IP доступен, сервис лежит = 50%, а не 0%                                   |
+| ADR-5 | ocserv: TCP 443 + UDP/DTLS-проба                                 | Только TCP                             | OpenConnect использует UDP/DTLS; TCP может быть закрыт при живом канале                                                  |
+| ADR-6 | Кликабельная карточка VPS — `<div role="button">`, не `<button>` | `<button>`                             | Позволяет вложить кнопку «Обновить» (невалидно «button в button»)                                                        |
+| ADR-7 | Кнопка «Обновить» — внутри карточки рядом со значением           | Отдельная ячейка грида                 | Не ломает сетку статистики; интуитивно «рядом с метрикой»                                                                |
+| ADR-8 | `fetchVps(force)` → `?refresh=1`                                 | Опрос по таймеру                       | Явное действие пользователя, без лишнего трафика                                                                         |
 
 ---
 
@@ -480,8 +491,9 @@ $$
 **Бэкенд**
 
 - `backend/src/app.ts` — монтаж роутов (`/api/health`, `/api/vps`).
-- `backend/src/config/vps.json` — конфиг VPS (декларативный).
-- `backend/src/config/vps.ts` — типы и загрузчик конфига.
+- `backend/src/config/vps.ts` — типы и экспорт `vpsEntries` (из БД).
+- `backend/src/db/database.ts` — соединение SQLite (`node:sqlite`), схема.
+- `backend/src/db/vpsRepository.ts` — чтение VPS из БД.
 - `backend/src/services/vpsChecker.ts` — IP-проверка + проверка сервисов + кэш.
 - `backend/src/controllers/vpsController.ts`, `backend/src/routes/vps.ts` — эндпоинт.
 - `backend/src/controllers/healthController.ts`, `backend/src/routes/health.ts` — health.

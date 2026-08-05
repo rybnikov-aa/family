@@ -58,3 +58,11 @@ temp/
 # Archives / packages
 *.tgz
 *.zip
+
+# SQLite databases (runtime data, not source)
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.db-shm
+*.db-wal

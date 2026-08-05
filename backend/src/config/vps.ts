@@ -1,6 +1,6 @@
-import rawVpsConfig from './vps.json';
+import { loadVpsEntries } from '../db/vpsRepository';
 
-/** Конфигурация сервиса внутри VPS (файл config/vps.json). */
+/** Конфигурация сервиса внутри VPS. */
 export interface VpsServiceConfig {
   /** Отображаемое имя сервиса, напр. «3x-ui» */
   name: string;
@@ -10,9 +10,9 @@ export interface VpsServiceConfig {
   address: string;
 }
 
-/** Запись конфигурации VPS (файл config/vps.json). */
+/** Запись конфигурации VPS. */
 export interface VpsEntry {
-  /** ISO-код страны расположения (для флага), напр. «eu» */
+  /** ISO-код страны расположения (для флага), напр. «nl» */
   country: string;
   /** Отображаемое имя VPS */
   name: string;
@@ -48,51 +48,12 @@ export interface VpsStatus extends VpsEntry {
   services: VpsServiceStatus[];
 }
 
-interface VpsConfig {
-  vps: VpsEntry[];
-}
-
-function isVpsServiceConfig(value: unknown): value is VpsServiceConfig {
-  if (typeof value !== 'object' || value === null) return false;
-  const service = value as Record<string, unknown>;
-  return (
-    typeof service.name === 'string' &&
-    typeof service.type === 'string' &&
-    typeof service.address === 'string'
-  );
-}
-
-function isVpsEntry(value: unknown): value is VpsEntry {
-  if (typeof value !== 'object' || value === null) return false;
-  const entry = value as Record<string, unknown>;
-  return (
-    typeof entry.country === 'string' &&
-    typeof entry.name === 'string' &&
-    typeof entry.ip === 'string' &&
-    typeof entry.panel === 'string' &&
-    Array.isArray(entry.services) &&
-    entry.services.every(isVpsServiceConfig)
-  );
-}
-
-function loadVpsEntries(): VpsEntry[] {
-  const config = rawVpsConfig as VpsConfig;
-  if (!Array.isArray(config.vps)) {
-    console.warn('[vps] Конфиг config/vps.json не содержит массив "vps"');
-    return [];
-  }
-  return config.vps.filter(isVpsEntry).map((entry) => ({
-    country: entry.country,
-    name: entry.name,
-    ip: entry.ip.trim(),
-    panel: entry.panel,
-    services: entry.services.map((service) => ({
-      name: service.name,
-      type: service.type,
-      address: service.address.trim(),
-    })),
-  }));
-}
-
-/** Список VPS из конфигурации. */
+/**
+ * Список VPS из базы данных SQLite.
+ *
+ * Данные читаются из SQLite при первом обращении — это позволяет
+ * менять состав VPS без пересборки бандла.
+ *
+ * Загружается один раз при старте модуля (состав VPS меняется редко).
+ */
 export const vpsEntries: VpsEntry[] = loadVpsEntries();
