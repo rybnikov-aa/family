@@ -1,15 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 import type { VpsStatus } from '../api/client';
-import { CheckIcon, CopyIcon, SettingsIcon } from './icons';
+import { CheckIcon, CopyIcon, RefreshIcon, SettingsIcon } from './icons';
 import { availabilityState, overallAvailability, vpsAvailability } from '../utils/availability';
 
 interface VpsDetailsModalProps {
   /** Сырые статусы VPS для детализации */
   statuses: VpsStatus[];
   onClose: () => void;
+  /** Принудительно перепроверить статусы VPS */
+  onRefresh?: () => void;
+  /** Идёт ли сейчас обновление */
+  refreshing?: boolean;
 }
 
-function VpsDetailsModal({ statuses, onClose }: VpsDetailsModalProps) {
+function VpsDetailsModal({
+  statuses,
+  onClose,
+  onRefresh,
+  refreshing = false,
+}: VpsDetailsModalProps) {
   const overall = overallAvailability(statuses);
   const [copiedIp, setCopiedIp] = useState<string | null>(null);
   const copyTimerRef = useRef<number | null>(null);
@@ -53,9 +62,23 @@ function VpsDetailsModal({ statuses, onClose }: VpsDetailsModalProps) {
       >
         <div className="modal__head">
           <h3>Доступность VPS</h3>
-          <button type="button" className="modal__close" onClick={onClose} aria-label="Закрыть">
-            ✕
-          </button>
+          <div className="modal__head-actions">
+            {onRefresh && (
+              <button
+                type="button"
+                className={`modal__refresh${refreshing ? ' modal__refresh--spinning' : ''}`}
+                onClick={onRefresh}
+                aria-label="Обновить"
+                title="Обновить"
+                disabled={refreshing}
+              >
+                <RefreshIcon />
+              </button>
+            )}
+            <button type="button" className="modal__close" onClick={onClose} aria-label="Закрыть">
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="modal__summary">
@@ -113,15 +136,21 @@ function VpsDetailsModal({ statuses, onClose }: VpsDetailsModalProps) {
                   {vps.services.length > 0 ? (
                     vps.services.map((service) => (
                       <li key={service.name} className="modal__service">
-                        <a
-                          className="modal__service-name"
-                          href={service.address}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title={service.address}
-                        >
-                          {service.name}
-                        </a>
+                        {/^https?:\/\//i.test(service.address) ? (
+                          <a
+                            className="modal__service-name"
+                            href={service.address}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={service.address}
+                          >
+                            {service.name}
+                          </a>
+                        ) : (
+                          <span className="modal__service-name" title={service.address}>
+                            {service.name}
+                          </span>
+                        )}
                         <span
                           className={`modal__service-dot modal__service-dot--${
                             service.online ? 'ok' : 'error'

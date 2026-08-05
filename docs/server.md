@@ -35,7 +35,7 @@ DEPLOY_PM2_APP=family-backend
 | Что                               | Путь на сервере                                 |
 | --------------------------------- | ----------------------------------------------- |
 | Конфиг vhost (family.rybnikov.su) | `/etc/nginx/sites-available/family.rybnikov.su` |
-| Полный конфиг (в репозитории)     | `family.rybnikov.su.md` (корень репо, раздел 2) |
+| Полный конфиг (в репозитории)     | `docs/server.md` (раздел 2)                     |
 | Access-лог                        | `/var/log/nginx/family.rybnikov.su_access.log`  |
 | Error-лог                         | `/var/log/nginx/family.rybnikov.su_error.log`   |
 

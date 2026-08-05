@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { fetchVps, type VpsStatus } from '../api/client';
 
-/** Результат запроса статусов VPS: список, ошибка и признак загрузки. */
+/** Результат запроса статусов VPS: список, ошибка, загрузка и перезагрузка. */
 interface UseVpsResult {
   statuses: VpsStatus[];
   error: string | null;
   loading: boolean;
+  /** Принудительно перепроверить статусы (с обходом кэша на бэкенде) */
+  refresh: () => void;
 }
 
 export function useVps(): UseVpsResult {
@@ -32,5 +34,14 @@ export function useVps(): UseVpsResult {
     };
   }, []);
 
-  return { statuses, error, loading };
+  const refresh = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    fetchVps(true)
+      .then((result) => setStatuses(result))
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Unknown error'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { statuses, error, loading, refresh };
 }

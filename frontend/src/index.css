@@ -317,7 +317,7 @@ body {
 }
 
 /* Clickable stat item */
-button.stat-item {
+.stat-item--clickable {
   border: none;
   background: none;
   padding: 0;
@@ -327,14 +327,61 @@ button.stat-item {
   text-align: left;
   cursor: pointer;
 }
-button.stat-item:hover .stat-item__icon {
+.stat-item--clickable:hover .stat-item__icon {
   background: color-mix(in srgb, var(--accent) 18%, transparent);
   color: var(--link-hover);
 }
-button.stat-item:focus-visible {
+.stat-item--clickable:focus-visible {
   outline: 2px solid var(--link-hover);
   outline-offset: 2px;
   border-radius: 12px;
+}
+.stat-item__value-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Кнопка обновления рядом со значением доступности */
+.stat-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.stat-refresh svg {
+  width: 14px;
+  height: 14px;
+}
+.stat-refresh:hover:not(:disabled) {
+  color: var(--link-hover);
+  background: var(--surface-muted);
+}
+.stat-refresh:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* Вращение иконки при обновлении */
+.stat-refresh--spinning svg,
+.modal__refresh--spinning svg {
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Modal: детализация доступности VPS */
@@ -390,6 +437,39 @@ button.stat-item:focus-visible {
 .modal__close:hover {
   color: var(--text);
   background: var(--surface-hover);
+}
+.modal__head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.modal__refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.modal__refresh svg {
+  width: 16px;
+  height: 16px;
+}
+.modal__refresh:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.modal__refresh:disabled {
+  cursor: default;
+  opacity: 0.7;
 }
 .modal__summary {
   font-size: 0.9rem;

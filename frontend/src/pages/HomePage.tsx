@@ -50,7 +50,7 @@ const sections = [
 ];
 
 function HomePage() {
-  const { services, vps } = useServices();
+  const { services, vps, loading, refresh } = useServices();
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   // Карточка VPS открывает модалку с детализацией доступности.
@@ -71,7 +71,7 @@ function HomePage() {
         <p> Документация, архивы, фотографии, планы и&nbsp;данные.</p>
       </section>
 
-      <ServiceStats services={items} />
+      <ServiceStats services={items} onRefresh={refresh} refreshing={loading} />
 
       <div id="sections" className="grid">
         {sections.map((section) => (
@@ -79,7 +79,14 @@ function HomePage() {
         ))}
       </div>
 
-      {detailsOpen && <VpsDetailsModal statuses={vps} onClose={() => setDetailsOpen(false)} />}
+      {detailsOpen && (
+        <VpsDetailsModal
+          statuses={vps}
+          onClose={() => setDetailsOpen(false)}
+          onRefresh={refresh}
+          refreshing={loading}
+        />
+      )}
     </PageLayout>
   );
 }

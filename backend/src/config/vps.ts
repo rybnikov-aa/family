@@ -4,7 +4,7 @@ import rawVpsConfig from './vps.json';
 export interface VpsServiceConfig {
   /** Отображаемое имя сервиса, напр. «3x-ui» */
   name: string;
-  /** Тип проверки, напр. «http» */
+  /** Тип проверки: «http» (HTTP(S) GET) или «ocserv» (OpenConnect VPN) */
   type: string;
   /** Адрес для проверки, напр. «https://jhnl.rybnikov.su:51981/...» */
   address: string;

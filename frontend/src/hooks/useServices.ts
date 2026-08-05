@@ -10,6 +10,10 @@ export interface UseServicesResult {
   services: ServiceStatus[];
   /** Сырые статусы VPS (для детализации) */
   vps: VpsStatus[];
+  /** Идёт ли загрузка/обновление статусов VPS */
+  loading: boolean;
+  /** Принудительно перепроверить статусы VPS */
+  refresh: () => void;
 }
 
 /**
@@ -20,7 +24,7 @@ export interface UseServicesResult {
  * (GET /api/vps): доступность по IP (0.5) + доступность сервисов (0.5).
  */
 export function useServices(): UseServicesResult {
-  const { statuses, error, loading } = useVps();
+  const { statuses, error, loading, refresh } = useVps();
 
   const services = useMemo<ServiceStatus[]>(() => {
     const total = statuses.length;
@@ -72,5 +76,5 @@ export function useServices(): UseServicesResult {
     ];
   }, [statuses, error, loading]);
 
-  return { services, vps: statuses };
+  return { services, vps: statuses, loading, refresh };
 }

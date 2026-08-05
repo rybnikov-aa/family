@@ -1,10 +1,15 @@
 import type { ServiceStatus } from '../types/service';
+import { RefreshIcon } from './icons';
 
 interface ServiceStatsProps {
   /** Список сервисов с их состоянием */
   services: ServiceStatus[];
   /** Идёт ли сейчас обновление состояния (напр. периодическая проверка) */
   loading?: boolean;
+  /** Обработчик принудительного обновления */
+  onRefresh?: () => void;
+  /** Идёт ли сейчас обновление */
+  refreshing?: boolean;
 }
 
 /**
@@ -12,7 +17,12 @@ interface ServiceStatsProps {
  * Получает готовый список сервисов (с состояниями) извне и только отрисовывает его,
  * поэтому реальная логика проверки подключается отдельно — без изменения этого компонента.
  */
-function ServiceStats({ services, loading = false }: ServiceStatsProps) {
+function ServiceStats({
+  services,
+  loading = false,
+  onRefresh,
+  refreshing = false,
+}: ServiceStatsProps) {
   return (
     <div className="stats" role="list" aria-label="Состояние сервисов" aria-busy={loading}>
       {services.map((service) => {
@@ -36,17 +46,54 @@ function ServiceStats({ services, loading = false }: ServiceStatsProps) {
         );
 
         // Кликабельная карточка (например, VPS — открывает детализацию).
+        // Рядом со значением доступности выводим кнопку «Обновить».
         if (service.onClick) {
           return (
-            <button
-              type="button"
+            <div
               className="stat-item stat-item--clickable"
+              role="button"
+              tabIndex={0}
               key={service.id}
               onClick={service.onClick}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  service.onClick?.();
+                }
+              }}
               title={`Детали: ${service.label}`}
             >
-              {body}
-            </button>
+              <span
+                className={`stat-item__dot stat-item__dot--${service.state}`}
+                aria-hidden="true"
+              />
+              <span className="stat-item__icon" aria-hidden="true">
+                <Icon />
+              </span>
+              <div className="stat-item__info">
+                <span className="stat-item__value-row">
+                  <span className="stat-item__value">{service.value}</span>
+                  {onRefresh && (
+                    <button
+                      type="button"
+                      className={`stat-refresh${refreshing ? ' stat-refresh--spinning' : ''}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onRefresh();
+                      }}
+                      aria-label="Обновить"
+                      title="Обновить"
+                      disabled={refreshing}
+                    >
+                      <RefreshIcon />
+                    </button>
+                  )}
+                </span>
+                <span className="stat-item__label">
+                  {service.href ? <a href={service.href}>{service.label}</a> : service.label}
+                </span>
+              </div>
+            </div>
           );
         }
 

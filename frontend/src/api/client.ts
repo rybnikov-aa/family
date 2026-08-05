@@ -36,8 +36,8 @@ export interface VpsStatus {
   checkedAt: string;
 }
 
-export async function fetchVps(): Promise<VpsStatus[]> {
-  const res = await fetch(`${API_BASE}/vps`);
+export async function fetchVps(force = false): Promise<VpsStatus[]> {
+  const res = await fetch(`${API_BASE}/vps${force ? '?refresh=1' : ''}`);
   if (!res.ok) {
     throw new Error(`Request failed with status ${res.status}`);
   }
