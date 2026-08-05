@@ -1,0 +1,120 @@
+<!doctype html>
+<!--
+  ============================================================================
+  ШАБЛОН страницы проекта (раздел «Проекты» family.rybnikov.su)
+
+  Проект — это подпапка на сервере (в корне сайта public_html) с index.html.
+  Этот файл — заготовка: скопируйте папку _template в папку с именем проекта,
+  например projects/my-project/, отредактируйте содержимое <main> и мета-теги.
+
+  Чтобы проект появился в разделе «Проекты», достаточно положить его
+  подпапку с index.html в корень сайта — бэкенд подхватит её автоматически
+  (GET /api/projects сканирует подпапки с index.html).
+
+  Мета-теги для списка проектов:
+    <meta name="project-title"  content="Короткое название">  (карточка в списке)
+    <meta name="description"    content="Описание проекта">   (подпись в карточке)
+    <meta name="project-accent" content="#e8872e">            (акцентный цвет карточки)
+    <meta name="project-icon"   content="projects">           (иконка: renovation | folder | projects)
+    <meta name="project-order"  content="1">                  (порядок в списке)
+
+  Стиль и тема:
+    - Общие стили:            /projects/styles.css
+    - Тема (light/dark/system): читается из localStorage['theme'] (общая для
+      всего домена) — inline-скриптом в <head> (без «мигания») + /projects/theme.js
+    - Акцентный цвет проекта: CSS-переменная --project-accent (см. <style> ниже)
+
+  Обратные ссылки на приложение (hash-роутинг):
+    Главная — /#/  |  Новости — /#/news  |  Проекты — /#/projects
+  ============================================================================
+-->
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Применяем сохранённую тему до отрисовки, чтобы не было «мигания». -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+
+    <!-- Метаданные для списка проектов (GET /api/projects) -->
+    <meta name="project-title" content="Название проекта" />
+    <meta name="description" content="Краткое описание проекта для карточки в разделе «Проекты»." />
+    <meta name="project-accent" content="#3b82f6" />
+    <meta name="project-icon" content="projects" />
+    <meta name="project-order" content="1" />
+
+    <title>Название проекта • family.rybnikov.su</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Общие стили страниц проектов (дизайн + тема приложения) -->
+    <link rel="stylesheet" href="/projects/styles.css" />
+
+    <!-- Акцентный цвет проекта (используется в иконках, ховерах, акцентах) -->
+    <style>
+      :root {
+        --project-accent: #3b82f6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <a href="/#/" class="brand">
+          <h1><span class="brand-mark">🏠</span>Семейное пространство</h1>
+        </a>
+        <div class="header-actions">
+          <nav class="nav">
+            <a href="/#/">Главная</a>
+            <a href="/#/news">Новости</a>
+            <a href="/#/projects" class="active">Проекты</a>
+          </nav>
+          <div class="theme-toggle" data-theme-toggle></div>
+        </div>
+      </header>
+
+      <main class="page">
+        <h1>Название проекта</h1>
+        <p class="page__sub">
+          Здесь будет краткое описание проекта: что это, для кого и какие разделы внутри.
+        </p>
+
+        <!-- Контент проекта: замените этот блок на содержимое вашего проекта. -->
+        <h2>Раздел проекта</h2>
+        <p>
+          Текст раздела. Добавляйте свои блоки: текст, таблицы, изображения, ссылки на подстраницы
+          проекта.
+        </p>
+      </main>
+
+      <footer class="footer">
+        <span>© 2026 family.rybnikov.su</span>
+        <span>
+          <a href="/#/">Главная</a>
+          <a href="/#/news">Новости</a>
+          <a href="/#/projects">Проекты</a>
+        </span>
+      </footer>
+    </div>
+
+    <!-- Тема: рендер переключателя + слежение за системной темой -->
+    <script src="/projects/theme.js" defer></script>
+  </body>
+</html>

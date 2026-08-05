@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { env } from './config/env';
 import { healthRouter } from './routes/health';
 import { vpsRouter } from './routes/vps';
+import { projectsRouter } from './routes/projects';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler';
 
 // Express application. Exported so that `vite-plugin-node`
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 // API routes
 app.use('/api/health', healthRouter);
 app.use('/api/vps', vpsRouter);
+app.use('/api/projects', projectsRouter);
 
 // 404 + error handling
 app.use(notFoundHandler);

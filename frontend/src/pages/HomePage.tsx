@@ -3,27 +3,11 @@ import SectionCard from '../components/SectionCard';
 import PageLayout from '../components/PageLayout';
 import ServiceStats from '../components/ServiceStats';
 import VpsDetailsModal from '../components/VpsDetailsModal';
-import { RenovationIcon, DiaryIcon, NewsIcon, PhotoIcon, PlansIcon } from '../components/icons';
+import { DiaryIcon, NewsIcon, PhotoIcon, PlansIcon, ProjectsIcon } from '../components/icons';
 import { ROUTES } from '../routes';
 import { useServices } from '../hooks/useServices';
 
 const sections = [
-  {
-    icon: RenovationIcon,
-    color: '#e8872e',
-    title: 'Ремонт',
-    description: 'Техническая документация, фотофиксация, сметы и логи.',
-    tag: '→ активный проект',
-    href: '/renovation/',
-    highlight: true,
-  },
-  {
-    icon: DiaryIcon,
-    color: '#3b82f6',
-    title: 'Дневник',
-    description: 'События, даты, маршруты. Хронология семьи.',
-    tag: 'архив',
-  },
   {
     icon: NewsIcon,
     color: '#14b8a6',
@@ -33,12 +17,27 @@ const sections = [
     href: ROUTES.news,
   },
   {
+    icon: DiaryIcon,
+    color: '#3b82f6',
+    title: 'Дневник',
+    description: 'События, даты, маршруты. Хронология семьи.',
+    tag: 'архив',
+  },
+  {
     icon: PhotoIcon,
     color: '#a855f7',
     title: 'Фотоархив',
     description: 'Снимки, события, люди. Визуальный ряд.',
     tag: 'медиатека',
     href: 'https://immich.rybnikov-aa-home.netcraze.link/',
+  },
+  {
+    icon: ProjectsIcon,
+    color: '#0ea5e9',
+    title: 'Проекты',
+    description: 'Отдельные подпроекты: документация, отчёты и архивы.',
+    tag: 'каталог',
+    href: ROUTES.projects,
   },
   {
     icon: PlansIcon,

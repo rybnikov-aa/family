@@ -15,6 +15,30 @@ export async function fetchHealth(): Promise<HealthResponse> {
   return res.json() as Promise<HealthResponse>;
 }
 
+/**
+ * Метаданные проекта (раздел «Проекты»).
+ * Проект — подпапка на сервере с `index.html`; метаданные бэкенд читает
+ * из самого `index.html` (`<title>`, `<meta name="description">` и т.п.).
+ */
+export interface Project {
+  slug: string;
+  title: string;
+  description: string;
+  accent: string;
+  /** Имя иконки (например, `renovation`); пусто — иконка по умолчанию. */
+  icon: string;
+  url: string;
+}
+
+/** Список проектов: `GET /api/projects`. */
+export async function fetchProjects(): Promise<Project[]> {
+  const res = await fetch(`${API_BASE}/projects`);
+  if (!res.ok) {
+    throw new Error(`Request failed with status ${res.status}`);
+  }
+  return res.json() as Promise<Project[]>;
+}
+
 export interface VpsServiceStatus {
   name: string;
   type: string;

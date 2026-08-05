@@ -178,20 +178,6 @@ body {
   border-bottom-color: var(--link-hover);
   color: var(--link-hover);
 }
-.nav a.renov-link {
-  background: var(--accent);
-  color: var(--accent-text);
-  padding: 8px 20px;
-  border-radius: 40px;
-  border-bottom: none;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: 0.2s;
-}
-.nav a.renov-link:hover {
-  background: var(--accent-hover);
-  color: var(--accent-text);
-}
 .nav .nav-anchor {
   background: none;
   border: none;
@@ -1175,6 +1161,11 @@ select.vps-form__control {
 .page__icon svg {
   width: 27px;
   height: 27px;
+}
+/* Акцент иконки заголовка страницы «Проекты» */
+.page__icon--projects {
+  background: color-mix(in srgb, #0ea5e9 14%, transparent);
+  color: #0ea5e9;
 }
 .page__head h2 {
   font-size: 1.8rem;

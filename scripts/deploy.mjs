@@ -9,6 +9,8 @@
  *   4. On the server: extract to
  *        - /var/www/family.rybnikov.su/public_html  (frontend)
  *        - /var/www/family.rybnikov.su/server       (backend)
+ *      Projects (subfolder sites: /renovation/, ...) are copied from the
+ *      repo's projects/ folder into public_html/<slug>/.
  *   5. Install production deps (npm install --omit=dev)
  *   6. Restart the backend under pm2 (family-backend)
  *
@@ -199,6 +201,24 @@ find "$PUBLIC" -maxdepth 1 -type f -delete
 rm -rf "$PUBLIC/assets"
 cp -a /tmp/family-deploy/frontend/. "$PUBLIC"/
 
+# 2b. Copy projects (subfolder sites: /renovation/ etc.) into the web root.
+#     Only folders present in the repo are overwritten; other subfolders on
+#     the server are preserved. Existing project folders are backed up to
+#     /tmp/family-projects-backup-<timestamp> before being overwritten.
+if [ -d /tmp/family-deploy/projects ]; then
+  BACKUP="/tmp/family-projects-backup-$(date +%Y%m%d%H%M%S)"
+  mkdir -p "$BACKUP"
+  for p in /tmp/family-deploy/projects/*/; do
+    [ -d "$p" ] || continue
+    name=$(basename "$p")
+    if [ -d "$PUBLIC/$name" ]; then
+      cp -a "$PUBLIC/$name" "$BACKUP/"
+    fi
+  done
+  cp -a /tmp/family-deploy/projects/. "$PUBLIC"/
+  echo "[deploy] Projects copied to $PUBLIC (backup: $BACKUP)"
+fi
+
 # 3. Replace backend files (server).
 #    The folder itself is kept; .env and data/ (SQLite DB) are preserved.
 mkdir -p "$SERVER"
@@ -342,10 +362,30 @@ function main() {
       if (existsSync(p)) copyFileSync(p, join(stageBackend, file));
     }
 
+    // Projects -> public_html/<slug>/ (subfolder sites: renovation/, ...).
+    // Every entry (shared files styles.css/theme.js AND project folders) is
+    // deployed; service entries starting with '_' (e.g. _template) are skipped.
+    const stageProjects = join(staging, 'projects');
+    let haveProjects = false;
+    const projectsRoot = join(ROOT, 'projects');
+    if (existsSync(projectsRoot)) {
+      mkdirSync(stageProjects, { recursive: true });
+      for (const entry of readdirSync(projectsRoot, { withFileTypes: true })) {
+        if (entry.name.startsWith('_')) continue;
+        cpSync(join(projectsRoot, entry.name), join(stageProjects, entry.name), {
+          recursive: true,
+          force: true,
+        });
+        haveProjects = true;
+      }
+    }
+
     // 3) Create the archive
     const archive = join(staging, 'family-deploy.tar.gz');
     log('Creating deployment archive...');
-    run('tar', ['-czf', archive, '-C', staging, 'frontend', 'backend']);
+    const tarArgs = ['-czf', archive, '-C', staging, 'frontend', 'backend'];
+    if (haveProjects) tarArgs.push('projects');
+    run('tar', tarArgs);
 
     // Remote script (runs on the server)
     const remoteScript = buildRemoteScript();

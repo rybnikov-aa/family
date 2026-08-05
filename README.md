@@ -23,6 +23,12 @@ graph TD
 │   ├── specification.md      # спецификация (Specification Driven Development)
 │   └── server.md             # справочник по серверу/nginx/SSL/деплою
 │
+├── projects/                 # статичные страницы проектов (шаблон + подпапки)
+│   ├── styles.css            # общий дизайн/тема страниц проектов
+│   ├── theme.js              # тема (light/dark/system) для страниц проектов
+│   ├── _template/index.html  # шаблон новой страницы проекта (в деплой не попадает)
+│   └── renovation/index.html # проект «Ремонт» (отчётность, в стиле приложения)
+│
 ├── frontend/                 # React + TypeScript + Vite
 │   ├── package.json
 │   ├── tsconfig.json
@@ -79,6 +85,7 @@ npm install
 - **Фронтенд** запускается через Vite dev-сервер на порту `5173`. Запросы к `/api/*` проксируются на бэкенд (`vite.config.ts`), поэтому в разработке не нужен CORS.
 - **Бэкенд** запускается через Vite c плагином `vite-plugin-node` — Express-приложение получает горячую перезагрузку при изменении кода. Приложение экспортируется из `src/app.ts`; при прямом запуске собранного `dist/app.cjs` (`npm start`) оно само стартует сервер на порту из `PORT`.
 - **Хранилище VPS** — SQLite (встроенный `node:sqlite`, без новых зависимостей). Файл БД — `backend/data/vps.sqlite` (путь через `DB_PATH`), наполняется вручную, через форму добавления VPS в UI (`POST /api/vps`), импортом из JSON-файла структуры `vps.json` (`POST /api/vps/import`) или удаляется через кнопку-корзину в детализации (`DELETE /api/vps/:name`); схема таблиц создаётся автоматически при первом обращении. В git не попадает, при деплое не затирается.
+- **Раздел «Проекты»** — проект это подпапка на сервере с `index.html`. Список проектов динамический: `GET /api/projects` сканирует каталог `PROJECTS_DIR` (по умолчанию `../public_html`). Страницы проектов используют общий шаблон `projects/` (стиль и тема приложения; тема — общий `localStorage['theme']`). Добавление проекта = новая подпапка с `index.html` (мета-теги `project-title`, `description`, `project-accent`, `project-order`).
 - **Общие dev-зависимости** (`typescript`, `vite`, `@vitejs/plugin-react`, `vite-plugin-node`, `@types/*`, `prettier`, `concurrently`) подняты в корневой `package.json`, рантайм-зависимости лежат в `frontend/` и `backend/` соответственно.
 
 ## Конфигурация окружения (файлы `.env`)
@@ -88,11 +95,11 @@ npm install
 | Файл            | Кто читает                                  | Переменные                                                                                                                     |
 | --------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Корневой `.env` | `scripts/deploy.mjs` (деплой)               | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH` |
-| `backend/.env`  | Бэкенд (`src/config/env.ts` через `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`                                                                                   |
+| `backend/.env`  | Бэкенд (`src/config/env.ts` через `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `PROJECTS_DIR`                                                                   |
 | `frontend/.env` | Vite (только `VITE_*`)                      | `VITE_API_BASE_URL`                                                                                                            |
 
 - **Корневой `.env` / `.env.example`** — конфигурация **деплоя** (SSH-хост, пользователь, пути на сервере, имя pm2-приложения). Загружается `scripts/deploy.mjs` собственным мини-загрузчиком. Шаблон — `.env.example` в корне.
-- **`backend/.env.example`** — конфигурация **рантайма бэкенда**: порт API (`PORT`), разрешённый CORS-origin (`CORS_ORIGIN`), окружение (`NODE_ENV`), путь к SQLite-базе (`DB_PATH`, по умолчанию `data/vps.sqlite`). В dev подхватывается `dotenv` из `backend/.env`; в проде — из `server/.env`, который сохраняется при деплое.
+- **`backend/.env.example`** — конфигурация **рантайма бэкенда**: порт API (`PORT`), разрешённый CORS-origin (`CORS_ORIGIN`), окружение (`NODE_ENV`), путь к SQLite-базе (`DB_PATH`, по умолчанию `data/vps.sqlite`), каталог проектов (`PROJECTS_DIR`, по умолчанию `../public_html`; в dev можно указать `../projects`). В dev подхватывается `dotenv` из `backend/.env`; в проде — из `server/.env`, который сохраняется при деплое.
 - **`frontend/.env.example`** — конфигурация **фронтенда**: только переменные с префиксом `VITE_`. `VITE_API_BASE_URL` задаёт базовый URL API (пусто → Vite dev-прокси `/api` → `:3000`), используется в `src/api/client.ts`.
 
 Общее правило: `.env.example` — документированный шаблон в git; реальный `.env` — локальный/серверный, в git не попадает (см. `.gitignore`).
@@ -127,6 +134,7 @@ npm install
 
 - `/var/www/family.rybnikov.su/public_html` — сама папка **никогда не удаляется**. При деплое удаляются только файлы верхнего уровня (`index.html` и т.п.) и подпапка `assets/` (результат сборки Vite), а прочие подпапки (например `.well-known`) сохраняются.
 - `/var/www/family.rybnikov.su/server` — папка не удаляется, содержимое очищается, **`.env` и `data/` (SQLite-база) сохраняются** (не перезаписываются и не удаляются).
+- **Проекты** (`projects/` репозитория): подпапки копируются в `public_html/<slug>/` (служебные `_*` — нет). Существующие подпапки на сервере **не удаляются**; перед перезаписью папок проектов из репозитория создаётся резервная копия `/tmp/family-projects-backup-<timestamp>`.
 
 Посмотреть, что именно выполняется на сервере, без деплоя:
 

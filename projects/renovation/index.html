@@ -1,0 +1,164 @@
+<!doctype html>
+<!--
+  Проект «Ремонт» (раздел «Проекты» family.rybnikov.su).
+  Отчётность по ремонту: смета, внесённые средства, отчёты о работах и материалах.
+  Страница переработана на общем шаблоне проектов (/projects/styles.css + /projects/theme.js),
+  поэтому наследует стиль и тему приложения. Подстраницы (Reports/, estimate.html и др.)
+  лежат рядом в этой же папке и раздаются как обычно.
+-->
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Применяем сохранённую тему до отрисовки, чтобы не было «мигания». -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+
+    <!-- Метаданные для списка проектов (GET /api/projects) -->
+    <meta name="project-title" content="Ремонт" />
+    <meta
+      name="description"
+      content="Отчётность по ремонту: смета, внесённые средства, отчёты о работах и материалах."
+    />
+    <meta name="project-accent" content="#e8872e" />
+    <meta name="project-icon" content="renovation" />
+    <meta name="project-order" content="0" />
+
+    <title>Ремонт — отчётность • family.rybnikov.su</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Общие стили страниц проектов (дизайн + тема приложения) -->
+    <link rel="stylesheet" href="/projects/styles.css" />
+
+    <!-- Акцентный цвет проекта (оранжевый — как карточка «Ремонт» на главной) -->
+    <style>
+      :root {
+        --project-accent: #e8872e;
+        --project-accent-soft: rgba(232, 135, 46, 0.14);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <a href="/#/" class="brand">
+          <h1><span class="brand-mark">🏠</span>Семейное пространство</h1>
+        </a>
+        <div class="header-actions">
+          <nav class="nav">
+            <a href="/#/">Главная</a>
+            <a href="/#/news">Новости</a>
+            <a href="/#/projects" class="active">Проекты</a>
+          </nav>
+          <div class="theme-toggle" data-theme-toggle></div>
+        </div>
+      </header>
+
+      <main class="page">
+        <h1>🏠 Отчётность по ремонту</h1>
+        <p class="page__sub">
+          Договор <strong>№6124 от 26.12.2025</strong> · Заказчик: <strong>Рыбников А.А.</strong> ·
+          Подрядчик: <strong>ООО «А-сервис»</strong>
+        </p>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="label">Смета (план)</div>
+            <div class="value">1 968 172,63 ₽</div>
+          </div>
+          <div class="stat accent">
+            <div class="label">Внесено средств</div>
+            <div class="value">501 876,00 ₽</div>
+          </div>
+          <div class="stat">
+            <div class="label">Использовано</div>
+            <div class="value">299 859,84 ₽</div>
+          </div>
+          <div class="stat green">
+            <div class="label">Остаток</div>
+            <div class="value">202 016,16 ₽</div>
+          </div>
+        </div>
+
+        <div class="cards">
+          <a class="card" href="Reports/report_work.html">
+            <div class="icon">📋</div>
+            <div class="body">
+              <div class="title">Отчёт о ходе работ</div>
+              <p class="desc">
+                Смета с отметками о выполнении: план, факт, отклонения и статус по каждой позиции.
+                Выполнено работ на 141 127,88 ₽ (Акт №1).
+              </p>
+            </div>
+            <div class="arrow">→</div>
+          </a>
+
+          <a class="card" href="Reports/report_materials.html">
+            <div class="icon">📦</div>
+            <div class="body">
+              <div class="title">Сводный отчёт по материалам</div>
+              <p class="desc">
+                Все закупленные материалы по двум отчётам о закупке. Итого с накладными расходами:
+                245 194,52 ₽.
+              </p>
+            </div>
+            <div class="arrow">→</div>
+          </a>
+
+          <a class="card" href="Reports/report_final.html">
+            <div class="icon">💰</div>
+            <div class="body">
+              <div class="title">Итоговый отчёт по объекту</div>
+              <p class="desc">
+                Сводка взаиморасчётов: внесённые средства, использование по работам и материалам,
+                остатки на балансе.
+              </p>
+            </div>
+            <div class="arrow">→</div>
+          </a>
+
+          <a class="card" href="estimate.html">
+            <div class="icon">📋</div>
+            <div class="body">
+              <div class="title">Смета на ремонт</div>
+              <p class="desc">
+                Плановая смета: разделы, позиции, объёмы и суммы. План по объекту — 1 968 172,63 ₽.
+              </p>
+            </div>
+            <div class="arrow">→</div>
+          </a>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>Отчёты сформированы: 02.08.2026</span>
+        <span>
+          <a href="/#/">Главная</a>
+          <a href="/#/news">Новости</a>
+          <a href="/#/projects">Проекты</a>
+        </span>
+      </footer>
+    </div>
+
+    <!-- Тема: рендер переключателя + слежение за системной темой -->
+    <script src="/projects/theme.js" defer></script>
+  </body>
+</html>
