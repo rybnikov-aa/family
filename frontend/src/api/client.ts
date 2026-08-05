@@ -43,3 +43,39 @@ export async function fetchVps(force = false): Promise<VpsStatus[]> {
   }
   return res.json() as Promise<VpsStatus[]>;
 }
+
+/** Конфигурация сервиса внутри VPS (для создания). */
+export interface VpsServiceConfig {
+  name: string;
+  type: string;
+  address: string;
+}
+
+/** Входные данные для создания VPS на мониторинге. */
+export interface VpsEntryInput {
+  country: string;
+  name: string;
+  ip: string;
+  panel: string;
+  services: VpsServiceConfig[];
+}
+
+/** Добавляет VPS на мониторинг: `POST /api/vps`. Возвращает созданную запись. */
+export async function createVps(entry: VpsEntryInput): Promise<VpsEntryInput> {
+  const res = await fetch(`${API_BASE}/vps`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry),
+  });
+  if (!res.ok) {
+    let message = `Request failed with status ${res.status}`;
+    try {
+      const data = (await res.json()) as { message?: string };
+      if (data.message) message = data.message;
+    } catch {
+      /* не JSON — оставляем сообщение по умолчанию */
+    }
+    throw new Error(message);
+  }
+  return res.json() as Promise<VpsEntryInput>;
+}

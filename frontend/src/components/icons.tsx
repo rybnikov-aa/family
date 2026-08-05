@@ -205,3 +205,24 @@ export function RefreshIcon(props: IconProps) {
     </svg>
   );
 }
+
+/** Плюс — добавить */
+export function PlusIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M5 12h14" />
+      <path d="M12 5v14" />
+    </svg>
+  );
+}
+
+/** Троеточие — редактировать сервисы */
+export function EllipsisIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="5" cy="12" r="1" />
+      <circle cx="12" cy="12" r="1" />
+      <circle cx="19" cy="12" r="1" />
+    </svg>
+  );
+}

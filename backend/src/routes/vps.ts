@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { vpsController } from '../controllers/vpsController';
+import { createVpsController, vpsController } from '../controllers/vpsController';
 
 export const vpsRouter = Router();
 
 vpsRouter.get('/', vpsController);
+vpsRouter.post('/', createVpsController);

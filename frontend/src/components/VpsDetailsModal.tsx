@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { VpsStatus } from '../api/client';
-import { CheckIcon, CopyIcon, RefreshIcon, SettingsIcon } from './icons';
+import { CheckIcon, CopyIcon, PlusIcon, RefreshIcon, SettingsIcon } from './icons';
+import VpsAddModal from './VpsAddModal';
 import { availabilityState, overallAvailability, vpsAvailability } from '../utils/availability';
 
 interface VpsDetailsModalProps {
@@ -21,6 +22,7 @@ function VpsDetailsModal({
 }: VpsDetailsModalProps) {
   const overall = overallAvailability(statuses);
   const [copiedIp, setCopiedIp] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const copyTimerRef = useRef<number | null>(null);
 
   // Копирование IP в буфер обмена с кратковременной «галочкой».
@@ -42,14 +44,25 @@ function VpsDetailsModal({
     };
   }, []);
 
-  // Закрытие по Escape.
+  // Закрытие по Escape. Когда открыта форма добавления — Escape обрабатывает сама форма.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape' && !adding) onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [adding, onClose]);
+
+  // VPS добавлен — вернуться к списку и принудительно перепроверить (обход кэша).
+  const handleAdded = () => {
+    setAdding(false);
+    onRefresh?.();
+  };
+
+  // Форма добавления VPS заменяет содержимое модалки.
+  if (adding) {
+    return <VpsAddModal onClose={() => setAdding(false)} onAdded={handleAdded} />;
+  }
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -63,6 +76,15 @@ function VpsDetailsModal({
         <div className="modal__head">
           <h3>Доступность VPS</h3>
           <div className="modal__head-actions">
+            <button
+              type="button"
+              className="modal__add"
+              onClick={() => setAdding(true)}
+              aria-label="Добавить VPS"
+              title="Добавить VPS"
+            >
+              <PlusIcon />
+            </button>
             {onRefresh && (
               <button
                 type="button"

@@ -54,6 +54,13 @@ export interface VpsStatus extends VpsEntry {
  * Данные читаются из SQLite при первом обращении — это позволяет
  * менять состав VPS без пересборки бандла.
  *
- * Загружается один раз при старте модуля (состав VPS меняется редко).
+ * После добавления VPS через `POST /api/vps` вызывается
+ * `reloadVpsEntries()` — список перечитывается из БД без рестарта процесса
+ * (live-binding ESM/общая переменная в CJS-бандле).
  */
-export const vpsEntries: VpsEntry[] = loadVpsEntries();
+export let vpsEntries: VpsEntry[] = loadVpsEntries();
+
+/** Перечитывает список VPS из БД (после INSERT через API). */
+export function reloadVpsEntries(): void {
+  vpsEntries = loadVpsEntries();
+}

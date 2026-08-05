@@ -59,3 +59,35 @@ export function loadVpsEntries(): VpsEntry[] {
     services: servicesByVps.get(row.id) ?? [],
   }));
 }
+
+/**
+ * Вставляет новый VPS вместе с его сервисами в одной транзакции.
+ *
+ * `node:sqlite` пока не реализует `db.transaction()`, поэтому транзакция
+ * выполняется вручную через `BEGIN`/`COMMIT`/`ROLLBACK`.
+ * При нарушении UNIQUE-ограничения на `name` бросается ошибка — наружу
+ * транзакция откатывается, частичная вставка невозможна.
+ */
+export function insertVpsEntry(entry: VpsEntry): void {
+  const db = getDb();
+
+  db.exec('BEGIN');
+  try {
+    const result = db
+      .prepare('INSERT INTO vps (country, name, ip, panel) VALUES (?, ?, ?, ?)')
+      .run(entry.country, entry.name, entry.ip, entry.panel);
+    const vpsId = Number(result.lastInsertRowid);
+
+    const insertService = db.prepare(
+      'INSERT INTO vps_services (vps_id, name, type, address) VALUES (?, ?, ?, ?)',
+    );
+    for (const service of entry.services) {
+      insertService.run(vpsId, service.name, service.type, service.address.trim());
+    }
+
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+}
