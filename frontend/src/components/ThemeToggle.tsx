@@ -1,9 +1,10 @@
 import { useTheme, type ThemeMode } from '../hooks/useTheme';
+import { MonitorIcon, MoonIcon, SunIcon } from './icons';
 
-const options: { mode: ThemeMode; label: string; icon: string }[] = [
-  { mode: 'light', label: 'светлая', icon: '☀️' },
-  { mode: 'dark', label: 'тёмная', icon: '🌙' },
-  { mode: 'system', label: 'система', icon: '🖥️' },
+const options: { mode: ThemeMode; label: string; Icon: typeof SunIcon }[] = [
+  { mode: 'light', label: 'светлая', Icon: SunIcon },
+  { mode: 'dark', label: 'тёмная', Icon: MoonIcon },
+  { mode: 'system', label: 'система', Icon: MonitorIcon },
 ];
 
 function ThemeToggle() {
@@ -24,7 +25,7 @@ function ThemeToggle() {
             onClick={() => setTheme(option.mode)}
           >
             <span className="theme-toggle__icon" aria-hidden="true">
-              {option.icon}
+              <option.Icon />
             </span>
             <span className="theme-toggle__label">{option.label}</span>
           </button>

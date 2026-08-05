@@ -1,14 +1,9 @@
 import SectionCard from '../components/SectionCard';
 import PageLayout from '../components/PageLayout';
+import ServiceStats from '../components/ServiceStats';
 import { RenovationIcon, DiaryIcon, NewsIcon, PhotoIcon, PlansIcon } from '../components/icons';
 import { ROUTES } from '../routes';
-import { useHealth } from '../hooks/useHealth';
-
-const stats = [
-  { icon: '🏠', value: '2026', label: 'дата регистрации' },
-  { icon: '📁', value: '4', label: 'активных раздела' },
-  { icon: '⚡', value: '40%', label: 'ремонт', href: '/renovation/' },
-];
+import { useServices } from '../hooks/useServices';
 
 const sections = [
   {
@@ -53,9 +48,7 @@ const sections = [
 ];
 
 function HomePage() {
-  const { error, loading } = useHealth();
-
-  const backendValue = error ? 'офлайн' : loading ? 'проверка…' : 'online';
+  const services = useServices();
 
   return (
     <PageLayout>
@@ -66,26 +59,7 @@ function HomePage() {
         <p> Документация, архивы, фотографии, планы и&nbsp;данные.</p>
       </section>
 
-      <div className="stats">
-        {stats.map((stat) => (
-          <div className="stat-item" key={stat.label}>
-            <span className="icon">{stat.icon}</span>
-            <div className="info">
-              <span className="value">{stat.value}</span>
-              <span className="label">
-                {stat.href ? <a href={stat.href}>{stat.label}</a> : stat.label}
-              </span>
-            </div>
-          </div>
-        ))}
-        <div className="stat-item">
-          <span className="icon">📡</span>
-          <div className="info">
-            <span className="value">{backendValue}</span>
-            <span className="label">статус</span>
-          </div>
-        </div>
-      </div>
+      <ServiceStats services={services} />
 
       <div id="sections" className="grid">
         {sections.map((section) => (

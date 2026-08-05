@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { env } from './config/env';
 import { healthRouter } from './routes/health';
+import { vpsRouter } from './routes/vps';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler';
 
 // Express application. Exported so that `vite-plugin-node`
@@ -16,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // API routes
 app.use('/api/health', healthRouter);
+app.use('/api/vps', vpsRouter);
 
 // 404 + error handling
 app.use(notFoundHandler);
@@ -30,12 +32,10 @@ app.use(errorHandler);
 // must not listen here (NODE_ENV is `development` there).
 const isMainEntry =
   env.NODE_ENV === 'production' ||
-  (process.argv[1] !== undefined &&
-    fileURLToPath(import.meta.url) === resolve(process.argv[1]));
+  (process.argv[1] !== undefined && fileURLToPath(import.meta.url) === resolve(process.argv[1]));
 
 if (isMainEntry) {
   app.listen(env.PORT, () => {
     console.log(`🚀 API server running at http://localhost:${env.PORT}`);
   });
 }
-

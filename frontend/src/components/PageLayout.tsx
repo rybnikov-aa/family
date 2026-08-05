@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import StatusCard from './StatusCard';
 import ThemeToggle from './ThemeToggle';
+import { UsersIcon } from './icons';
 import { ROUTES } from '../routes';
 import { useHealth } from '../hooks/useHealth';
 
@@ -43,9 +44,10 @@ function PageLayout({ children }: PageLayoutProps) {
       <header className="header">
         <Link to={ROUTES.home} className="brand">
           <h1>
-            <span>•</span>
+            <span className="brand-mark">
+              <UsersIcon width="3rem" height="3rem" />
+            </span>
           </h1>
-          <div className="sub">family.rybnikov.su</div>
         </Link>
         <div className="header-actions">
           <nav className="nav">
