@@ -200,9 +200,9 @@ rm -rf "$PUBLIC/assets"
 cp -a /tmp/family-deploy/frontend/. "$PUBLIC"/
 
 # 3. Replace backend files (server).
-#    The folder itself is kept and its .env is preserved.
+#    The folder itself is kept; .env and data/ (SQLite DB) are preserved.
 mkdir -p "$SERVER"
-find "$SERVER" -maxdepth 1 -mindepth 1 ! -name '.env' -exec rm -rf {} +
+find "$SERVER" -maxdepth 1 -mindepth 1 ! -name '.env' ! -name 'data' -exec rm -rf {} +
 cp -a /tmp/family-deploy/backend/. "$SERVER"/
 
 # 4. Install production dependencies

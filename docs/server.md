@@ -11,12 +11,14 @@
 | ------------------------------------------ | ----------------------------------------------------- |
 | Фронтенд (статик-файлы, сборка Vite)       | `/var/www/family.rybnikov.su/public_html`             |
 | Бэкенд (Express, рантайм + `node_modules`) | `/var/www/family.rybnikov.su/server`                  |
+| SQLite-база VPS (runtime, не в git)        | `/var/www/family.rybnikov.su/server/data/vps.sqlite`  |
 | Отчёты по ремонту (отдельный проект)       | `/var/www/family.rybnikov.su/public_html/renovation/` |
 
 - Бэкенд слушает `127.0.0.1:3000` (не публичный порт), доступен только через nginx-прокси `/api/`.
 - Процесс бэкенда управляется **pm2**, имя приложения: `family-backend`.
   - pm2 не в PATH в неинтерактивной сессии, полный путь:
     `/home/rybnikov/.nvm/versions/node/v24.19.0/bin/pm2`
+- **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется вручную (SQL/клиентом). Путь задаётся через `DB_PATH` (по умолчанию `data/vps.sqlite`). При деплое папка `data/` **не удаляется** (как и `.env`); схема таблиц создаётся автоматически при первом обращении.
 - Дефолтные пути из `scripts/deploy.mjs` (переопределяются через `.env` в корне репозитория):
 
 ```bash
@@ -158,4 +160,8 @@ curl -i http://127.0.0.1:3000/api/health
 
 # Логи бэкенда (pm2)
 /home/rybnikov/.nvm/versions/node/v24.19.0/bin/pm2 logs family-backend --lines 50 --nostream
+
+# Просмотр/правка VPS в SQLite (node:sqlite, без установки клиента)
+cd /var/www/family.rybnikov.su/server
+node -e "const {DatabaseSync}=require('node:sqlite'); const db=new DatabaseSync('data/vps.sqlite'); console.log(db.prepare('SELECT id,country,name,ip FROM vps').all()); db.close();"
 ```
