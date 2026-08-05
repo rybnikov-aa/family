@@ -176,7 +176,7 @@ family (монорепозиторий, npm workspaces)
 | `panel`              | string | Ссылка на панель управления хостера                                                                           |
 | `services[]`         | array  | Список сервисов                                                                                               |
 | `services[].name`    | string | Отображаемое имя сервиса (напр. `3x-ui`)                                                                      |
-| `services[].type`    | string | Тип проверки: `http`                                                                                          | `ocserv` |
+| `services[].type`    | string | Тип проверки: `http` / `ocserv`                                                                               |
 | `services[].address` | string | Адрес для проверки (URL или хост:порт)                                                                        |
 
 ### 5.3. Типы (бэкенд, `config/vps.ts`)
