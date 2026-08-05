@@ -18,7 +18,7 @@
 - Процесс бэкенда управляется **pm2**, имя приложения: `family-backend`.
   - pm2 не в PATH в неинтерактивной сессии, полный путь:
     `/home/rybnikov/.nvm/versions/node/v24.19.0/bin/pm2`
-- **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется вручную (SQL/клиентом) **или через форму добавления VPS в UI** (`POST /api/vps`). Путь задаётся через `DB_PATH` (по умолчанию `data/vps.sqlite`). При деплое папка `data/` **не удаляется** (как и `.env`); схема таблиц создаётся автоматически при первом обращении.
+- **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется вручную (SQL/клиентом) **или через форму добавления VPS в UI** (`POST /api/vps`), импорт из JSON (`POST /api/vps/import`), удаление — кнопка-корзина в детализации (`DELETE /api/vps/:name`). Путь задаётся через `DB_PATH` (по умолчанию `data/vps.sqlite`). При деплое папка `data/` **не удаляется** (как и `.env`); схема таблиц создаётся автоматически при первом обращении.
 - **Файл `.env` бэкенда** (`server/.env`) — конфигурация рантайма, при деплое **сохраняется** (не перезаписывается и не удаляется). Переменные:
   - `PORT` — порт API (по умолчанию `3000`);
   - `NODE_ENV` — в проде `production` (задаётся скриптом деплоя);
@@ -170,6 +170,14 @@ curl -i http://127.0.0.1:3000/api/health
 curl -i -X POST http://127.0.0.1:3000/api/vps \
   -H 'Content-Type: application/json' \
   -d '{"country":"nl","name":"my-vps-01","ip":"1.2.3.4","panel":"https://panel.example/","services":[{"name":"3x-ui","type":"http","address":"https://my-vps-01.example:8443/"}]}'
+
+# Импорт VPS из JSON-файла (структура как в vps.json; в UI — кнопка импорта в модалке доступности)
+curl -i -X POST http://127.0.0.1:3000/api/vps/import \
+  -H 'Content-Type: application/json' \
+  --data-binary @vps.json
+
+# Удалить VPS по имени (в UI — кнопка-корзина на карточке в модалке доступности)
+curl -i -X DELETE http://127.0.0.1:3000/api/vps/my-vps-01
 
 # Логи бэкенда (pm2)
 /home/rybnikov/.nvm/versions/node/v24.19.0/bin/pm2 logs family-backend --lines 50 --nostream

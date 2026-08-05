@@ -91,3 +91,13 @@ export function insertVpsEntry(entry: VpsEntry): void {
     throw err;
   }
 }
+
+/**
+ * Удаляет VPS вместе с сервисами (FK CASCADE) по имени.
+ * Возвращает true, если запись существовала.
+ */
+export function deleteVpsEntry(name: string): boolean {
+  const db = getDb();
+  const result = db.prepare('DELETE FROM vps WHERE name = ?').run(name);
+  return Number(result.changes) > 0;
+}

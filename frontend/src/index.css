@@ -402,10 +402,17 @@ body {
   border-radius: 20px;
   box-shadow: var(--shadow-container);
   width: 100%;
-  max-width: 560px;
+  max-width: 672px; /* +20% от 560px (форма добавления VPS) */
   max-height: 82vh;
   overflow-y: auto;
+  /* Скрываем горизонтальную прокрутку: тултипы у иконок (position:absolute)
+     слегка выходят за край карточек и создают лишний горизонтальный скролл */
+  overflow-x: hidden;
   padding: 28px;
+}
+/* Расширенная модалка для сетки карточек детализации в 2 столбца */
+.modal--wide {
+  max-width: 780px;
 }
 .modal__head {
   display: flex;
@@ -471,7 +478,8 @@ body {
   color: var(--text);
   background: var(--surface-hover);
 }
-.modal__refresh:disabled {
+.modal__refresh:disabled,
+.modal__add:disabled {
   cursor: default;
   opacity: 0.7;
 }
@@ -483,41 +491,105 @@ body {
 .modal__summary strong {
   color: var(--text-strong);
 }
-.modal__list {
+
+/* Уведомление об импорте VPS из JSON */
+.modal__import-note {
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+.modal__import-note--ok {
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.25);
+}
+.modal__import-note--error {
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+.modal__import-errors {
+  list-style: none;
+  margin-top: 6px;
+  padding-left: 0;
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+.modal__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+@media (max-width: 640px) {
+  .modal__list {
+    grid-template-columns: 1fr;
+  }
 }
 .modal__vps {
   border: 1px solid var(--border-soft);
   border-radius: 14px;
   padding: 16px;
   background: var(--card-bg);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'flag head'
+    'flag ip'
+    'flag srv';
+  column-gap: 10px;
+  row-gap: 6px;
+  align-items: start;
+  /* Не растягивать строки по высоте карточки (иначе при выравнивании карточек в
+     сетке по высоте IP «уезжает» в центр пустого пространства) */
+  align-content: start;
 }
 .modal__vps-head {
+  grid-area: head;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 8px;
+  min-width: 0;
 }
 .modal__vps-flag {
+  grid-area: flag;
   width: 24px;
   height: 16px;
   border-radius: 3px;
   object-fit: cover;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
   flex-shrink: 0;
+  margin-top: 3px;
 }
 .modal__vps-name {
   font-weight: 600;
   color: var(--text-strong);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .modal__vps-ip {
   font-size: 0.8rem;
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Строка соединения: IP-адрес + копирование, выровнена по левому краю с именем */
+.modal__vps-ip-row {
+  grid-area: ip;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 .modal__vps-panel {
   display: inline-flex;
@@ -540,19 +612,67 @@ body {
   color: var(--link-hover);
   background: var(--surface-hover);
 }
-.modal__vps-head-end {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  min-width: 0;
+.modal__vps-percent {
+  margin-left: auto;
+  margin-right: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: 2px 10px;
+  border-radius: 999px;
 }
-.modal__vps-ip-cluster {
+.modal__vps-percent--ok {
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.15);
+}
+.modal__vps-percent--warning {
+  color: #ea580c;
+  background: rgba(249, 115, 22, 0.15);
+}
+.modal__vps-percent--error {
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.15);
+}
+.modal__vps-percent--checking,
+.modal__vps-percent--unknown {
+  color: #d97706;
+  background: rgba(245, 158, 11, 0.15);
+}
+.modal__vps-head-actions {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-right: 12px;
+  flex-shrink: 0;
+}
+/* Кнопка удаления VPS */
+.modal__vps-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.modal__vps-delete svg {
+  width: 13px;
+  height: 13px;
+}
+.modal__vps-delete:hover:not(:disabled) {
+  color: #dc2626;
+  background: var(--surface-muted);
+}
+.modal__vps-delete:disabled {
+  cursor: default;
+  opacity: 0.7;
 }
 .modal__vps-copy {
   display: inline-flex;
@@ -571,13 +691,15 @@ body {
     background 0.15s ease;
 }
 
-/* Всплывающие подсказки к иконкам (копирование, панель) */
+/* Всплывающие подсказки к иконкам (копирование, панель, удаление) */
 .modal__vps-copy,
-.modal__vps-panel {
+.modal__vps-panel,
+.modal__vps-delete {
   position: relative;
 }
 .modal__vps-copy::after,
-.modal__vps-panel::after {
+.modal__vps-panel::after,
+.modal__vps-delete::after {
   content: attr(data-tooltip);
   position: absolute;
   top: calc(100% + 6px);
@@ -600,7 +722,9 @@ body {
 .modal__vps-copy:hover::after,
 .modal__vps-copy:focus-visible::after,
 .modal__vps-panel:hover::after,
-.modal__vps-panel:focus-visible::after {
+.modal__vps-panel:focus-visible::after,
+.modal__vps-delete:hover::after,
+.modal__vps-delete:focus-visible::after {
   opacity: 1;
 }
 .modal__vps-copy svg {
@@ -614,30 +738,8 @@ body {
 .modal__vps-copy--copied {
   color: #16a34a;
 }
-.modal__badge {
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 3px 12px;
-  border-radius: 20px;
-}
-.modal__badge--ok {
-  background: rgba(34, 197, 94, 0.15);
-  color: #16a34a;
-}
-.modal__badge--warning {
-  background: rgba(249, 115, 22, 0.15);
-  color: #ea580c;
-}
-.modal__badge--error {
-  background: rgba(239, 68, 68, 0.15);
-  color: #dc2626;
-}
-.modal__badge--checking,
-.modal__badge--unknown {
-  background: rgba(245, 158, 11, 0.15);
-  color: #d97706;
-}
 .modal__services {
+  grid-area: srv;
   list-style: none;
   display: flex;
   flex-direction: column;
@@ -646,12 +748,12 @@ body {
 .modal__service {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   font-size: 0.85rem;
   padding: 8px 12px;
   border-radius: 8px;
   background: var(--surface-muted);
+  min-width: 0;
 }
 .modal__service-dot {
   width: 8px;
@@ -669,15 +771,35 @@ body {
 }
 .modal__service--muted {
   color: var(--text-faint);
+  justify-content: center;
 }
 .modal__service-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 500;
   color: var(--text);
   text-decoration: none;
 }
-.modal__service-name:hover {
+/* Подчёркивание/цвет при наведении — только для настоящих ссылок (<a>);
+   не-ссылочные имена сервисов (span) не выглядят интерактивными */
+a.modal__service-name:hover {
   color: var(--link-hover);
   text-decoration: underline;
+}
+.modal__service-latency {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 /* Форма добавления VPS */
@@ -860,7 +982,7 @@ select.vps-form__control {
   border-radius: 16px;
   box-shadow: var(--shadow-container);
   width: 100%;
-  max-width: 480px;
+  max-width: 576px; /* +20% от 480px (редактор сервисов) */
   max-height: 70vh;
   overflow-y: auto;
   padding: 20px;
@@ -890,21 +1012,40 @@ select.vps-form__control {
   gap: 12px;
 }
 .services-editor__item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'fields trash'
+    'addr trash';
+  column-gap: 8px;
+  row-gap: 8px;
   padding: 12px;
   border: 1px solid var(--border-soft);
   border-radius: 12px;
   background: var(--card-bg);
 }
-.services-editor__row {
-  display: flex;
+/* Строка «имя + тип» (4:3) и строка адреса; корзина — в правой колонке на обе строки */
+.services-editor__fields {
+  grid-area: fields;
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 3fr); /* имя : тип = 4:3 */
   gap: 8px;
   align-items: center;
+  min-width: 0;
+}
+.services-editor__addr {
+  grid-area: addr;
+  min-width: 0;
+}
+.services-editor__name {
+  min-width: 0;
+}
+.services-editor__type {
+  min-width: 0;
 }
 .services-editor__remove {
-  flex-shrink: 0;
+  grid-area: trash;
+  align-self: center;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -923,6 +1064,10 @@ select.vps-form__control {
 .services-editor__remove:hover {
   color: #dc2626;
   background: rgba(239, 68, 68, 0.12);
+}
+.services-editor__remove svg {
+  width: 15px;
+  height: 15px;
 }
 .services-editor__add {
   align-self: flex-start;

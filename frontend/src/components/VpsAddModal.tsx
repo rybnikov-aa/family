@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { VpsServiceConfig } from '../api/client';
 import { createVps } from '../api/client';
 import { COUNTRIES } from '../utils/countries';
-import { EllipsisIcon, PlusIcon } from './icons';
+import { EllipsisIcon, PlusIcon, TrashIcon } from './icons';
 
 /** Типы сервисов, поддерживаемые проверкой доступности на бэкенде. */
 const SERVICE_TYPES = [
@@ -261,27 +261,16 @@ function ServicesEditor({ services, onChange, onClose }: ServicesEditorProps) {
         <ul className="services-editor__list">
           {services.map((service, index) => (
             <li className="services-editor__item" key={index}>
-              <div className="services-editor__row">
+              <div className="services-editor__fields">
                 <input
-                  className="vps-form__control"
+                  className="vps-form__control services-editor__name"
                   type="text"
                   value={service.name}
                   onChange={(event) => updateService(index, { name: event.target.value })}
                   placeholder="Имя (напр. 3x-ui)"
                 />
-                <button
-                  type="button"
-                  className="services-editor__remove"
-                  onClick={() => removeService(index)}
-                  aria-label="Удалить сервис"
-                  title="Удалить сервис"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="services-editor__row">
                 <select
-                  className="vps-form__control"
+                  className="vps-form__control services-editor__type"
                   value={service.type}
                   onChange={(event) => updateService(index, { type: event.target.value })}
                 >
@@ -291,6 +280,8 @@ function ServicesEditor({ services, onChange, onClose }: ServicesEditorProps) {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="services-editor__addr">
                 <input
                   className="vps-form__control"
                   type="text"
@@ -299,6 +290,15 @@ function ServicesEditor({ services, onChange, onClose }: ServicesEditorProps) {
                   placeholder="Адрес (URL или host)"
                 />
               </div>
+              <button
+                type="button"
+                className="services-editor__remove"
+                onClick={() => removeService(index)}
+                aria-label="Удалить сервис"
+                title="Удалить сервис"
+              >
+                <TrashIcon />
+              </button>
             </li>
           ))}
         </ul>

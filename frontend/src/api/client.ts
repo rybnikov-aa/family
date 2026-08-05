@@ -79,3 +79,50 @@ export async function createVps(entry: VpsEntryInput): Promise<VpsEntryInput> {
   }
   return res.json() as Promise<VpsEntryInput>;
 }
+
+/** Результат импорта VPS из JSON-файла. */
+export interface VpsImportResult {
+  /** Сколько записей добавлено */
+  imported: number;
+  /** Сколько записей пропущено (невалидные/дубликаты) */
+  skipped: number;
+  /** Пояснения к пропущенным записям */
+  errors: string[];
+}
+
+/** Импортирует VPS из JSON: `POST /api/vps/import` (структура как в vps.json). */
+export async function importVps(data: { vps: VpsEntryInput[] }): Promise<VpsImportResult> {
+  const res = await fetch(`${API_BASE}/vps/import`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    let message = `Request failed with status ${res.status}`;
+    try {
+      const d = (await res.json()) as { message?: string };
+      if (d.message) message = d.message;
+    } catch {
+      /* не JSON — оставляем сообщение по умолчанию */
+    }
+    throw new Error(message);
+  }
+  return res.json() as Promise<VpsImportResult>;
+}
+
+/** Удаляет VPS по имени: `DELETE /api/vps/:name`. */
+export async function deleteVps(name: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/vps/${encodeURIComponent(name)}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    let message = `Request failed with status ${res.status}`;
+    try {
+      const d = (await res.json()) as { message?: string };
+      if (d.message) message = d.message;
+    } catch {
+      /* не JSON — оставляем сообщение по умолчанию */
+    }
+    throw new Error(message);
+  }
+}
