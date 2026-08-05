@@ -198,6 +198,20 @@ INSERT INTO vps_services (vps_id, name, type, address)
 - `VpsServiceStatus` — результат проверки сервиса (+ `online`, `latencyMs`, `error`).
 - Загрузка: `vpsEntries` читается из БД через `db/vpsRepository.ts` при старте модуля.
 
+### 5.5. Конфигурация окружения (файлы `.env`)
+
+В проекте три независимых пространства переменных окружения; у каждого — шаблон `.env.example` (в git) и, при необходимости, реальный `.env` (в git не попадает, реальные `.env` не переопределяют переменные уже заданные в окружении процесса):
+
+| Файл            | Кто читает                             | Переменные                                                                                                                     |
+| --------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Корневой `.env` | `scripts/deploy.mjs` (деплой)          | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH` |
+| `backend/.env`  | Бэкенд (`src/config/env.ts`, `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`                                                                                   |
+| `frontend/.env` | Vite (только `VITE_*`)                 | `VITE_API_BASE_URL`                                                                                                            |
+
+- **Корневой** `.env`/`.env.example` — конфигурация **деплоя** (SSH, пути на сервере, pm2).
+- **`backend/.env`** — конфигурация **рантайма бэкенда**: `PORT` (по умолчанию `3000`), `CORS_ORIGIN` (dev `http://localhost:5173`, прод — домен), `NODE_ENV`, `DB_PATH` (по умолчанию `data/vps.sqlite`).
+- **`frontend/.env`** — конфигурация **фронтенда**: `VITE_API_BASE_URL` (пусто → Vite dev-прокси `/api` → `:3000`).
+
 ---
 
 ## 6. Бэкенд
