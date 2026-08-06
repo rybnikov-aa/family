@@ -26,12 +26,13 @@ graph TD
 │   │   └── fullstack-dev.agent.md # сквозные фичи (бэкенд + фронтенд)
 │   ├── instructions/         # файловые инструкции (авто-применение по applyTo)
 │   │   ├── frontend.instructions.md # конвенции фронтенда (frontend/src/**)
-│   │   └── backend.instructions.md  # конвенции бэкенда (backend/src/**)
+│   │   ├── backend.instructions.md  # конвенции бэкенда (backend/src/**)
+│   │   └── project.renovation.instructions.md # конвенции проекта «Ремонт» (projects/renovation/**)
 │   └── skills/               # скиллы (загружаются по запросу)
 │       ├── vps/              # VPS-мониторинг: SKILL.md, справочник, scripts/list-vps.mjs
 │       ├── deploy/           # деплой и диагностика сервера: SKILL.md, справочник
-│       ├── build-reports/    # генерация отчётности по ремонту (projects/renovation)
-│       └── parse-pdf/        # конвертация PDF → HTML для проектов
+│       ├── project-renovation-build-reports/ # отчётность по ремонту (projects/renovation)
+│       └── parse-pdf/        # конвертация PDF → HTML (общий, для любых проектов)
 ├── README.md
 ├── docs/                     # спецификация и справочники (см. «Документация»)
 │   ├── specification.md      # спецификация (Specification Driven Development)
