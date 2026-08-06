@@ -1,0 +1,1039 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Применяем сохранённую тему до отрисовки, чтобы не было «мигания». -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+
+    <title>Сводный отчёт по закупленным материалам</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Общие стили страниц проектов (дизайн + тема приложения) -->
+    <link rel="stylesheet" href="/projects/styles.css" />
+
+    <!-- Акцентный цвет проекта (оранжевый — как карточка «Ремонт») -->
+    <style>
+      :root {
+        --project-accent: #e8872e;
+        --project-accent-soft: rgba(232, 135, 46, 0.14);
+      }
+    </style>
+    <style>
+      /* Документ отчёта: таблицы и блоки. Каркас и тема — общие (/projects/styles.css). */
+      .doc {
+        max-width: 1400px;
+        width: 100%;
+        background: #ffffff;
+        border-radius: 28px;
+        box-shadow: 0 16px 48px rgba(0, 20, 40, 0.1);
+        padding: 30px 28px 40px;
+        overflow-x: auto;
+      }
+      .doc-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 2px solid #e4ebf5;
+        padding-bottom: 18px;
+        margin-bottom: 18px;
+        gap: 12px 20px;
+      }
+      .doc-head-left h1 {
+        font-size: 25px;
+        font-weight: 700;
+        color: #0b1a33;
+        margin: 0 0 4px 0;
+      }
+      .doc-head-left .meta {
+        font-size: 14px;
+        color: #3f5672;
+        line-height: 1.6;
+      }
+      .doc-head-left .meta strong {
+        color: #0b1a33;
+      }
+      .doc-head-right {
+        text-align: right;
+        font-size: 14px;
+        color: #3f5672;
+        background: #f5f8fe;
+        padding: 12px 20px;
+        border-radius: 14px;
+        border: 1px solid #e0e8f2;
+      }
+      .doc-head-right .total-big {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0b1a33;
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .badge-blue {
+        background: #eef2f9;
+        color: #1f3a60;
+      }
+      .badge-green {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .summary-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin: 6px 0 20px;
+      }
+      .doc-card {
+        background: #f5f8fe;
+        border: 1px solid #e0e8f2;
+        border-radius: 14px;
+        padding: 12px 18px;
+        min-width: 180px;
+      }
+      .doc-card .label {
+        font-size: 12px;
+        color: #4a6482;
+      }
+      .doc-card .value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0b1a33;
+      }
+
+      .report-block {
+        margin: 18px 0;
+        background: #fbfcfe;
+        border: 1px solid #e2e9f1;
+        border-radius: 16px;
+        padding: 14px 16px 6px;
+      }
+      .report-title {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px 16px;
+        margin-bottom: 10px;
+      }
+      .report-title .rt-name {
+        font-weight: 700;
+        font-size: 16px;
+        color: #0b1a33;
+      }
+      .report-title .rt-meta {
+        font-size: 13px;
+        color: #3f5672;
+      }
+      .report-title .rt-meta a {
+        color: #1f3a60;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        min-width: 860px;
+      }
+      th {
+        background: #e8eef7;
+        color: #1f2a44;
+        font-weight: 600;
+        padding: 10px 10px;
+        border: 1px solid #d5dfec;
+        text-align: center;
+        white-space: nowrap;
+      }
+      td {
+        padding: 8px 10px;
+        border: 1px solid #d5dfec;
+        vertical-align: middle;
+        text-align: center;
+      }
+      td.left {
+        text-align: left;
+        padding-left: 14px;
+      }
+      td.col-num {
+        width: 40px;
+        color: #4b6379;
+      }
+      td.col-unit,
+      td.col-price,
+      td.col-qty,
+      td.col-sum {
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      td.col-price,
+      td.col-qty,
+      td.col-sum {
+        text-align: right;
+      }
+      .row-subtotal {
+        background: #f2f6fd;
+        font-weight: 600;
+        border-top: 2px solid #c8d6e8;
+      }
+      .row-total {
+        background: #dce6f2;
+        font-weight: 700;
+        border-top: 2px solid #8aa0c0;
+      }
+      .row-total td {
+        padding: 12px 10px;
+      }
+      .row-special {
+        background: #f7f9fc;
+        color: #4a6482;
+        font-style: italic;
+      }
+
+      .grand-total-block {
+        display: flex;
+        justify-content: flex-end;
+        background: #f5f9fe;
+        border-radius: 40px;
+        padding: 14px 28px;
+        border: 1px solid #dce4ed;
+        margin: 22px 0 8px;
+        flex-wrap: wrap;
+        gap: 10px 24px;
+      }
+      .grand-total-block .label {
+        font-weight: 600;
+        color: #0b1a2b;
+      }
+      .grand-total-block .value {
+        font-weight: 700;
+        font-size: 20px;
+        color: #0b1a33;
+      }
+
+      .links-block {
+        margin-top: 16px;
+        background: #f7faff;
+        border: 1px solid #e4ecf8;
+        border-radius: 16px;
+        padding: 16px 20px;
+        font-size: 14px;
+      }
+      .links-block h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        color: #0b1a33;
+      }
+      .links-block ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #2a4060;
+      }
+      .links-block a {
+        color: #1f3a60;
+      }
+      .note {
+        margin-top: 14px;
+        font-size: 12.5px;
+        color: #5a7290;
+        line-height: 1.5;
+        border-top: 1px solid #e4ebf5;
+        padding-top: 12px;
+      }
+
+      .doc-back {
+        display: inline-block;
+        margin-bottom: 16px;
+        font-size: 14px;
+        color: var(--project-accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .doc-back:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 700px) {
+        .doc {
+          padding: 16px 12px;
+        }
+        .doc-head-right {
+          text-align: left;
+          width: 100%;
+        }
+      }
+
+      /* Тёмная тема: документ подстраивается под каркас проекта */
+      [data-theme='dark'] .doc {
+        background: var(--surface);
+        color: var(--text);
+      }
+      [data-theme='dark'] .doc th {
+        background: #252a35;
+        color: #cbd6e6;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .doc td {
+        border-color: #343b47;
+        color: #c9d2de;
+      }
+      [data-theme='dark'] .doc td.left {
+        color: #dde4ee;
+      }
+      [data-theme='dark'] .doc-head-right {
+        background: #1c222b;
+        border-color: #343b47;
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc-head-left .meta {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc-head-left h1,
+      [data-theme='dark'] .doc-head-left .meta strong,
+      [data-theme='dark'] .doc-head-right .total-big {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc-card {
+        background: #1c222b;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .doc-card .label {
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .doc-card .value {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .report-block {
+        background: transparent;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .report-title .rt-name {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .report-title .rt-meta {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .row-subtotal {
+        background: #212730;
+      }
+      [data-theme='dark'] .row-total {
+        background: #2a3342;
+      }
+      [data-theme='dark'] .row-special {
+        background: #1f2730;
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .grand-total-block {
+        background: #1d242e;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .grand-total-block .label,
+      [data-theme='dark'] .grand-total-block .value {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .links-block {
+        background: #1d242e;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .links-block h3 {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .links-block ul {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .note {
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .badge-blue {
+        background: #223049;
+        color: #9fc0f0;
+      }
+      [data-theme='dark'] .badge-green {
+        background: #14301c;
+        color: #7fd89a;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <a href="/#/" class="brand">
+          <h1><span class="brand-mark">🏠</span>Семейное пространство</h1>
+        </a>
+        <div class="header-actions">
+          <nav class="nav">
+            <a href="/#/">Главная</a>
+            <a href="/#/news">Новости</a>
+            <a href="/#/projects">Проекты</a>
+          </nav>
+          <div class="theme-toggle" data-theme-toggle></div>
+        </div>
+      </header>
+
+      <main class="page">
+        <a class="doc-back" href="/renovation/">← К отчётам проекта</a>
+        <div class="doc">
+          <div class="doc-head">
+            <div class="doc-head-left">
+              <h1>📦 Сводный отчёт по закупленным материалам</h1>
+              <div class="meta">
+                <strong>Заказчик:</strong> Рыбников Алексей Александрович &nbsp;|&nbsp;
+                <strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв. 100,
+                этаж 7<br />
+                <strong>Подрядчик:</strong> ООО «А-сервис»
+              </div>
+            </div>
+            <div class="doc-head-right">
+              <div style="font-size: 13px; color: #4a6482">Итого закуплено материалов</div>
+              <div class="total-big">245 194,52 ₽</div>
+              <div style="font-size: 13px; margin-top: 4px">
+                <span class="badge badge-blue">2 отчёта о закупке</span>
+                <span class="badge badge-green" style="margin-left: 6px">в т.ч. накладные 10%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Карточки-сводка -->
+          <div class="summary-cards">
+            <div class="doc-card">
+              <div class="label">Отчёт №1 (17.07.2026)</div>
+              <div class="value">108 732,04 ₽</div>
+            </div>
+            <div class="doc-card">
+              <div class="label">Отчёт №2 (01.08.2026)</div>
+              <div class="value">136 462,48 ₽</div>
+            </div>
+            <div class="doc-card">
+              <div class="label">Всего с накладными</div>
+              <div class="value">245 194,52 ₽</div>
+            </div>
+            <div class="doc-card">
+              <div class="label">в т.ч. доставка и подъём</div>
+              <div class="value">23 620,00 ₽</div>
+            </div>
+          </div>
+
+          <!-- ==================== ОТЧЁТ №1 ==================== -->
+          <div class="report-block">
+            <div class="report-title">
+              <span class="rt-name">Отчёт №1 — Заказ материалов №1 от 17.07.2026</span>
+              <span class="rt-meta"
+                >Детальный отчёт:
+                <a href="../Materials/report_01.html">Materials/report_01.html</a></span
+              >
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 36px">№</th>
+                  <th style="text-align: left">Наименование</th>
+                  <th class="col-unit">Ед. изм.</th>
+                  <th class="col-price">Цена за ед.</th>
+                  <th class="col-qty">Количество</th>
+                  <th class="col-sum">Сумма</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="col-num">1</td>
+                  <td class="left">Газоблок ГлавСтройБлок 625х250х100</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">117,60</td>
+                  <td class="col-qty">460,00</td>
+                  <td class="col-sum">54 096,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">2</td>
+                  <td class="left">Газоблок ГлавСтройБлок 625х250х150</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">204,96</td>
+                  <td class="col-qty">11,00</td>
+                  <td class="col-sum">2 254,56</td>
+                </tr>
+                <tr>
+                  <td class="col-num">3</td>
+                  <td class="left">ЦПС М-150 ТиМ 01, 25кг</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">345,00</td>
+                  <td class="col-qty">5,00</td>
+                  <td class="col-sum">1 725,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">4</td>
+                  <td class="left">Универсальное моющее средство 5л</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">274,80</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">274,80</td>
+                </tr>
+                <tr>
+                  <td class="col-num">5</td>
+                  <td class="left">Клей монтажный TOILER TL 400 для ячеистых блоков, 25кг</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">419,75</td>
+                  <td class="col-qty">16,00</td>
+                  <td class="col-sum">6 716,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">6</td>
+                  <td class="left">Подвес прямой для ПП 1мм KNAUF</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">28,00</td>
+                  <td class="col-qty">50,00</td>
+                  <td class="col-sum">1 400,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">7</td>
+                  <td class="left">Гвозди строительные 3,5х90мм (1кг)</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">202,80</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">202,80</td>
+                </tr>
+                <tr>
+                  <td class="col-num">8</td>
+                  <td class="left">Уголок крепежный усиленный 90х90х65х2,0мм</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">60,00</td>
+                  <td class="col-qty">30,00</td>
+                  <td class="col-sum">1 800,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">9</td>
+                  <td class="left">Анкер-клин 6х40мм MAN (100шт/кор) KNAUF</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">1 608,85</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">1 608,85</td>
+                </tr>
+                <tr>
+                  <td class="col-num">10</td>
+                  <td class="left">Пена монтажная профессиональная TYTAN</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">632,50</td>
+                  <td class="col-qty">5,00</td>
+                  <td class="col-sum">3 162,50</td>
+                </tr>
+                <tr>
+                  <td class="col-num">11</td>
+                  <td class="left">Арматура 12мм х 1500мм</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">156,00</td>
+                  <td class="col-qty">24,00</td>
+                  <td class="col-sum">3 744,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">12</td>
+                  <td class="left">
+                    Мешок полипропиленовый 55х100см, плотность 55г/м2, нагрузка 50кг, белый
+                    усиленный
+                  </td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">24,00</td>
+                  <td class="col-qty">20,00</td>
+                  <td class="col-sum">480,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">13</td>
+                  <td class="left">Ведро строительное круглое 20л</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">262,80</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">262,80</td>
+                </tr>
+                <tr class="row-special">
+                  <td class="col-num">14</td>
+                  <td class="left">Доставка</td>
+                  <td class="col-unit">—</td>
+                  <td class="col-price">—</td>
+                  <td class="col-qty">—</td>
+                  <td class="col-sum">9 000,00</td>
+                </tr>
+                <tr class="row-special">
+                  <td class="col-num">15</td>
+                  <td class="left">Подъем</td>
+                  <td class="col-unit">—</td>
+                  <td class="col-price">—</td>
+                  <td class="col-qty">—</td>
+                  <td class="col-sum">12 120,00</td>
+                </tr>
+                <tr class="row-subtotal">
+                  <td colspan="5" style="text-align: right">Подытог (без накладных)</td>
+                  <td class="col-sum">98 847,31</td>
+                </tr>
+                <tr class="row-total">
+                  <td colspan="5" style="text-align: right">
+                    Итого, с учетом накладных расходов (10%)
+                  </td>
+                  <td class="col-sum">108 732,04</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ==================== ОТЧЁТ №2 ==================== -->
+          <div class="report-block">
+            <div class="report-title">
+              <span class="rt-name">Отчёт №2 — Заказ материалов №2 от 01.08.2026</span>
+              <span class="rt-meta"
+                >Детальный отчёт:
+                <a href="../Materials/report_02.html">Materials/report_02.html</a></span
+              >
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 36px">№</th>
+                  <th style="text-align: left">Наименование</th>
+                  <th class="col-unit">Ед. изм.</th>
+                  <th class="col-price">Цена за ед.</th>
+                  <th class="col-qty">Количество</th>
+                  <th class="col-sum">Сумма</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="col-num">1</td>
+                  <td class="left">Бур 6/110</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">120,25</td>
+                  <td class="col-qty">2,00</td>
+                  <td class="col-sum">240,50</td>
+                </tr>
+                <tr>
+                  <td class="col-num">2</td>
+                  <td class="left">Дюбель-хомут 10-5 черн., прямоугольный (100 шт)</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">98,00</td>
+                  <td class="col-qty">7,00</td>
+                  <td class="col-sum">686,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">3</td>
+                  <td class="left">Дюбель-хомут 5-10 черн. (100 шт)</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">98,00</td>
+                  <td class="col-qty">2,00</td>
+                  <td class="col-sum">196,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">4</td>
+                  <td class="left">Коробка уст. СП 68(65)х45 (блочная) SchE IMT35100</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">21,00</td>
+                  <td class="col-qty">90,00</td>
+                  <td class="col-sum">1 890,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">5</td>
+                  <td class="left">Коробка уст. СП 68(65)х45 (блочная) глубокая IMT35100</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">25,50</td>
+                  <td class="col-qty">5,00</td>
+                  <td class="col-sum">127,50</td>
+                </tr>
+                <tr>
+                  <td class="col-num">6</td>
+                  <td class="left">
+                    Коробка распаячная Промрукав 100х100х40 на 12 в под пистолет черная
+                  </td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">157,50</td>
+                  <td class="col-qty">35,00</td>
+                  <td class="col-sum">5 512,50</td>
+                </tr>
+                <tr>
+                  <td class="col-num">7</td>
+                  <td class="left">Гвозди для пистолета 19 мм (1000 шт) TOUA</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">2 030,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">2 030,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">8</td>
+                  <td class="left">Газ для пистолета TOUA</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">577,50</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">577,50</td>
+                </tr>
+                <tr>
+                  <td class="col-num">9</td>
+                  <td class="left">Площадка под стяжку для пистолета (100 шт)</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">412,50</td>
+                  <td class="col-qty">6,00</td>
+                  <td class="col-sum">2 475,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">10</td>
+                  <td class="left">Хомут nylon 4 x 250 мм (100 шт) черн. бел.</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">225,00</td>
+                  <td class="col-qty">6,00</td>
+                  <td class="col-sum">1 350,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">11</td>
+                  <td class="left">Патрон электрич. Е27 керам.</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">24,00</td>
+                  <td class="col-qty">14,00</td>
+                  <td class="col-sum">336,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">12</td>
+                  <td class="left">Лампа светодиодная -A60-20-230-4000 K-E27</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">120,00</td>
+                  <td class="col-qty">14,00</td>
+                  <td class="col-sum">1 680,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">13</td>
+                  <td class="left">Изолента 19мм SAIFLAIN 19/20X0,15</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">127,50</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">127,50</td>
+                </tr>
+                <tr>
+                  <td class="col-num">14</td>
+                  <td class="left">Мешок строительный белый</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">22,50</td>
+                  <td class="col-qty">10,00</td>
+                  <td class="col-sum">225,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">15</td>
+                  <td class="left">Грифель сменный</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">375,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">375,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">16</td>
+                  <td class="left">Колпачки силиконовые 441</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">4,50</td>
+                  <td class="col-qty">150,00</td>
+                  <td class="col-sum">675,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">17</td>
+                  <td class="left">Розетка 2-м ОП Олимп 16А бел. UNIVersal O0102</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">150,00</td>
+                  <td class="col-qty">2,00</td>
+                  <td class="col-sum">300,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">18</td>
+                  <td class="left">Кабель канал 40х25 (дл.2м)</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">250,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">250,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">19</td>
+                  <td class="left">Кабель ВВГнг(А) LS-3х6 мм2 ГОСТ ККЗ</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">325,00</td>
+                  <td class="col-qty">14,00</td>
+                  <td class="col-sum">4 550,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">20</td>
+                  <td class="left">Кабель ВВГ-Пнг(А) LS-3х4 мм2 (ГОСТ) ККЗ</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">200,00</td>
+                  <td class="col-qty">19,00</td>
+                  <td class="col-sum">3 800,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">21</td>
+                  <td class="left">ВВГНГ 3х2,5 Альфа Кабель ГОСТ (100 м)</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">112,50</td>
+                  <td class="col-qty">300,00</td>
+                  <td class="col-sum">33 750,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">22</td>
+                  <td class="left">ВВГНГ 3х1,5 Альфа Кабель ГОСТ (100 м)</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">75,00</td>
+                  <td class="col-qty">300,00</td>
+                  <td class="col-sum">22 500,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">23</td>
+                  <td class="left">Кабель ВВГнг 2Х1,5 ГОСТ АЛЬФА</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">50,00</td>
+                  <td class="col-qty">70,00</td>
+                  <td class="col-sum">3 500,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">24</td>
+                  <td class="left">Провод ШВВП 3х0,75 мм2 (200 м) ККЗ</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">45,00</td>
+                  <td class="col-qty">60,00</td>
+                  <td class="col-sum">2 700,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">25</td>
+                  <td class="left">Щит ДКС 36 ЩРВ FRAME черн.</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">4 822,20</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">4 822,20</td>
+                </tr>
+                <tr>
+                  <td class="col-num">26</td>
+                  <td class="left">Щит ДКС 24 ЩРВ FRAME черн.</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">2 682,50</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">2 682,50</td>
+                </tr>
+                <tr>
+                  <td class="col-num">27</td>
+                  <td class="left">Провод ПуГВ (ПВ-3) 6, белый кабель</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">100,00</td>
+                  <td class="col-qty">2,00</td>
+                  <td class="col-sum">200,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">28</td>
+                  <td class="left">Провод ПуГВ (ПВ-3) 6 мм (200 м) синий ККЗ</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">100,00</td>
+                  <td class="col-qty">2,00</td>
+                  <td class="col-sum">200,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">29</td>
+                  <td class="left">НАКОНЕЧНИК НШВИ 6-12 ГЭ</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">225,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">225,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">30</td>
+                  <td class="left">Набор втулочных наконечников двойные НШВИ 6,0-14 (100 шт)</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">450,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">450,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">31</td>
+                  <td class="left">Шина соединительная 1ф 12 мод EKF 63A</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">240,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">240,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">32</td>
+                  <td class="left">Шина нулевая на дин рейку</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">225,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">225,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">33</td>
+                  <td class="left">Шина соединительная PIN 2ф 63A 12 зуб</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">22,50</td>
+                  <td class="col-qty">12,00</td>
+                  <td class="col-sum">270,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">34</td>
+                  <td class="left">
+                    ВА-103 Автомат 2-полюсный 50А 6кА (хар-ка С) DEKraft Schneider Electric
+                  </td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">1 014,60</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">1 014,60</td>
+                </tr>
+                <tr>
+                  <td class="col-num">35</td>
+                  <td class="left">
+                    DEK 103 Дифф. автомат 1Р+N 16А 30мА тип АС, 6000кА, (хар-ка С) DEKraft Schneider
+                    Electric
+                  </td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">1 740,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">1 740,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">36</td>
+                  <td class="left">Выкл автом УЗО тока ВДТ 2Р 63А 30мА DEKraft 11056DEK</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">1 740,00</td>
+                  <td class="col-qty">2,00</td>
+                  <td class="col-sum">3 480,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">37</td>
+                  <td class="left">ВА-103 Автомат 1-полюсный 32А 6кА (хар-ка С) DEKraft</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">354,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">354,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">38</td>
+                  <td class="left">ВА-103 Автомат 1-полюсный 25А 6кА (хар-ка С) DEKraft</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">330,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">330,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">39</td>
+                  <td class="left">ВА-103 Автомат 1-полюсный 16А 6кА (хар-ка С) DEKraft</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">330,00</td>
+                  <td class="col-qty">12,00</td>
+                  <td class="col-sum">3 960,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">40</td>
+                  <td class="left">ВА-103 Автомат 1-полюсный 10А 6кА (хар-ка С) DEKraft</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">330,00</td>
+                  <td class="col-qty">3,00</td>
+                  <td class="col-sum">990,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">41</td>
+                  <td class="left">Реле контроля напряжения innel K1S1A-63</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">3 240,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">3 240,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">42</td>
+                  <td class="left">Кабель UTP кат 6 E 4x2x23 AWG PVC витая пара</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">91,00</td>
+                  <td class="col-qty">80,00</td>
+                  <td class="col-sum">7 280,00</td>
+                </tr>
+                <tr class="row-special">
+                  <td class="col-num">43</td>
+                  <td class="left">Доставка</td>
+                  <td class="col-unit">—</td>
+                  <td class="col-price">—</td>
+                  <td class="col-qty">—</td>
+                  <td class="col-sum">2 500,00</td>
+                </tr>
+                <tr class="row-subtotal">
+                  <td colspan="5" style="text-align: right">Подытог (без накладных)</td>
+                  <td class="col-sum">124 056,80</td>
+                </tr>
+                <tr class="row-total">
+                  <td colspan="5" style="text-align: right">
+                    Итого, с учетом накладных расходов (10%)
+                  </td>
+                  <td class="col-sum">136 462,48</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ГРАНД-ИТОГ -->
+          <div class="grand-total-block">
+            <span class="label">Всего закуплено материалов (с накладными):</span>
+            <span class="value"
+              ><small style="font-size: 13px; color: #4a6482">₽</small> 245 194,52</span
+            >
+          </div>
+
+          <!-- Ссылки на детальные отчёты -->
+          <div class="links-block">
+            <h3>🔗 Детальные отчёты о закупке</h3>
+            <ul>
+              <li>
+                <a href="../Materials/report_01.html">Materials/report_01.html</a> — Заказ
+                материалов №1 от 17.07.2026, итого 108 732,04 ₽
+              </li>
+              <li>
+                <a href="../Materials/report_02.html">Materials/report_02.html</a> — Заказ
+                материалов №2 от 01.08.2026, итого 136 462,48 ₽
+              </li>
+            </ul>
+          </div>
+
+          <div class="note">
+            Примечания:
+            <ul style="margin: 6px 0 0; padding-left: 20px">
+              <li>
+                Итоги отчётов включают накладные расходы 10% (по данным отчётов о закупке: 98 847,31
+                × 1,10 = 108 732,04; 124 056,80 × 1,10 = 136 462,48).
+              </li>
+              <li>
+                Строки «Доставка» и «Подъем» учтены в подытогах: всего 23 620,00 ₽ (9 000,00 + 12
+                120,00 + 2 500,00).
+              </li>
+              <li>
+                Данные взяты из файлов <a href="../Materials/report_01.html">report_01.html</a> и
+                <a href="../Materials/report_02.html">report_02.html</a> без изменений.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>Проект «Ремонт» — отчётность</span>
+        <span>
+          <a href="/#/">Главная</a>
+          <a href="/#/news">Новости</a>
+          <a href="/#/projects">Проекты</a>
+        </span>
+      </footer>
+    </div>
+
+    <script src="/projects/theme.js" defer></script>
+  </body>
+</html>

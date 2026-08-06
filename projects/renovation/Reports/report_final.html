@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Применяем сохранённую тему до отрисовки, чтобы не было «мигания». -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+
+    <title>Итоговый отчёт по объекту</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Общие стили страниц проектов (дизайн + тема приложения) -->
+    <link rel="stylesheet" href="/projects/styles.css" />
+
+    <!-- Акцентный цвет проекта (оранжевый — как карточка «Ремонт») -->
+    <style>
+      :root {
+        --project-accent: #e8872e;
+        --project-accent-soft: rgba(232, 135, 46, 0.14);
+      }
+    </style>
+    <style>
+      /* Документ отчёта: таблицы и блоки. Каркас и тема — общие (/projects/styles.css). */
+      .doc {
+        max-width: 1400px;
+        width: 100%;
+        background: #ffffff;
+        border-radius: 28px;
+        box-shadow: 0 16px 48px rgba(0, 20, 40, 0.1);
+        padding: 30px 28px 40px;
+        overflow-x: auto;
+      }
+      .doc-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 2px solid #e4ebf5;
+        padding-bottom: 18px;
+        margin-bottom: 20px;
+        gap: 12px 20px;
+      }
+      .doc-head-left h1 {
+        font-size: 25px;
+        font-weight: 700;
+        color: #0b1a33;
+        margin: 0 0 4px 0;
+      }
+      .doc-head-left .meta {
+        font-size: 14px;
+        color: #3f5672;
+        line-height: 1.6;
+      }
+      .doc-head-left .meta strong {
+        color: #0b1a33;
+      }
+      .doc-head-right {
+        text-align: right;
+        font-size: 14px;
+        color: #3f5672;
+        background: #f5f8fe;
+        padding: 12px 20px;
+        border-radius: 14px;
+        border: 1px solid #e0e8f2;
+      }
+      .doc-head-right .total-big {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0b1a33;
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .badge-blue {
+        background: #eef2f9;
+        color: #1f3a60;
+      }
+      .badge-green {
+        background: #d4edda;
+        color: #155724;
+      }
+      .badge-red {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .block {
+        border: 1px solid #e2e9f1;
+        border-radius: 16px;
+        margin: 16px 0;
+        overflow: hidden;
+      }
+      .block-title {
+        background: #eaf0fa;
+        padding: 12px 18px;
+        font-weight: 700;
+        font-size: 16px;
+        color: #0b1a33;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px 16px;
+      }
+      .block-title .bt-meta {
+        font-size: 13px;
+        font-weight: 400;
+        color: #3f5672;
+      }
+      .block-body {
+        padding: 16px 18px;
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        min-width: 620px;
+      }
+      th {
+        background: #f2f6fd;
+        color: #1f2a44;
+        font-weight: 600;
+        padding: 10px 12px;
+        border: 1px solid #d5dfec;
+        text-align: left;
+        white-space: nowrap;
+      }
+      td {
+        padding: 9px 12px;
+        border: 1px solid #d5dfec;
+        vertical-align: middle;
+      }
+      td.num {
+        text-align: right;
+        white-space: nowrap;
+      }
+      .row-total {
+        background: #dce6f2;
+        font-weight: 700;
+        border-top: 2px solid #8aa0c0;
+      }
+      .row-total td {
+        padding: 12px;
+      }
+      .row-sub {
+        background: #f7f9fc;
+        color: #4a6482;
+      }
+      .grand {
+        color: #0b1a33;
+        font-weight: 700;
+      }
+
+      .totals-flex {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 12px;
+      }
+      .doc-card {
+        background: #f5f8fe;
+        border: 1px solid #e0e8f2;
+        border-radius: 14px;
+        padding: 12px 18px;
+        flex: 1 1 180px;
+      }
+      .doc-card .label {
+        font-size: 12px;
+        color: #4a6482;
+      }
+      .doc-card .value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0b1a33;
+      }
+      .doc-card.green {
+        background: #eef7ef;
+        border-color: #cfead2;
+      }
+      .doc-card.green .value {
+        color: #155724;
+      }
+      .doc-card.red {
+        background: #fdf0f0;
+        border-color: #f2d3d3;
+      }
+      .doc-card.red .value {
+        color: #721c24;
+      }
+
+      .links-block {
+        margin-top: 18px;
+        background: #f7faff;
+        border: 1px solid #e4ecf8;
+        border-radius: 16px;
+        padding: 16px 20px;
+        font-size: 14px;
+      }
+      .links-block h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        color: #0b1a33;
+      }
+      .links-block ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #2a4060;
+      }
+      .links-block a {
+        color: #1f3a60;
+      }
+      .note {
+        margin-top: 14px;
+        font-size: 12.5px;
+        color: #5a7290;
+        line-height: 1.5;
+        border-top: 1px solid #e4ebf5;
+        padding-top: 12px;
+      }
+
+      .doc-back {
+        display: inline-block;
+        margin-bottom: 16px;
+        font-size: 14px;
+        color: var(--project-accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .doc-back:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 700px) {
+        .doc {
+          padding: 16px 12px;
+        }
+        .doc-head-right {
+          text-align: left;
+          width: 100%;
+        }
+      }
+
+      /* Тёмная тема: документ подстраивается под каркас проекта */
+      [data-theme='dark'] .doc {
+        background: var(--surface);
+        color: var(--text);
+      }
+      [data-theme='dark'] .doc th {
+        background: #252a35;
+        color: #cbd6e6;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .doc td {
+        border-color: #343b47;
+        color: #c9d2de;
+      }
+      [data-theme='dark'] .doc-head-right {
+        background: #1c222b;
+        border-color: #343b47;
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc-head-left .meta {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc-head-left h1,
+      [data-theme='dark'] .doc-head-left .meta strong,
+      [data-theme='dark'] .doc-head-right .total-big {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .block {
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .block-title {
+        background: #232a38;
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .block-title .bt-meta {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .row-total {
+        background: #2a3342;
+      }
+      [data-theme='dark'] .row-sub {
+        background: #1f2730;
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .grand {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc-card {
+        background: #1c222b;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .doc-card .label {
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .doc-card .value {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc-card.green {
+        background: #14301c;
+        border-color: #2c4a38;
+      }
+      [data-theme='dark'] .doc-card.green .value {
+        color: #7fd89a;
+      }
+      [data-theme='dark'] .doc-card.red {
+        background: #3a1414;
+        border-color: #5a2626;
+      }
+      [data-theme='dark'] .doc-card.red .value {
+        color: #f0a0a0;
+      }
+      [data-theme='dark'] .links-block {
+        background: #1d242e;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .links-block h3 {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .links-block ul {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .note {
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .badge-blue {
+        background: #223049;
+        color: #9fc0f0;
+      }
+      [data-theme='dark'] .badge-green {
+        background: #14301c;
+        color: #7fd89a;
+      }
+      [data-theme='dark'] .badge-red {
+        background: #3a1414;
+        color: #f0a0a0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <a href="/#/" class="brand">
+          <h1><span class="brand-mark">🏠</span>Семейное пространство</h1>
+        </a>
+        <div class="header-actions">
+          <nav class="nav">
+            <a href="/#/">Главная</a>
+            <a href="/#/news">Новости</a>
+            <a href="/#/projects">Проекты</a>
+          </nav>
+          <div class="theme-toggle" data-theme-toggle></div>
+        </div>
+      </header>
+
+      <main class="page">
+        <a class="doc-back" href="/renovation/">← К отчётам проекта</a>
+        <div class="doc">
+          <div class="doc-head">
+            <div class="doc-head-left">
+              <h1>💰 Итоговый отчёт по объекту</h1>
+              <div class="meta">
+                <strong>Заказчик:</strong> Рыбников Алексей Александрович &nbsp;|&nbsp;
+                <strong>Подрядчик:</strong> ООО «А-сервис» &nbsp;|&nbsp;
+                <strong>Договор подряда:</strong> №6124 от 26.12.2025<br />
+                <strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв. 100,
+                этаж 7
+              </div>
+            </div>
+            <div class="doc-head-right">
+              <div style="font-size: 13px; color: #4a6482">Итоговая сводка по объекту</div>
+              <div class="total-big">202 016,16 ₽</div>
+              <div style="font-size: 13px; margin-top: 4px">
+                <span class="badge badge-blue">Внесено: 501 876,00 ₽</span>
+                <span class="badge badge-red" style="margin-left: 6px"
+                  >Использовано: 299 859,84 ₽</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- ==================== БЛОК 1. РАБОТЫ ==================== -->
+          <div class="block">
+            <div class="block-title">
+              <span>🧱 Блок 1. Работы</span>
+              <span class="bt-meta"
+                >Источники: смета <a href="../estimate.html">estimate.html</a>, акт
+                <a href="../Works/act_01.html">act_01.html</a>, ведомость
+                <a href="../Settlement/sm_works_01.html">sm_works_01.html</a>, отчёт
+                <a href="report_work.html">report_work.html</a></span
+              >
+            </div>
+            <div class="block-body">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Показатель</th>
+                    <th style="text-align: right">Сумма</th>
+                    <th>Комментарий</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Сметная стоимость работ (план, с накладными 5%)</td>
+                    <td class="num">1 968 172,63 ₽</td>
+                    <td>итого по смете</td>
+                  </tr>
+                  <tr>
+                    <td>Выполнено по актам (факт, с накладными)</td>
+                    <td class="num">141 127,88 ₽</td>
+                    <td>Акт №1 от 26.07.2026</td>
+                  </tr>
+                  <tr>
+                    <td>Процент выполнения</td>
+                    <td class="num">7,2%</td>
+                    <td>141 127,88 / 1 968 172,63</td>
+                  </tr>
+                  <tr class="row-sub">
+                    <td>Внесено заказчиком (ведомость работ)</td>
+                    <td class="num">301 876,00 ₽</td>
+                    <td>26.12.2025 + 17.07.2026</td>
+                  </tr>
+                  <tr class="row-sub">
+                    <td>Использовано по актам (ведомость)</td>
+                    <td class="num">141 127,80 ₽</td>
+                    <td>Акт №1</td>
+                  </tr>
+                  <tr class="row-sub">
+                    <td>Остаток по работам</td>
+                    <td class="num">160 748,20 ₽</td>
+                    <td>301 876,00 − 141 127,80</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="totals-flex">
+                <div class="doc-card green">
+                  <div class="label">Внесено по работам</div>
+                  <div class="value">301 876,00 ₽</div>
+                </div>
+                <div class="doc-card red">
+                  <div class="label">Использовано по актам</div>
+                  <div class="value">141 127,80 ₽</div>
+                </div>
+                <div class="doc-card">
+                  <div class="label">Остаток по работам</div>
+                  <div class="value">160 748,20 ₽</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==================== БЛОК 2. МАТЕРИАЛЫ ==================== -->
+          <div class="block">
+            <div class="block-title">
+              <span>📦 Блок 2. Материалы</span>
+              <span class="bt-meta"
+                >Источники: отчёты <a href="../Materials/report_01.html">report_01.html</a>,
+                <a href="../Materials/report_02.html">report_02.html</a>, ведомость
+                <a href="../Settlement/sm_materials_01.html">sm_materials_01.html</a>, сводный
+                <a href="report_materials.html">report_materials.html</a></span
+              >
+            </div>
+            <div class="block-body">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Показатель</th>
+                    <th style="text-align: right">Сумма</th>
+                    <th>Комментарий</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Закуплено материалов (с накладными 10%)</td>
+                    <td class="num">245 194,52 ₽</td>
+                    <td>Отчёт №1 (108 732,04) + Отчёт №2 (136 462,48)</td>
+                  </tr>
+                  <tr>
+                    <td>в т.ч. доставка и подъём</td>
+                    <td class="num">23 620,00 ₽</td>
+                    <td>9 000,00 + 12 120,00 + 2 500,00</td>
+                  </tr>
+                  <tr class="row-sub">
+                    <td>Внесено заказчиком (ведомость материалов)</td>
+                    <td class="num">200 000,00 ₽</td>
+                    <td>17.07.2026</td>
+                  </tr>
+                  <tr class="row-sub">
+                    <td>Использовано (с накладными)</td>
+                    <td class="num">158 732,04 ₽</td>
+                    <td>Отчёт №1 + подотчётные прораба 50 000,00</td>
+                  </tr>
+                  <tr class="row-sub">
+                    <td>Остаток по материалам</td>
+                    <td class="num">41 267,96 ₽</td>
+                    <td>200 000,00 − 158 732,04</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="totals-flex">
+                <div class="doc-card green">
+                  <div class="label">Внесено по материалам</div>
+                  <div class="value">200 000,00 ₽</div>
+                </div>
+                <div class="doc-card red">
+                  <div class="label">Использовано (с накладными)</div>
+                  <div class="value">158 732,04 ₽</div>
+                </div>
+                <div class="doc-card">
+                  <div class="label">Остаток по материалам</div>
+                  <div class="value">41 267,96 ₽</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==================== БЛОК 3. СВОДНАЯ СВЕРКА ==================== -->
+          <div class="block">
+            <div class="block-title">
+              <span>📊 Блок 3. Сводная сверка</span>
+              <span class="bt-meta"
+                >Источники: <a href="../Settlement/sm_works_01.html">sm_works_01.html</a>,
+                <a href="../Settlement/sm_materials_01.html">sm_materials_01.html</a></span
+              >
+            </div>
+            <div class="block-body">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Категория</th>
+                    <th style="text-align: right">Внесено</th>
+                    <th style="text-align: right">Использовано</th>
+                    <th style="text-align: right">Остаток</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Работы</td>
+                    <td class="num">301 876,00</td>
+                    <td class="num">141 127,80</td>
+                    <td class="num">160 748,20</td>
+                  </tr>
+                  <tr>
+                    <td>Материалы</td>
+                    <td class="num">200 000,00</td>
+                    <td class="num">158 732,04</td>
+                    <td class="num">41 267,96</td>
+                  </tr>
+                  <tr class="row-total">
+                    <td class="grand">ИТОГО</td>
+                    <td class="num grand">501 876,00</td>
+                    <td class="num grand">299 859,84</td>
+                    <td class="num grand">202 016,16</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="totals-flex">
+                <div class="doc-card green">
+                  <div class="label">Всего внесено заказчиком</div>
+                  <div class="value">501 876,00 ₽</div>
+                </div>
+                <div class="doc-card red">
+                  <div class="label">Всего использовано</div>
+                  <div class="value">299 859,84 ₽</div>
+                </div>
+                <div class="doc-card">
+                  <div class="label">Итоговый остаток</div>
+                  <div class="value">202 016,16 ₽</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ссылки -->
+          <div class="links-block">
+            <h3>🔗 Документы по объекту</h3>
+            <ul>
+              <li>Смета: <a href="../estimate.html">estimate.html</a></li>
+              <li>
+                Акты выполненных работ: <a href="../Works/act_01.html">Works/act_01.html</a> (Акт №1
+                от 26.07.2026)
+              </li>
+              <li>
+                Отчёты о закупке материалов:
+                <a href="../Materials/report_01.html">Materials/report_01.html</a>,
+                <a href="../Materials/report_02.html">Materials/report_02.html</a>
+              </li>
+              <li>
+                Акты взаиморасчётов:
+                <a href="../Settlement/sm_works_01.html">Settlement/sm_works_01.html</a>,
+                <a href="../Settlement/sm_materials_01.html">Settlement/sm_materials_01.html</a>
+              </li>
+              <li>
+                Сформированные отчёты: <a href="report_work.html">report_work.html</a> (ход работ),
+                <a href="report_materials.html">report_materials.html</a> (материалы),
+                report_final.html (итоговый)
+              </li>
+            </ul>
+          </div>
+
+          <div class="note">
+            Примечания:
+            <ul style="margin: 6px 0 0; padding-left: 20px">
+              <li>
+                Расхождение 0,08 ₽ между итогом Акта №1 (141 127,88 ₽) и суммой «Использовано по
+                актам» в ведомости работ (141 127,80 ₽) — сохранено как в исходных документах.
+              </li>
+              <li>
+                По ведомости материалов в сумму использования (158 732,04 ₽) включены подотчётные
+                средства прораба 50 000,00 ₽.
+              </li>
+              <li>
+                Накладные расходы: работы — 5% (по смете и акту), материалы — 10% (по отчётам о
+                закупке).
+              </li>
+              <li>
+                Все суммы взяты из исходных HTML-документов без изменений; отчёт сформирован
+                02.08.2026.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>Проект «Ремонт» — отчётность</span>
+        <span>
+          <a href="/#/">Главная</a>
+          <a href="/#/news">Новости</a>
+          <a href="/#/projects">Проекты</a>
+        </span>
+      </footer>
+    </div>
+
+    <script src="/projects/theme.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Применяем сохранённую тему до отрисовки, чтобы не было «мигания». -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+
+    <title>Заказ материалов №1 от 17-07-2026</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Общие стили страниц проектов (дизайн + тема приложения) -->
+    <link rel="stylesheet" href="/projects/styles.css" />
+
+    <!-- Акцентный цвет проекта (оранжевый — как карточка «Ремонт») -->
+    <style>
+      :root {
+        --project-accent: #e8872e;
+        --project-accent-soft: rgba(232, 135, 46, 0.14);
+      }
+    </style>
+    <style>
+      /* Документ заказа: таблицы и блоки. Каркас и тема — общие (/projects/styles.css). */
+      .doc {
+        max-width: 1200px;
+        width: 100%;
+        background: white;
+        border-radius: 32px;
+        box-shadow:
+          0 12px 30px rgba(0, 0, 0, 0.05),
+          0 4px 12px rgba(0, 0, 0, 0.03);
+        padding: 2rem 2.2rem 2.2rem;
+      }
+
+      .doc-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: baseline;
+        border-bottom: 1px solid #dde3ea;
+        padding-bottom: 1rem;
+        margin-bottom: 1.8rem;
+        gap: 10px 20px;
+      }
+
+      .title {
+        font-size: 1.8rem;
+        font-weight: 500;
+        letter-spacing: -0.3px;
+        color: #0b1a2b;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 24px;
+        font-size: 0.95rem;
+        color: #1f3a4b;
+      }
+
+      .meta span {
+        background: #f2f6fa;
+        padding: 4px 16px;
+        border-radius: 40px;
+        white-space: nowrap;
+      }
+
+      .meta strong {
+        font-weight: 600;
+        color: #0b1a2b;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border-radius: 18px;
+        border: 1px solid #e2e9f0;
+        background: white;
+        margin-bottom: 1.8rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        min-width: 780px;
+      }
+
+      th {
+        background: #f7fafd;
+        font-weight: 600;
+        color: #1a2d3f;
+        padding: 14px 12px;
+        text-align: left;
+        border-bottom: 1px solid #d8e1ea;
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 12px 12px;
+        border-bottom: 1px solid #e7edf4;
+        vertical-align: middle;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      .col-num {
+        width: 44px;
+        text-align: center;
+        color: #4b6379;
+        font-weight: 450;
+      }
+
+      .col-name {
+        min-width: 200px;
+      }
+
+      .col-unit {
+        text-align: center;
+        white-space: nowrap;
+        color: #2f4a62;
+      }
+
+      .col-price,
+      .col-qty,
+      .col-sum {
+        text-align: right;
+        white-space: nowrap;
+        font-feature-settings: 'tnum';
+      }
+
+      .col-sum {
+        font-weight: 500;
+        color: #0b1a2b;
+      }
+
+      .row-total {
+        background: #f6faff;
+        font-weight: 600;
+        border-top: 1px solid #cbd7e3;
+      }
+
+      .row-total td {
+        padding: 16px 12px;
+        background: #f6faff;
+      }
+
+      .row-total .col-name {
+        font-weight: 600;
+      }
+
+      .row-total .col-sum {
+        font-size: 1.05rem;
+      }
+
+      .total-box {
+        display: flex;
+        justify-content: flex-end;
+        background: #f5f9fe;
+        border-radius: 40px;
+        padding: 0.9rem 2rem;
+        border: 1px solid #dce4ed;
+        margin: 0.2rem 0 1.8rem;
+      }
+
+      .total-box .label {
+        font-weight: 500;
+        margin-right: 1rem;
+        color: #0b1a2b;
+      }
+
+      .total-box .value {
+        font-weight: 600;
+        font-size: 1.3rem;
+        color: #0b1a2b;
+        letter-spacing: 0.3px;
+      }
+
+      .total-box .value small {
+        font-weight: 400;
+        font-size: 0.9rem;
+        color: #3f5a72;
+        margin-right: 4px;
+      }
+
+      .signatures {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-top: 1px solid #dde3ea;
+        padding-top: 1.6rem;
+        margin-top: 0.8rem;
+        gap: 20px 30px;
+      }
+
+      .signature-box {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .signature-box .label {
+        font-weight: 500;
+        color: #0b1a2b;
+      }
+
+      .signature-box .position {
+        color: #2f4a62;
+        font-size: 0.92rem;
+      }
+
+      .signature-line {
+        display: flex;
+        align-items: center;
+        gap: 16px 30px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+
+      .signature-line .line {
+        border-bottom: 1px solid #7b8fa0;
+        min-width: 140px;
+        padding-bottom: 2px;
+        display: inline-block;
+      }
+
+      .signature-line .name {
+        font-weight: 500;
+      }
+
+      @media (max-width: 700px) {
+        .doc {
+          padding: 1.2rem;
+        }
+
+        .doc-head {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .total-box {
+          justify-content: center;
+          flex-wrap: wrap;
+          text-align: center;
+        }
+
+        .signatures {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 20px;
+        }
+
+        .signature-line {
+          flex-wrap: wrap;
+        }
+      }
+
+      .doc-back {
+        display: inline-block;
+        margin-bottom: 16px;
+        font-size: 14px;
+        color: var(--project-accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .doc-back:hover {
+        text-decoration: underline;
+      }
+
+      /* Тёмная тема: документ подстраивается под каркас проекта */
+      [data-theme='dark'] .doc {
+        background: var(--surface);
+        color: var(--text);
+      }
+      [data-theme='dark'] .doc th {
+        background: #252a35;
+        color: #cbd6e6;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .doc td {
+        border-color: #343b47;
+        color: #c9d2de;
+      }
+      [data-theme='dark'] .doc .title {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc .meta {
+        color: #c3ccd8;
+      }
+      [data-theme='dark'] .doc .meta span {
+        background: #1c222b;
+      }
+      [data-theme='dark'] .doc .meta strong {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc .table-wrap {
+        background: var(--surface);
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .doc .col-num {
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .doc .col-unit {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc .col-sum {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc .row-total {
+        background: #212730;
+      }
+      [data-theme='dark'] .doc .row-total td {
+        background: #212730;
+      }
+      [data-theme='dark'] .total-box {
+        background: #1d242e;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .total-box .label,
+      [data-theme='dark'] .total-box .value {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .total-box .value small {
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .signatures {
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .signature-box .label {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .signature-box .position {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .signature-line .line {
+        border-color: #4a5568;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <a href="/#/" class="brand">
+          <h1><span class="brand-mark">🏠</span>Семейное пространство</h1>
+        </a>
+        <div class="header-actions">
+          <nav class="nav">
+            <a href="/#/">Главная</a>
+            <a href="/#/news">Новости</a>
+            <a href="/#/projects">Проекты</a>
+          </nav>
+          <div class="theme-toggle" data-theme-toggle></div>
+        </div>
+      </header>
+
+      <main class="page">
+        <a class="doc-back" href="/renovation/">← К отчётам проекта</a>
+        <div class="doc">
+          <div class="doc-head">
+            <div class="title">📦 Заказ материалов №1</div>
+            <div class="meta">
+              <span><strong>Заказчик:</strong> Рыбников Алексей Александрович</span>
+              <span
+                ><strong>Адрес:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв. 100,
+                этаж 7</span
+              >
+              <span><strong>Подрядчик:</strong> ООО «А-сервис»</span>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>№</th>
+                  <th>Наименование</th>
+                  <th>Ед. изм.</th>
+                  <th>Цена за ед.</th>
+                  <th>Количество</th>
+                  <th>Сумма</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="col-num">1</td>
+                  <td>Газоблок ГлавСтройБлок 625х250х100</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">117,60</td>
+                  <td class="col-qty">460,00</td>
+                  <td class="col-sum">54 096,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">2</td>
+                  <td>Газоблок ГлавСтройБлок 625х250х150</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">204,96</td>
+                  <td class="col-qty">11,00</td>
+                  <td class="col-sum">2 254,56</td>
+                </tr>
+                <tr>
+                  <td class="col-num">3</td>
+                  <td>ЦПС М-150 ТиМ 01, 25кг</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">345,00</td>
+                  <td class="col-qty">5,00</td>
+                  <td class="col-sum">1 725,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">4</td>
+                  <td>Универсальное моющее средство 5л</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">274,80</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">274,80</td>
+                </tr>
+                <tr>
+                  <td class="col-num">5</td>
+                  <td>Клей монтажный TOILER TL 400 для ячеистых блоков, 25кг</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">419,75</td>
+                  <td class="col-qty">16,00</td>
+                  <td class="col-sum">6 716,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">6</td>
+                  <td>Подвес прямой для ПП 1мм KNAUF</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">28,00</td>
+                  <td class="col-qty">50,00</td>
+                  <td class="col-sum">1 400,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">7</td>
+                  <td>Гвозди строительные 3,5х90мм (1кг)</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">202,80</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">202,80</td>
+                </tr>
+                <tr>
+                  <td class="col-num">8</td>
+                  <td>Уголок крепежный усиленный 90х90х65х2,0мм</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">60,00</td>
+                  <td class="col-qty">30,00</td>
+                  <td class="col-sum">1 800,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">9</td>
+                  <td>Анкер-клин 6х40мм MAN (100шт/кор) KNAUF</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">1 608,85</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">1 608,85</td>
+                </tr>
+                <tr>
+                  <td class="col-num">10</td>
+                  <td>Пена монтажная профессиональная TYTAN</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">632,50</td>
+                  <td class="col-qty">5,00</td>
+                  <td class="col-sum">3 162,50</td>
+                </tr>
+                <tr>
+                  <td class="col-num">11</td>
+                  <td>Арматура 12мм х 1500мм</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">156,00</td>
+                  <td class="col-qty">24,00</td>
+                  <td class="col-sum">3 744,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">12</td>
+                  <td>
+                    Мешок полипропиленовый 55х100см, плотность 55г/м2, нагрузка 50кг, белый
+                    усиленный
+                  </td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">24,00</td>
+                  <td class="col-qty">20,00</td>
+                  <td class="col-sum">480,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">13</td>
+                  <td>Ведро строительное круглое 20л</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">262,80</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">262,80</td>
+                </tr>
+                <tr>
+                  <td class="col-num">14</td>
+                  <td>Доставка</td>
+                  <td class="col-unit">—</td>
+                  <td class="col-price">—</td>
+                  <td class="col-qty">—</td>
+                  <td class="col-sum">9 000,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">15</td>
+                  <td>Подъем</td>
+                  <td class="col-unit">—</td>
+                  <td class="col-price">—</td>
+                  <td class="col-qty">—</td>
+                  <td class="col-sum">12 120,00</td>
+                </tr>
+                <tr class="row-total">
+                  <td colspan="5" class="col-name">Итого, с учетом накладных расходов</td>
+                  <td class="col-sum">108 732,04</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="total-box">
+            <span class="label">Итого:</span>
+            <span class="value"><small>₽</small> 108 732,04</span>
+          </div>
+
+          <div class="signatures">
+            <div class="signature-box">
+              <span class="label">Подрядчик</span>
+              <span class="position">Директор ООО «А-сервис»</span>
+              <div class="signature-line">
+                <span class="line"
+                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
+                >
+                <span class="name">Глушков Е.О.</span>
+              </div>
+            </div>
+            <div class="signature-box">
+              <span class="label">Заказчик</span>
+              <div class="signature-line">
+                <span class="line"
+                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
+                >
+                <span class="name">Рыбников А.А.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>Проект «Ремонт» — отчётность</span>
+        <span>
+          <a href="/#/">Главная</a>
+          <a href="/#/news">Новости</a>
+          <a href="/#/projects">Проекты</a>
+        </span>
+      </footer>
+    </div>
+
+    <script src="/projects/theme.js" defer></script>
+  </body>
+</html>

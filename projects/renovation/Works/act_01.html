@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Применяем сохранённую тему до отрисовки, чтобы не было «мигания». -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+
+    <title>Акт приемки выполненных работ</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Общие стили страниц проектов (дизайн + тема приложения) -->
+    <link rel="stylesheet" href="/projects/styles.css" />
+
+    <!-- Акцентный цвет проекта (оранжевый — как карточка «Ремонт») -->
+    <style>
+      :root {
+        --project-accent: #e8872e;
+        --project-accent-soft: rgba(232, 135, 46, 0.14);
+      }
+    </style>
+    <style>
+      /* Документ акта: таблицы и блоки. Каркас и тема — общие (/projects/styles.css). */
+      .doc {
+        max-width: 1000px;
+        width: 100%;
+        background: white;
+        border-radius: 32px;
+        box-shadow:
+          0 20px 40px rgba(0, 0, 0, 0.06),
+          0 8px 24px rgba(0, 0, 0, 0.04);
+        padding: 2.5rem 2.8rem 2.8rem;
+        transition: all 0.2s;
+      }
+
+      .doc-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: baseline;
+        border-bottom: 1px solid #dde3ea;
+        padding-bottom: 1.2rem;
+        margin-bottom: 2rem;
+        gap: 10px 20px;
+      }
+
+      .title {
+        font-size: 1.9rem;
+        font-weight: 500;
+        letter-spacing: -0.3px;
+        color: #0b1a2b;
+      }
+
+      .contract-ref {
+        color: #2f4a62;
+        background: #f2f6fb;
+        padding: 5px 18px;
+        border-radius: 40px;
+        font-size: 0.95rem;
+        white-space: nowrap;
+      }
+
+      .parties {
+        background: #f7fafd;
+        border-radius: 20px;
+        padding: 1.2rem 1.8rem;
+        margin-bottom: 2.2rem;
+        border: 1px solid #e2e9f1;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 16px 30px;
+        font-size: 0.98rem;
+      }
+
+      .party {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .party .role {
+        font-weight: 600;
+        color: #0b1a2b;
+        letter-spacing: 0.3px;
+      }
+
+      .party .name {
+        color: #1f3a4b;
+      }
+
+      .party .detail {
+        color: #3f5a72;
+        font-size: 0.9rem;
+      }
+
+      .intro-text {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #152b3b;
+        margin-bottom: 1.8rem;
+        padding: 0.2rem 0;
+      }
+
+      .section-title {
+        font-weight: 600;
+        font-size: 1.3rem;
+        color: #0b1a2b;
+        background: #f0f5fb;
+        padding: 0.3rem 1.5rem;
+        border-radius: 60px;
+        display: inline-block;
+        margin-bottom: 1.2rem;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border-radius: 18px;
+        border: 1px solid #e2e9f0;
+        background: white;
+        margin: 1.2rem 0 2rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+        min-width: 700px;
+      }
+
+      th {
+        background: #f7fafd;
+        font-weight: 600;
+        color: #1a2d3f;
+        padding: 14px 12px;
+        text-align: left;
+        border-bottom: 1px solid #d8e1ea;
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 12px 12px;
+        border-bottom: 1px solid #e7edf4;
+        vertical-align: middle;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      .col-num {
+        width: 40px;
+        text-align: center;
+        color: #4b6379;
+        font-weight: 450;
+      }
+
+      .col-name {
+        min-width: 200px;
+      }
+
+      .col-unit {
+        text-align: center;
+        white-space: nowrap;
+        color: #2f4a62;
+      }
+
+      .col-price,
+      .col-qty,
+      .col-sum {
+        text-align: right;
+        white-space: nowrap;
+        font-feature-settings: 'tnum';
+      }
+
+      .col-sum {
+        font-weight: 500;
+        color: #0b1a2b;
+      }
+
+      .row-total {
+        background: #f6faff;
+        font-weight: 600;
+        border-top: 1px solid #cbd7e3;
+      }
+
+      .row-total td {
+        padding: 16px 12px;
+        background: #f6faff;
+      }
+
+      .row-total .col-name {
+        font-weight: 600;
+      }
+
+      .row-total .col-sum {
+        font-size: 1.02rem;
+      }
+
+      .totals-block {
+        background: #f5f9fe;
+        border-radius: 20px;
+        padding: 1.2rem 1.8rem;
+        margin: 1.5rem 0 2rem;
+        border: 1px solid #dce4ed;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px 30px;
+      }
+
+      .totals-block .item {
+        font-size: 1rem;
+      }
+
+      .totals-block .item strong {
+        font-weight: 600;
+        color: #0b1a2b;
+      }
+
+      .totals-block .grand {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #0b1a2b;
+        letter-spacing: 0.3px;
+      }
+
+      .totals-block .grand small {
+        font-weight: 400;
+        font-size: 0.9rem;
+        color: #3f5a72;
+        margin-right: 4px;
+      }
+
+      .text-block {
+        background: #fafcfe;
+        padding: 1.5rem 1.8rem;
+        border-radius: 20px;
+        border: 1px solid #e6edf5;
+        margin: 1.8rem 0 2.5rem;
+        line-height: 1.7;
+        color: #152b3b;
+      }
+
+      .text-block p {
+        margin-bottom: 0.6rem;
+      }
+
+      .text-block p:last-child {
+        margin-bottom: 0;
+      }
+
+      .signatures {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-top: 1px solid #dde3ea;
+        padding-top: 2rem;
+        margin-top: 0.8rem;
+        gap: 30px 20px;
+      }
+
+      .signature-box {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .signature-box .label {
+        font-weight: 500;
+        color: #0b1a2b;
+      }
+
+      .signature-box .position {
+        color: #2f4a62;
+        font-size: 0.92rem;
+      }
+
+      .signature-box .name {
+        font-weight: 500;
+        margin-top: 4px;
+      }
+
+      .signature-line {
+        display: flex;
+        align-items: center;
+        gap: 16px 30px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+      }
+
+      .signature-line .line {
+        border-bottom: 1px solid #7b8fa0;
+        min-width: 140px;
+        padding-bottom: 2px;
+        display: inline-block;
+      }
+
+      .signature-line .spacer {
+        min-width: 20px;
+      }
+
+      .text-muted {
+        color: #4f6b82;
+      }
+
+      @media (max-width: 700px) {
+        .doc {
+          padding: 1.5rem;
+        }
+
+        .parties {
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .totals-block {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 8px;
+        }
+
+        .signatures {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 24px;
+        }
+
+        .signature-line {
+          flex-wrap: wrap;
+        }
+      }
+
+      .doc-back {
+        display: inline-block;
+        margin-bottom: 16px;
+        font-size: 14px;
+        color: var(--project-accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .doc-back:hover {
+        text-decoration: underline;
+      }
+
+      /* Тёмная тема: документ подстраивается под каркас проекта */
+      [data-theme='dark'] .doc {
+        background: var(--surface);
+        color: var(--text);
+      }
+      [data-theme='dark'] .doc th {
+        background: #252a35;
+        color: #cbd6e6;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .doc td {
+        border-color: #343b47;
+        color: #c9d2de;
+      }
+      [data-theme='dark'] .doc .title {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc .contract-ref {
+        background: #1c222b;
+        color: #c3ccd8;
+      }
+      [data-theme='dark'] .parties {
+        background: #1c222b;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .party .role {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .party .name {
+        color: #c3ccd8;
+      }
+      [data-theme='dark'] .party .detail {
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .intro-text {
+        color: #c3ccd8;
+      }
+      [data-theme='dark'] .section-title {
+        background: #232a38;
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc .table-wrap {
+        background: var(--surface);
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .doc .col-num {
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .doc .col-unit {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc .col-sum {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc .row-total {
+        background: #212730;
+      }
+      [data-theme='dark'] .doc .row-total td {
+        background: #212730;
+      }
+      [data-theme='dark'] .totals-block {
+        background: #1d242e;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .totals-block .item strong,
+      [data-theme='dark'] .totals-block .grand {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .totals-block .grand small {
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .text-block {
+        background: #1d242e;
+        border-color: #343b47;
+        color: #c3ccd8;
+      }
+      [data-theme='dark'] .signatures {
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .signature-box .label {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .signature-box .position {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .signature-line .line {
+        border-color: #4a5568;
+      }
+      [data-theme='dark'] .text-muted {
+        color: #8b95a5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <a href="/#/" class="brand">
+          <h1><span class="brand-mark">🏠</span>Семейное пространство</h1>
+        </a>
+        <div class="header-actions">
+          <nav class="nav">
+            <a href="/#/">Главная</a>
+            <a href="/#/news">Новости</a>
+            <a href="/#/projects">Проекты</a>
+          </nav>
+          <div class="theme-toggle" data-theme-toggle></div>
+        </div>
+      </header>
+
+      <main class="page">
+        <a class="doc-back" href="/renovation/">← К отчётам проекта</a>
+        <div class="doc">
+          <!-- Шапка: заголовок + ссылка на договор -->
+          <div class="doc-head">
+            <div class="title">Акт приемки выполненных работ</div>
+            <div class="contract-ref">к договору подряда №6124 от 26.12.2025</div>
+          </div>
+
+          <!-- Стороны -->
+          <div class="parties">
+            <div class="party">
+              <span class="role">Заказчик</span>
+              <span class="name">Рыбников Алексей Александрович</span>
+            </div>
+            <div class="party">
+              <span class="role">Подрядчик</span>
+              <span class="name">ООО «А-сервис»</span>
+              <span class="detail"
+                >в лице Директора Глушкова Егора Олеговича, действующего на основании Устава</span
+              >
+            </div>
+          </div>
+
+          <!-- Вводная фраза -->
+          <div class="intro-text">составили настоящий акт о нижеследующем:</div>
+
+          <!-- Раздел 3. Стены (таблица) -->
+          <div>
+            <div class="section-title">🧱 Раздел 3. Стены</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>№</th>
+                    <th>Наименование работ</th>
+                    <th>Ед.</th>
+                    <th>Цена за ед.</th>
+                    <th>Объём</th>
+                    <th>Сумма</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="col-num">1.</td>
+                    <td>Монтаж перегородок | из газоблока, пеноблока | толщиной до 10 см</td>
+                    <td class="col-unit">м²+м.п.</td>
+                    <td class="col-price">1 645.00</td>
+                    <td class="col-qty">73.50</td>
+                    <td class="col-sum">120 907.50</td>
+                  </tr>
+                  <tr>
+                    <td class="col-num">2.</td>
+                    <td>Формирование дверного проема с учетом дверной перемычки</td>
+                    <td class="col-unit">ед.</td>
+                    <td class="col-price">2 700.00</td>
+                    <td class="col-qty">5.00</td>
+                    <td class="col-sum">13 500.00</td>
+                  </tr>
+                  <tr class="row-total">
+                    <td colspan="5" class="col-name">Итого по разделу 3: «Стены»</td>
+                    <td class="col-sum">134 407.50</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Итоговые суммы: отдельный блок -->
+          <div class="totals-block">
+            <span class="item"><strong>Итого по всем разделам:</strong> 134 407.50 ₽</span>
+            <span class="item"><strong>Накладные расходы 5%:</strong> 6 720.38 ₽</span>
+            <span class="grand"><small>₽</small> 141 127.88</span>
+          </div>
+
+          <!-- Текст: сумма прописью и подтверждение -->
+          <div class="text-block">
+            <p>
+              <strong>2.</strong> Всего выполнено работ на сумму: <strong>141 127,88</strong> (Сто
+              сорок одна тысяча сто двадцать семь рублей 88 копеек).
+            </p>
+            <p>
+              <strong>3.</strong> Вышеперечисленные услуги выполнены полностью и в срок. Заказчик
+              претензий по объему, качеству и срокам оказания услуг не имеет. Качество выполненных
+              работ проверено Заказчиком в присутствии Исполнителя и соответствует требованиям
+              Заказчика и условиям Договора.
+            </p>
+          </div>
+
+          <!-- Подписи сторон -->
+          <div class="signatures">
+            <div class="signature-box">
+              <span class="label">Подрядчик</span>
+              <span class="position">Директор ООО «А-сервис»</span>
+              <div class="signature-line">
+                <span class="line"
+                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
+                >
+                <span>Глушков Е.О.</span>
+              </div>
+            </div>
+            <div class="signature-box">
+              <span class="label">Заказчик</span>
+              <div class="signature-line">
+                <span class="line"
+                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
+                >
+                <span>Рыбников А.А.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Нижняя подпись / дата (опционально) -->
+          <div
+            style="
+              margin-top: 1.8rem;
+              font-size: 0.8rem;
+              color: #6f889e;
+              text-align: right;
+              border-top: 1px solid #e4ebf2;
+              padding-top: 1.2rem;
+            "
+          >
+            Акт составлен «26» июля 2026 г.
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>Проект «Ремонт» — отчётность</span>
+        <span>
+          <a href="/#/">Главная</a>
+          <a href="/#/news">Новости</a>
+          <a href="/#/projects">Проекты</a>
+        </span>
+      </footer>
+    </div>
+
+    <script src="/projects/theme.js" defer></script>
+  </body>
+</html>

@@ -170,7 +170,13 @@ family (монорепозиторий, npm workspaces)
 │   ├── styles.css                   — общий дизайн/тема страниц проектов
 │   ├── theme.js                     — тема (light/dark/system) для страниц проектов
 │   ├── _template/index.html         — шаблон новой страницы проекта
-│   └── renovation/index.html        — проект «Ремонт» (отчётность)
+│   └── renovation/                  — проект «Ремонт» (отчётность, в стиле приложения)
+│       ├── index.html               — главная страница проекта
+│       ├── estimate.html            — смета на ремонт
+│       ├── Reports/                 — отчёты (report_work, report_materials, report_final)
+│       ├── Materials/               — заказы материалов №1/№2
+│       ├── Settlement/              — акты взаиморасчётов (работы/материалы)
+│       └── Works/                   — акт выполненных работ
 └── docs/specification.md            — настоящий документ
 ```
 
@@ -721,7 +727,16 @@ $$
 - `projects/styles.css` — общий дизайн/тема страниц проектов.
 - `projects/theme.js` — тема (light/dark/system) + переключатель для страниц проектов.
 - `projects/_template/index.html` — шаблон новой страницы проекта (в деплой не попадает).
-- `projects/renovation/index.html` — проект «Ремонт» (отчётность, в стиле приложения).
+- `projects/renovation/` — проект «Ремонт» (отчётность, в стиле приложения):
+  - `index.html` — главная страница проекта (общий шаблон проектов);
+  - `estimate.html` — смета на ремонт;
+  - `Reports/{report_work,report_materials,report_final}.html` — отчёты (ход работ, материалы, итоговый);
+  - `Materials/report_01.html`, `Materials/report_02.html` — заказы материалов;
+  - `Settlement/sm_works_01.html`, `Settlement/sm_materials_01.html` — акты взаиморасчётов;
+  - `Works/act_01.html` — акт приёмки выполненных работ.
+    Подстраницы используют общий каркас проектов (`/projects/styles.css` + тема + шапка/футер) и
+    локальные табличные стили (гибрид); исходники импортированы из `temp/renovation_source/`,
+    поэтому на сервер они уходят деплоем вместе с `projects/`.
 
 ---
 
