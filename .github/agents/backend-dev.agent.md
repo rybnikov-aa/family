@@ -46,4 +46,4 @@ You are a backend specialist for the «family» app (Node + Express 5 + Vite via
 
 - Short summary of changes (files + what exactly changed).
 - Typecheck result (no errors / list of errors).
-- Notes: if an API contract or config schema changed, remind about the «documentation in sync with code» rule (update `docs/specification.md` first, then `README.md`, and `.env.example` if env vars changed).
+- Notes: if an API contract or config schema changed, remind about the «documentation in sync with code» rule (update the module spec `docs/specification-vps.md`/`-projects.md`/`-auth.md` — and `docs/specification.md` if common parts change — first, then `README.md`, and `.env.example` if env vars changed).

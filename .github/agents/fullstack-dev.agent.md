@@ -1,5 +1,5 @@
 ---
-description: 'Сквозная разработка фич приложения family (полный стек). Use when: задача затрагивает и бэкенд, и фронтенд (новый API-эндпоинт + UI, фикс «VPS не видна», новый тип проверки с отображением, изменение контракта API), синхронная актуализация документации (docs/specification.md, README.md), связка backend/src/** + frontend/src/** + projects/**. Для задач строго в одной области — используй агентов Frontend Dev или Backend Dev.'
+description: 'Сквозная разработка фич приложения family (полный стек). Use when: задача затрагивает и бэкенд, и фронтенд (новый API-эндпоинт + UI, фикс «VPS не видна», новый тип проверки с отображением, изменение контракта API), синхронная актуализация документации (docs/specification*.md, README.md), связка backend/src/** + frontend/src/** + projects/**. Для задач строго в одной области — используй агентов Frontend Dev или Backend Dev.'
 name: 'Fullstack Dev'
 argument-hint: 'Сквозная задача (бэкенд + фронтенд)'
 tools: [read, search, edit, execute, todo, web]
@@ -30,7 +30,7 @@ You are a fullstack specialist for the «family» app (React 19 + TypeScript + V
 - **Frontend**: `createHashRouter` (hash routing mandatory), theme via CSS variables + `useTheme` (no hardcoded hex, don't break the inline theme script), data only through `api/client.ts` and hooks in `hooks/`, inline SVG icons in `components/icons.tsx`, clickable cards as `<div role="button" tabIndex={0}>` with nested buttons using `event.stopPropagation()`.
 - **API contract**: when adding/changing an endpoint, update `api/client.ts` types and hooks together; keep response shapes consistent between backend and frontend types.
 - **Auth**: cross-cutting — decide access for every endpoint (public / any session / admin) and enforce it with `requireAuth`/`requireAdmin` on the backend and the `useAuth` gate + role checks (`user?.role === 'admin'`) on the frontend; document it in the spec. User management: bootstrap admin via `AUTH_BOOTSTRAP_PASSWORD`, CLI `npm run user -w backend`.
-- **Docs**: update `docs/specification.md` first (API, formulas, acceptance criteria), then `README.md`; `.env.example` if env vars changed. Code is correct only if it meets the spec's acceptance criteria.
+- **Docs**: update the module spec (`docs/specification-vps.md`/`-projects.md`/`-auth.md`) first (API, formulas, acceptance criteria) — and `docs/specification.md` if common parts change; then `README.md`; `.env.example` if env vars changed. Code is correct only if it meets the module spec's acceptance criteria.
 - **Format**: Prettier — singleQuote, semi, printWidth 100, trailingComma all.
 
 ## Workflow
@@ -44,7 +44,7 @@ You are a fullstack specialist for the «family» app (React 19 + TypeScript + V
      Give each subagent a precise, single-layer scope — do not let them cross into each other's layer.
 4. Integrate the results; reconcile types across `api/client.ts`, hooks, and backend controllers/services; resolve any contract mismatches.
 5. Verify end-to-end: `npm run typecheck` (root — checks both workspaces); run `npm run format` if formatting changed.
-6. Update docs: `docs/specification.md` first, then `README.md` (and `.env.example` if env vars changed).
+6. Update docs: module spec + `docs/specification.md` first, then `README.md` (and `.env.example` if env vars changed).
 7. If needed, run `npm run dev` and smoke-test both ends (frontend on 5173, backend on 3000; dev-proxy `/api` → `:3000`).
 
 ## Output Format

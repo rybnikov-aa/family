@@ -38,4 +38,4 @@ You are a frontend specialist for the «family» app (React 19 + TypeScript + Vi
 
 - Short summary of changes (files + what exactly changed).
 - Typecheck result (no errors / list of errors).
-- Notes: if an API contract or UI behavior changed, remind about the «documentation in sync with code» rule (update `docs/specification.md`, `README.md`).
+- Notes: if an API contract or UI behavior changed, remind about the «documentation in sync with code» rule (update the module spec `docs/specification-vps.md`/`-projects.md`/`-auth.md` — and `docs/specification.md` if common parts change — then `README.md`).

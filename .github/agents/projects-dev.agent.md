@@ -42,7 +42,7 @@ conventions (shared frame `projects/styles.css`, theme light/dark/system, icon s
 - DO NOT run `npm run deploy` before asking the user for confirmation.
 - DO NOT leave a report/page layout change in `projects/renovation/**` without syncing the docs and
   skill: update `.github/skills/project-renovation-build-reports/SKILL.md` and
-  `docs/specification.md` in the same change.
+  `docs/specification-projects.md` in the same change.
 - DO NOT leave unused variables/parameters in TS code you touch — TS6133
   (`noUnusedLocals`/`noUnusedParameters`); name unused params `_req`/`_next`.
 - Comments, UI strings and page content must be in Russian.
@@ -82,7 +82,7 @@ src="/projects/theme.js" defer>`; markup `<div class="container">` → `<header 
 3. Make edits preserving the conventions above; reuse patterns from `projects/_template/index.html`
    and `projects/renovation/` (reference implementation) instead of inventing new ones.
 4. Sync docs & skill with the change: if the report/page layout or structure changed, update
-   `.github/skills/project-renovation-build-reports/SKILL.md` and `docs/specification.md` in the same
+   `.github/skills/project-renovation-build-reports/SKILL.md` and `docs/specification-projects.md` in the same
    change; `grep` for stale markers (old class names, removed labels) to confirm nothing is left.
 5. Verify locally: serve from repo root (`npx serve .` or `python -m http.server`), open
    `http://localhost:8080/projects/<slug>/` in the browser and check frame, theme (light/dark),
