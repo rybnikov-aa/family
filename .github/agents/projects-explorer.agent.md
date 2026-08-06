@@ -1,5 +1,5 @@
 ---
-description: 'Read-only исследование статичных страниц проектов family (projects/**). Use when: понять структуру/контент проекта (index.html, подстраницы, Works/, Materials/, Settlement/, Reports/), извлечь и сверить данные из HTML-документов (смета, акты выполненных работ, отчёты о материалах, взаиморасчёты), собрать сводку по проектам, ответить «что есть в проекте», подготовить данные для отчётности. Только чтение — не редактирует, не деплоит. Не для кода приложения (backend/**), интерфейса (frontend/**) и правки/отчётности (их делает Projects Dev).'
+description: 'Read-only исследование статичных страниц проектов family (projects/**). Use when: понять структуру/контент проекта (index.html, подстраницы, Works/, Materials/, Reports/), извлечь и сверить данные из HTML-документов (смета, акты выполненных работ, отчёты о материалах, взаиморасчёты), собрать сводку по проектам, ответить «что есть в проекте», подготовить данные для отчётности. Только чтение — не редактирует, не деплоит. Не для кода приложения (backend/**), интерфейса (frontend/**) и правки/отчётности (их делает Projects Dev).'
 name: 'Projects Explorer'
 argument-hint: 'Что изучить в проектах (projects/**)'
 tools: [read, search, web]
@@ -14,7 +14,7 @@ Your job is to explore, understand and summarize project pages and the data in t
 
 - Answering questions about what exists in `projects/**`: structure, sections, documents, pages.
 - Extracting and cross-checking data from project HTML documents (`estimate.html`, `Works/`,
-  `Materials/`, `Settlement/`, `Reports/`): items, totals, dates, quantities.
+  `Materials/`, `Reports/`): items, totals, dates, quantities.
 - Gathering input data and pre-aggregations for renovation reports or other summaries.
 - Pre-flight review before editing/publishing a project: what is there, what would change.
 
@@ -36,8 +36,9 @@ Your job is to explore, understand and summarize project pages and the data in t
 - Shared frame: `/projects/styles.css`, theme light/dark/system, icon sprite
   `/projects/icon-sprite.svg`. General conventions — `projects.instructions.md`, renovation
   specifics — `project.renovation.instructions.md`.
-- Renovation data model (for aggregation): `estimate.html` = plan; `Works/*.html` = facts (acts of
-  work); `Materials/*.html` = material purchase reports; `Settlement/*.html` = settlement sheets;
+- Renovation data model (for aggregation): `estimate.html` = plan; `Works/act_*.html` = facts (acts
+  of work); `Materials/report_*.html` = material purchase reports;
+  `Works/act_*_settlement.html` / `Materials/report_*_settlement.html` = settlement sheets;
   generated reports live in `Reports/`. For parsing rules consult the
   `project-renovation-build-reports` skill (`.github/skills/project-renovation-build-reports/SKILL.md`).
 

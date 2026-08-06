@@ -47,9 +47,8 @@ graph TD
 │       ├── index.html        # главная страница проекта
 │       ├── estimate.html     # смета на ремонт
 │       ├── Reports/          # отчёты: report_work, report_materials, report_final
-│       ├── Materials/        # заказы материалов №1/№2
-│       ├── Settlement/       # акты взаиморасчётов (работы/материалы)
-│       └── Works/            # акт выполненных работ
+│       ├── Materials/        # заказы материалов (report_*.html) + взаиморасчёты по материалам
+│       └── Works/            # акты работ (act_*.html) + взаиморасчёты по работам
 │
 ├── frontend/                 # React + TypeScript + Vite
 │   ├── package.json

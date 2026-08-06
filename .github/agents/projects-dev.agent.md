@@ -20,7 +20,7 @@ conventions (shared frame `projects/styles.css`, theme light/dark/system, icon s
 - Creating or importing a new project into the «Проекты» section (new subfolder `projects/<slug>/`
   with `index.html` from `projects/_template`).
 - Editing existing project pages: `projects/**` (index.html, subpages, nested `Works/`,
-  `Materials/`, `Settlement/`, `Reports/` folders).
+  `Materials/`, `Reports/` folders).
 - Building renovation reports (`projects/renovation/**`) from the estimate, acts of work, material
   reports and settlement sheets.
 - Converting a PDF document into an HTML page for a project.
@@ -62,7 +62,7 @@ src="/projects/theme.js" defer>`; markup `<div class="container">` → `<header 
   `/#/`, `/#/news`, `/#/projects`.
 - **Multi-document projects**: main page = `.cards` grid of `<a class="card">` with `.icon`, `.body`
   (`.title`, `.desc`), `.arrow`; subpages = separate HTML in the same folder (`<slug>/sub.html`),
-  nested semantic folders when needed (`Works/`, `Materials/`, `Settlement/`).
+  nested semantic folders when needed (`Works/`, `Materials/`, `Reports/`).
 - **Tables**: use local `<style>` in `<head>` (hybrid approach); do NOT reuse frame classes
   (`.container`, `.header`, `.footer`, `.card`, `.stats`, `.stat`) inside documents; dark theme
   required (`[data-theme='dark'] ...`).

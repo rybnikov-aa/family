@@ -1,5 +1,5 @@
 ---
-description: 'Use when working in projects/renovation/**: HTML-подстраницы проекта «Ремонт», конвертация PDF в HTML, формирование отчётности по ремонту (смета estimate.html, акты Works/, материалы Materials/, взаиморасчёты Settlement/), конвенции оформления (styles.css, тема, акцент #e8872e), публикация /projects/renovation/ через npm run deploy.'
+description: 'Use when working in projects/renovation/**: HTML-подстраницы проекта «Ремонт», конвертация PDF в HTML, формирование отчётности по ремонту (смета estimate.html, акты Works/, материалы Materials/, взаиморасчёты по работам Works/ и по материалам Materials/), конвенции оформления (styles.css, тема, акцент #e8872e), публикация /projects/renovation/ через npm run deploy.'
 name: 'Renovation Project Conventions'
 applyTo: ['projects/renovation/**']
 ---
@@ -13,10 +13,15 @@ applyTo: ['projects/renovation/**']
 ## Структура
 
 - `index.html` — главная проекта (шаблон конвенций: тема, каркас).
-- `estimate.html` — смета (план).
-- `Works/` — акты выполненных работ (`act_*.html`).
-- `Materials/` — отчёты о закупке материалов (`report_*.html`).
-- `Settlement/` — акты взаиморасчётов (`sm_works_*.html`, `sm_materials_*.html`).
+- `estimate.html` — смета (план; актуальная).
+- `estimate_{dd.MM.yyyy}.html` — бэкапы сметы до изменений по доп. соглашениям (при обновлении
+  сметы текущий `estimate.html` переименовывается в `estimate_{dd.MM.yyyy}.html`).
+- `estimate_add_{yyyy-MM-dd}.html` — доп. соглашения к смете (изменения применяются в
+  `estimate.html`, изменённые строки — синим, класс `row-changed`).
+- `Works/` — акты выполненных работ (`act_{yyyy-MM-dd}.html`) и акты взаиморасчётов по работам
+  (`act_{yyyy-MM-dd}_settlement.html`).
+- `Materials/` — отчёты о закупке материалов (`report_{yyyy-MM-dd}.html`) и акты взаиморасчётов
+  по материалам (`report_{yyyy-MM-dd}_settlement.html`).
 - `Reports/` — формируемые отчёты (`report_work.html`, `report_materials.html`, `report_final.html`).
 
 ## Навыки для этого проекта
@@ -24,8 +29,15 @@ applyTo: ['projects/renovation/**']
 - **project-renovation-build-reports** — формирование отчётности из HTML-документов проекта.
   Триггеры: «сформируй отчёты», «отчёт о ходе работ», «сводный отчёт по материалам»,
   «итоговый отчёт», «сводка по ремонту», «отчёт по материалам», «составь отчётность».
-- **parse-pdf** — конвертация PDF в HTML (пользователь дал PDF-файл: смету, акт, счёт, таблицу).
-  Результаты класть в смысловую подпапку (`Works/`, `Materials/`, `Settlement/`, `estimate.html`).
+- **project-renovation-update-from-pdf** — актуализация исходных документов из PDF (определение
+  типа, датированные имена, ссылка на исходный PDF). Триггеры: «актуализируй по pdf»,
+  «добавь заказ материалов из pdf», «новый акт из pdf», «доп. соглашение из pdf»,
+  «переформируй смету», «обнови смету», «смета по доп. соглашению».
+  При обновлении сметы по доп. соглашению: добавлять только строки, которых нет в смете;
+  существующие строки — обновлять (цена/объём/сумма) и помечать синим `row-changed`, дубли
+  не создавать; нумерация сквозная (при добавлении строк в раздел последующие разделы сдвигать).
+- **parse-pdf** — универсальная конвертация PDF в HTML. Для «Ремонта» результаты класть в
+  смысловую подпапку (`Works/`, `Materials/`; смета/доп. соглашения — в корень).
 
 ## Синхронизация документации и навыков
 
