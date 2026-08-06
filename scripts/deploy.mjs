@@ -208,21 +208,16 @@ cp -a /tmp/family-deploy/frontend/. "$PUBLIC"/
 #     subfolders (renovation/ etc.) all go to public_html/projects/.
 #     Project pages are served at /projects/<slug>/ (e.g. /projects/renovation/,
 #     see docs/server.md). Only entries present in the repo are overwritten;
-#     other subfolders on the server are preserved. Existing entries are
-#     backed up to /tmp/family-projects-backup-<timestamp> before overwrite.
+#     other subfolders on the server are preserved. No backup is created.
 if [ -d /tmp/family-deploy/projects ]; then
-  BACKUP="/tmp/family-projects-backup-$(date +%Y%m%d%H%M%S)"
-  mkdir -p "$BACKUP" "$PUBLIC/projects"
+  mkdir -p "$PUBLIC/projects"
   for p in /tmp/family-deploy/projects/*; do
     [ -e "$p" ] || continue
     name=$(basename "$p")
     # Project subfolder or shared file -> /projects/ (repo mirrors web root 1:1)
-    if [ -d "$PUBLIC/projects/$name" ]; then
-      cp -a "$PUBLIC/projects/$name" "$BACKUP/"
-    fi
     cp -a "$p" "$PUBLIC/projects/"
   done
-  echo "[deploy] Projects copied to $PUBLIC/projects (backup: $BACKUP)"
+  echo "[deploy] Projects copied to $PUBLIC/projects"
 fi
 
 # 3. Replace backend files (server).

@@ -61,7 +61,7 @@
 
 ## Деплой (кратко)
 
-`scripts/deploy.mjs`: сборка → tar → scp → remote-скрипт (nginx не трогает). На сервере сохраняются: `server/.env`, `server/data/` (SQLite), `.well-known/`, подпапки проектов вне репозитория. Папки проектов перед перезаписью бэкапятся в `/tmp/family-projects-backup-<ts>`. Детали — в [README.md](README.md) «Деплой» и [docs/server.md](docs/server.md).
+`scripts/deploy.mjs`: сборка → tar → scp → remote-скрипт (nginx не трогает). На сервере сохраняются: `server/.env`, `server/data/` (SQLite), `.well-known/`, подпапки проектов вне репозитория. Бэкап папок проектов не выполняется. Детали — в [README.md](README.md) «Деплой» и [docs/server.md](docs/server.md).
 
 ## Типичные грабли
 
