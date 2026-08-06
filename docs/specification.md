@@ -760,13 +760,18 @@ $$
     «Отклонение») — всё в светлой и тёмной темах. Та же шапка (грид: заголовок строкой, чипы меты
     без заказчика с датой старта, карточка `doc-head-total` справа) и адаптивные таблицы (без
     `min-width` и прокрутки) — у остальных отчётов (`report_materials`, `report_final`);
-  - `Materials/report_2026-07-17.html`, `Materials/report_2026-08-01.html` — заказы материалов;
+  - `Materials/report_2026-07-17.html`, `Materials/report_2026-08-01.html`,
+    `Materials/report_2026-08-05.html` — заказы материалов;
   - `Materials/report_2026-07-17_settlement.html` — акт взаиморасчётов по материалам;
   - `Works/act_2026-07-26.html` — акт приёмки выполненных работ;
   - `Works/act_2026-07-26_settlement.html` — акт взаиморасчётов по работам.
     Подстраницы используют общий каркас проектов (`/projects/styles.css` + тема + SVG-иконки из
     `/projects/icon-sprite.svg` + шапка/футер) и локальные табличные стили (гибрид); на сервер
-    уходят деплоем вместе с `projects/` (`npm run deploy`).
+    уходят деплоем вместе с `projects/` (`npm run deploy`). Каждый исходный документ
+    (сметы `estimate*.html`, акты `Works/*.html`, заказы материалов `Materials/*.html`, ведомости
+    `*_settlement.html`) содержит блок `.doc-sources` со ссылкой на исходный PDF из
+    `/projects/renovation/pdf/...` (папка `pdf/` есть на сервере, в репозиторий не включается и
+    при деплое сохраняется).
 
 ---
 

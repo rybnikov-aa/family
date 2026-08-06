@@ -424,6 +424,36 @@
       [data-theme='dark'] .signature-line .line {
         border-color: #4a5568;
       }
+
+      .doc-sources {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: #f3f7fc;
+        border: 1px solid #e2eaf4;
+        font-size: 14px;
+        color: #3f5672;
+      }
+      .doc-sources .picon {
+        color: var(--project-accent);
+      }
+      .doc-sources a {
+        color: var(--project-accent);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .doc-sources a:hover {
+        text-decoration: underline;
+      }
+      [data-theme='dark'] .doc-sources {
+        background: #16233a;
+        border-color: #23344f;
+        color: #9fb0c6;
+      }
     </style>
   </head>
   <body>
@@ -861,6 +891,20 @@
                 <span class="name">Рыбников А.А.</span>
               </div>
             </div>
+          </div>
+
+          <!-- Ссылка на исходный PDF -->
+          <div class="doc-sources">
+            <svg class="picon" aria-hidden="true">
+              <use href="../../icon-sprite.svg#link"></use>
+            </svg>
+            <span class="doc-sources-label">Исходный документ (PDF):</span>
+            <a
+              href="/projects/renovation/pdf/02%20Электрика/Заказ_материалов%20N2%2001-08-2026.pdf"
+              target="_blank"
+              rel="noopener"
+              >Заказ_материалов N2 01-08-2026.pdf</a
+            >
           </div>
         </div>
       </main>

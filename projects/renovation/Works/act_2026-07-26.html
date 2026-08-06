@@ -540,6 +540,36 @@
       [data-theme='dark'] .text-muted {
         color: #8b95a5;
       }
+
+      .doc-sources {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: #f3f7fc;
+        border: 1px solid #e2eaf4;
+        font-size: 14px;
+        color: #3f5672;
+      }
+      .doc-sources .picon {
+        color: var(--project-accent);
+      }
+      .doc-sources a {
+        color: var(--project-accent);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .doc-sources a:hover {
+        text-decoration: underline;
+      }
+      [data-theme='dark'] .doc-sources {
+        background: #16233a;
+        border-color: #23344f;
+        color: #9fb0c6;
+      }
     </style>
   </head>
   <body>
@@ -705,6 +735,20 @@
             "
           >
             Акт составлен «26» июля 2026 г.
+          </div>
+
+          <!-- Ссылка на исходный PDF -->
+          <div class="doc-sources">
+            <svg class="picon" aria-hidden="true">
+              <use href="../../icon-sprite.svg#link"></use>
+            </svg>
+            <span class="doc-sources-label">Исходный документ (PDF):</span>
+            <a
+              href="/projects/renovation/pdf/01%20Стены/Акт%20приемки%202026-07-26.pdf"
+              target="_blank"
+              rel="noopener"
+              >Акт приемки 2026-07-26.pdf</a
+            >
           </div>
         </div>
       </main>

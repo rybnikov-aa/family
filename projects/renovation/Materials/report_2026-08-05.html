@@ -19,7 +19,7 @@
       })();
     </script>
 
-    <title>Ведомость по материалам — 6124 Рыбников А.А.</title>
+    <title>Заказ материалов №3 от 05-08-2026</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -39,7 +39,7 @@
       }
     </style>
     <style>
-      /* Документ ведомости: таблицы и блоки. Каркас и тема — общие (/projects/styles.css). */
+      /* Документ заказа: таблицы и блоки. Каркас и тема — общие (/projects/styles.css). */
       .doc {
         max-width: 1550px;
         width: 100%;
@@ -98,6 +98,34 @@
         font-weight: 600;
       }
 
+      .doc-head-total {
+        text-align: right;
+        font-size: 14px;
+        color: #3f5672;
+        background: #f5f8fe;
+        padding: 14px 22px;
+        border-radius: 14px;
+        border: 1px solid #e0e8f2;
+      }
+
+      .doc-head-total .head-total-label {
+        margin-bottom: 4px;
+        font-size: 12px;
+        color: #4a6482;
+      }
+
+      .doc-head-total .total-big {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0b1a33;
+        white-space: nowrap;
+      }
+
+      .doc-head-total .head-total-badges {
+        margin-top: 8px;
+        font-size: 12px;
+      }
+
       .table-wrap {
         overflow-x: auto;
         border-radius: 18px;
@@ -139,41 +167,33 @@
         font-weight: 450;
       }
 
-      .col-date {
-        white-space: nowrap;
+      .col-name {
+        min-width: 200px;
+      }
+
+      .col-unit {
         text-align: center;
+        white-space: nowrap;
+        color: #2f4a62;
       }
 
-      .col-desc {
-        min-width: 150px;
-      }
-
-      .col-amount,
-      .col-used,
-      .col-balance {
+      .col-price,
+      .col-qty,
+      .col-sum {
         text-align: right;
         white-space: nowrap;
         font-feature-settings: 'tnum';
       }
 
-      .col-amount {
+      .col-sum {
         font-weight: 500;
-        color: #0b6b3a;
-      }
-
-      .col-used {
-        color: #b1422a;
-      }
-
-      .col-balance {
-        font-weight: 600;
         color: #0b1a2b;
       }
 
       .row-total {
         background: #f6faff;
         font-weight: 600;
-        border-top: 2px solid #cbd7e3;
+        border-top: 1px solid #cbd7e3;
       }
 
       .row-total td {
@@ -181,24 +201,17 @@
         background: #f6faff;
       }
 
-      .row-total .col-balance {
+      .row-total .col-name {
+        font-weight: 600;
+      }
+
+      .row-total .col-sum {
         font-size: 1.05rem;
       }
 
-      .row-subtotal {
-        background: #fafcfe;
-        border-top: 1px dashed #d0dbe8;
-      }
-
-      .row-subtotal td {
-        padding: 10px 12px;
-      }
-
-      .totals-block {
+      .total-box {
         display: flex;
-        flex-wrap: wrap;
         justify-content: flex-end;
-        gap: 20px 40px;
         background: #f5f9fe;
         border-radius: 40px;
         padding: 0.9rem 2rem;
@@ -206,30 +219,24 @@
         margin: 0.2rem 0 1.8rem;
       }
 
-      .totals-block .item {
-        font-size: 0.95rem;
-      }
-
-      .totals-block .item strong {
-        font-weight: 600;
+      .total-box .label {
+        font-weight: 500;
+        margin-right: 1rem;
         color: #0b1a2b;
       }
 
-      .totals-block .item .val {
+      .total-box .value {
         font-weight: 600;
-        font-size: 1.05rem;
-      }
-
-      .totals-block .item .val.green {
-        color: #0b6b3a;
-      }
-
-      .totals-block .item .val.red {
-        color: #b1422a;
-      }
-
-      .totals-block .item .val.blue {
+        font-size: 1.3rem;
         color: #0b1a2b;
+        letter-spacing: 0.3px;
+      }
+
+      .total-box .value small {
+        font-weight: 400;
+        font-size: 0.9rem;
+        color: #3f5a72;
+        margin-right: 4px;
       }
 
       .signatures {
@@ -254,9 +261,9 @@
         color: #0b1a2b;
       }
 
-      .signature-box .sub {
+      .signature-box .position {
         color: #2f4a62;
-        font-size: 0.85rem;
+        font-size: 0.92rem;
       }
 
       .signature-line {
@@ -269,7 +276,7 @@
 
       .signature-line .line {
         border-bottom: 1px solid #7b8fa0;
-        min-width: 160px;
+        min-width: 140px;
         padding-bottom: 2px;
         display: inline-block;
       }
@@ -278,25 +285,47 @@
         font-weight: 500;
       }
 
-      .notice {
-        background: #fafcfe;
-        border-radius: 16px;
-        padding: 0.8rem 1.5rem;
-        border: 1px solid #e6edf5;
-        margin-top: 1.2rem;
-        font-size: 0.92rem;
-        color: #1f3a4b;
+      .doc-sources {
         display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
         align-items: center;
-        gap: 10px 20px;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: #f3f7fc;
+        border: 1px solid #e2eaf4;
+        font-size: 14px;
+        color: #3f5672;
+      }
+      .doc-sources .picon {
+        color: var(--project-accent);
+      }
+      .doc-sources a {
+        color: var(--project-accent);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .doc-sources a:hover {
+        text-decoration: underline;
       }
 
-      .notice .label {
-        font-weight: 500;
+      /* Адаптив: скрываем второстепенные колонки, не удаляя их из сетки */
+      @media (max-width: 1100px) {
+        th.col-unit,
+        td.col-unit,
+        th.col-price,
+        td.col-price {
+          width: 0;
+          max-width: 0;
+          padding: 0;
+          border: 0;
+          font-size: 0;
+          line-height: 0;
+          visibility: hidden;
+          overflow: hidden;
+        }
       }
-
       @media (max-width: 700px) {
         .doc {
           padding: 16px 12px;
@@ -306,10 +335,14 @@
           grid-template-columns: 1fr;
         }
 
-        .totals-block {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 6px;
+        .doc-head-total {
+          text-align: left;
+        }
+
+        .total-box {
+          justify-content: center;
+          flex-wrap: wrap;
+          text-align: center;
         }
 
         .signatures {
@@ -318,10 +351,8 @@
           gap: 20px;
         }
 
-        .notice {
-          flex-direction: column;
-          align-items: stretch;
-          text-align: center;
+        .signature-line {
+          flex-wrap: wrap;
         }
       }
 
@@ -365,6 +396,17 @@
       [data-theme='dark'] .doc-head-left .meta strong {
         color: #eef2f7;
       }
+      [data-theme='dark'] .doc-head-total {
+        background: #1c222b;
+        border-color: #343b47;
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc-head-total .total-big {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .head-total-label {
+        color: #a8b2c2;
+      }
       [data-theme='dark'] .doc .table-wrap {
         background: var(--surface);
         border-color: #343b47;
@@ -372,13 +414,10 @@
       [data-theme='dark'] .doc .col-num {
         color: #8b95a5;
       }
-      [data-theme='dark'] .doc .col-amount {
-        color: #58c887;
+      [data-theme='dark'] .doc .col-unit {
+        color: #a8b2c2;
       }
-      [data-theme='dark'] .doc .col-used {
-        color: #ef7d70;
-      }
-      [data-theme='dark'] .doc .col-balance {
+      [data-theme='dark'] .doc .col-sum {
         color: #eef2f7;
       }
       [data-theme='dark'] .doc .row-total {
@@ -387,29 +426,16 @@
       [data-theme='dark'] .doc .row-total td {
         background: #212730;
       }
-      [data-theme='dark'] .doc .row-subtotal {
-        background: #1f2730;
-      }
-      [data-theme='dark'] .totals-block {
+      [data-theme='dark'] .total-box {
         background: #1d242e;
         border-color: #343b47;
       }
-      [data-theme='dark'] .totals-block .item strong {
+      [data-theme='dark'] .total-box .label,
+      [data-theme='dark'] .total-box .value {
         color: #eef2f7;
       }
-      [data-theme='dark'] .totals-block .item .val.blue {
-        color: #eef2f7;
-      }
-      [data-theme='dark'] .totals-block .item .val.green {
-        color: #58c887;
-      }
-      [data-theme='dark'] .totals-block .item .val.red {
-        color: #ef7d70;
-      }
-      [data-theme='dark'] .notice {
-        background: #1d242e;
-        border-color: #343b47;
-        color: #c3ccd8;
+      [data-theme='dark'] .total-box .value small {
+        color: #8b95a5;
       }
       [data-theme='dark'] .signatures {
         border-color: #343b47;
@@ -417,36 +443,11 @@
       [data-theme='dark'] .signature-box .label {
         color: #eef2f7;
       }
-      [data-theme='dark'] .signature-box .sub {
+      [data-theme='dark'] .signature-box .position {
         color: #a8b2c2;
       }
       [data-theme='dark'] .signature-line .line {
         border-color: #4a5568;
-      }
-
-      .doc-sources {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 16px;
-        padding: 12px 16px;
-        border-radius: 12px;
-        background: #f3f7fc;
-        border: 1px solid #e2eaf4;
-        font-size: 14px;
-        color: #3f5672;
-      }
-      .doc-sources .picon {
-        color: var(--project-accent);
-      }
-      .doc-sources a {
-        color: var(--project-accent);
-        font-weight: 600;
-        text-decoration: none;
-      }
-      .doc-sources a:hover {
-        text-decoration: underline;
       }
       [data-theme='dark'] .doc-sources {
         background: #16233a;
@@ -482,19 +483,23 @@
           <div class="doc-head">
             <h1 class="doc-head-title">
               <svg class="picon" aria-hidden="true">
-                <use href="../../icon-sprite.svg#clipboard"></use>
+                <use href="../../icon-sprite.svg#package"></use>
               </svg>
-              Ведомость по материалам
+              Заказ материалов №3
             </h1>
             <div class="doc-head-left">
               <div class="meta">
                 <span class="meta-item"
-                  ><strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3,
-                  кв.548, этаж 7</span
+                  ><strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв.
+                  548, этаж 7</span
                 >
                 <span class="meta-item"><strong>Подрядчик:</strong> ООО «А-сервис»</span>
                 <span class="meta-item"><strong>Дата старта:</strong> 30.06.2026</span>
               </div>
+            </div>
+            <div class="doc-head-total">
+              <div class="head-total-label">Итого по заказу</div>
+              <div class="total-big">127 638,28 ₽</div>
             </div>
           </div>
 
@@ -503,84 +508,138 @@
               <thead>
                 <tr>
                   <th>№</th>
-                  <th>Дата</th>
-                  <th>Обоснование</th>
-                  <th style="text-align: right">Внесено</th>
-                  <th style="text-align: right">Использовано, в т.ч. накладные расходы</th>
-                  <th style="text-align: right">Остаток</th>
+                  <th>Наименование</th>
+                  <th>Ед. изм.</th>
+                  <th>Цена за ед.</th>
+                  <th>Количество</th>
+                  <th>Сумма</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td class="col-num">1</td>
-                  <td class="col-date">17.07.2026</td>
-                  <td class="col-desc">Оплата</td>
-                  <td class="col-amount">200 000,00</td>
-                  <td class="col-used">—</td>
-                  <td class="col-balance">200 000,00</td>
+                  <td>Сетка фасадная синяя 160г, 20м</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">960,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">960,00</td>
                 </tr>
                 <tr>
                   <td class="col-num">2</td>
-                  <td class="col-date">17.07.2026</td>
-                  <td class="col-desc">Отчет №1</td>
-                  <td class="col-amount">—</td>
-                  <td class="col-used">108 732,04</td>
-                  <td class="col-balance">91 267,96</td>
+                  <td>Угол ПВХ штукатурный ИДЕАЛ</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">114,00</td>
+                  <td class="col-qty">22,00</td>
+                  <td class="col-sum">2 508,00</td>
                 </tr>
-                <tr class="row-subtotal">
-                  <td colspan="5" style="text-align: right; font-weight: 500; padding-right: 12px">
-                    Подотчетные прораба
+                <tr>
+                  <td class="col-num">3</td>
+                  <td>Маяк 6мм</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">49,00</td>
+                  <td class="col-qty">100,00</td>
+                  <td class="col-sum">4 900,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">4</td>
+                  <td>Грунт-концентрат Кнауф Миттельгрунд, 10кг</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">3 636,00</td>
+                  <td class="col-qty">3,00</td>
+                  <td class="col-sum">10 908,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">5</td>
+                  <td>Штукатурка гипсовая Кнауф МП-75, 30кг</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">468,00</td>
+                  <td class="col-qty">125,00</td>
+                  <td class="col-sum">58 500,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">6</td>
+                  <td>Штукатурка гипсовая СТАРАТЕЛИ ОПТИМУМ для влажных помещений, 30кг</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">540,00</td>
+                  <td class="col-qty">40,00</td>
+                  <td class="col-sum">21 600,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">7</td>
+                  <td>Перчатки прорезиненные</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">42,00</td>
+                  <td class="col-qty">10,00</td>
+                  <td class="col-sum">420,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">8</td>
+                  <td>Скотч малярный 50мм х 50м</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">300,00</td>
+                  <td class="col-qty">3,00</td>
+                  <td class="col-sum">900,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">9</td>
+                  <td>
+                    Эмаль-аэрозоль KU-1004 RAL 3011 алкидная глянцевая вишневый 520мл Троль KUDO
                   </td>
-                  <td class="col-balance">50 000,00</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">358,80</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">358,80</td>
+                </tr>
+                <tr>
+                  <td class="col-num">10</td>
+                  <td>Профиль ПВХ оконный с примыканием</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">180,00</td>
+                  <td class="col-qty">7,00</td>
+                  <td class="col-sum">1 260,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">11</td>
+                  <td>Доставка</td>
+                  <td class="col-unit">—</td>
+                  <td class="col-price">—</td>
+                  <td class="col-qty">—</td>
+                  <td class="col-sum">6 000,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">12</td>
+                  <td>Подъем</td>
+                  <td class="col-unit">—</td>
+                  <td class="col-price">—</td>
+                  <td class="col-qty">—</td>
+                  <td class="col-sum">7 720,00</td>
                 </tr>
                 <tr class="row-total">
-                  <td colspan="3" style="font-weight: 600">Всего</td>
-                  <td class="col-amount" style="font-weight: 600">200 000,00</td>
-                  <td class="col-used" style="font-weight: 600">158 732,04</td>
-                  <td class="col-balance" style="font-weight: 600">41 267,96</td>
+                  <td colspan="5" class="col-name">Итого, с учетом накладных расходов</td>
+                  <td class="col-sum">127 638,28</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <div class="totals-block">
-            <span class="item"
-              ><strong>Всего внесено:</strong> <span class="val green">200 000,00</span></span
-            >
-            <span class="item"
-              ><strong>Использовано (с накладными):</strong>
-              <span class="val red">158 732,04</span></span
-            >
-            <span class="item"
-              ><strong>Остаток:</strong> <span class="val blue">41 267,96</span></span
-            >
-          </div>
-
-          <div class="notice">
-            <span><span class="label">Подотчетные прораба:</span> 50 000,00</span>
-            <span style="color: #4f6b82; font-size: 0.85rem"
-              >* включены в итоговую сумму использования</span
-            >
-          </div>
-
           <div class="signatures">
             <div class="signature-box">
-              <span class="label">Бухгалтер-кассир:</span>
+              <span class="label">Подрядчик</span>
+              <span class="position">Директор ООО «А-сервис»</span>
               <div class="signature-line">
                 <span class="line"
-                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
+                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
                 >
-                <span class="name">(подпись / расшифровка подписи)</span>
+                <span class="name">Глушков Е.О.</span>
               </div>
             </div>
             <div class="signature-box">
-              <span class="label">Заказчик:</span>
-              <span class="sub">ознакомлен</span>
+              <span class="label">Заказчик</span>
               <div class="signature-line">
                 <span class="line"
-                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
+                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
                 >
-                <span class="name">(подпись / расшифровка подписи)</span>
+                <span class="name">Рыбников А.А.</span>
               </div>
             </div>
           </div>
@@ -592,10 +651,10 @@
             </svg>
             <span class="doc-sources-label">Исходный документ (PDF):</span>
             <a
-              href="/projects/renovation/pdf/Взаиморасчеты/6124%20Рыбников%20А.А.%20-%20ВВ%20материалы.pdf"
+              href="/projects/renovation/pdf/01%20Стены/Заказ_материалов%20N3%2005-08-2026.pdf"
               target="_blank"
               rel="noopener"
-              >6124 Рыбников А.А. - ВВ материалы.pdf</a
+              >Заказ_материалов N3 05-08-2026.pdf</a
             >
           </div>
         </div>
