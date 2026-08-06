@@ -10,7 +10,7 @@
 
 ## 0. Общие положения
 
-Общие сведения о портале, архитектуре, конфигурации окружения (`.env`), темы/роутинге, решениях (ADR), ограничениях и полной карте файлов — в [docs/specification.md](specification.md). Здесь — только функциональная область **авторизации**.
+Общие сведения о портале, архитектуре, конфигурации окружения (`.env`), темы/роутинге, решениях (ADR), ограничениях и полной карте файлов — в [docs/specification.md](specification.md); справочник API — в [docs/specification-api.md](specification-api.md). Здесь — только функциональная область **авторизации**.
 
 ---
 
@@ -61,7 +61,7 @@ CREATE TABLE sessions (
 
 ## 3. API модуля
 
-Полный справочник API — в [docs/specification.md](specification.md) (раздел «API»). Эндпоинты модуля:
+Полный справочник API — в [docs/specification-api.md](specification-api.md) (раздел «Авторизация»). Эндпоинты модуля:
 
 | Метод | Путь               | Назначение                            | Параметры                                       |
 | ----- | ------------------ | ------------------------------------- | ----------------------------------------------- |
@@ -69,9 +69,7 @@ CREATE TABLE sessions (
 | POST  | `/api/auth/logout` | Выход (авторизованным)                | —; ответ — 204                                  |
 | GET   | `/api/auth/me`     | Текущий пользователь (авторизованным) | —; ответ — `{user: {id, username, name, role}}` |
 
-**Матрица доступа.** Кроме `/api/health` и `POST /api/auth/login` все эндпоинты требуют действующую сессию (httpOnly-cookie `sid`): отсутствие/истёкшая сессия → 401. Мутирующие операции (`POST /api/vps`, `POST /api/vps/import`, `DELETE /api/vps/:name`, `POST /api/projects/upload`) доступны только роли `admin`; иначе — 403.
-
-**Сессия:** cookie `sid` — httpOnly, `SameSite=Lax`, `Secure` в проде (`NODE_ENV=production`), срок `SESSION_TTL_HOURS`. В БД хранится только SHA-256 от токена. Пароли проверяются через scrypt (constant-time).
+**Матрица доступа и параметры сессии** (401 без сессии, 403 для не-`admin` на мутациях; cookie `sid` httpOnly `SameSite=Lax`, `Secure` в проде, scrypt) — в [docs/specification-api.md](specification-api.md), раздел «Авторизация API».
 
 ---
 

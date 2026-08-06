@@ -99,4 +99,4 @@ CREATE INDEX IF NOT EXISTS idx_vps_services_vps_id ON vps_services(vps_id);
 - **30с GET-кэш** → после любой мутации фронт должен делать `?refresh=1` (`onRefresh()` → `fetchVps(true)`).
 - **node:sqlite**: `(errcode & 0xff) === 19` для UNIQUE; ручные `BEGIN`/`COMMIT`/`ROLLBACK`; `as unknown as MyRow`; `mkdirSync` до `new DatabaseSync()`; Vite оставляет `node:sqlite` external.
 - **`noUnusedLocals`/`noUnusedParameters`** → неиспользуемые параметры называть `_req`/`_next`, иначе TS6133.
-- **Документация**: формулы доступности и контракт API описаны в `docs/specification-vps.md` (и общем `docs/specification.md`) — обновлять вместе с кодом (правило «все документы» из `AGENTS.md`).
+- **Документация**: формулы доступности — в `docs/specification-vps.md`, контракт API — в `docs/specification-api.md`; обновлять вместе с кодом (правило «все документы» из `AGENTS.md`).

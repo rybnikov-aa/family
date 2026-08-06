@@ -34,8 +34,9 @@ Your job is to explore, understand and summarize project pages and the data in t
   `project-title` / `description` / `project-accent` / `project-icon` / `project-order`. Folders
   starting with `_`/`.` are not projects.
 - Shared frame: `/projects/styles.css`, theme light/dark/system, icon sprite
-  `/projects/icon-sprite.svg`. General conventions — `projects.instructions.md`, renovation
-  specifics — `project.renovation.instructions.md`.
+  `/projects/icon-sprite.svg`. General and renovation conventions — `AGENTS.md` (rules 7–8)
+  and the project skills (`.github/skills/project-import/`, `project-renovation-update-from-pdf/`,
+  `project-renovation-build-reports/`).
 - Renovation data model (for aggregation): `estimate.html` = plan; `Works/act_*.html` = facts (acts
   of work); `Materials/report_*.html` = material purchase reports;
   `Works/act_*_settlement.html` / `Materials/report_*_settlement.html` = settlement sheets;
