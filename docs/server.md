@@ -30,11 +30,11 @@
 
   Корневой `.env` (репозиторий) — это **другое** пространство переменных: только конфигурация деплоя (`DEPLOY_*`) для `scripts/deploy.mjs`.
 
-- Дефолтные пути из `scripts/deploy.mjs` (переопределяются через `.env` в корне репозитория):
+- Параметры деплоя задаются в корневом `.env` (читает `scripts/deploy.mjs`; шаблон — `.env.example`). **Файл обязателен**: без него скрипт использует дефолт `DEPLOY_USER=root`, тогда как основной хост деплоится под пользователем `rybnikov` (SSH-ключ; pm2 живёт под `/home/rybnikov/.nvm/...`) — подключение под `root` провалится. Рабочая конфигурация основного хоста:
 
 ```bash
 DEPLOY_HOST=family.rybnikov.su
-DEPLOY_USER=root
+DEPLOY_USER=rybnikov
 DEPLOY_PORT=22
 DEPLOY_FRONTEND_DIR=/var/www/family.rybnikov.su/public_html
 DEPLOY_BACKEND_DIR=/var/www/family.rybnikov.su/server

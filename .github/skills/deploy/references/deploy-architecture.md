@@ -15,15 +15,15 @@
 
 Реальные `.env` значения НЕ переопределяют уже заданные переменные окружения процесса.
 
-| Переменная            | Дефолт                                                                              |
-| --------------------- | ----------------------------------------------------------------------------------- |
-| `DEPLOY_HOST`         | `family.rybnikov.su` (для второго хоста — `itg-ru-gw.rybnikov.su`)                  |
-| `DEPLOY_USER`         | `root` (на itg-ru-gw — `rybnikov`)                                                  |
-| `DEPLOY_PORT`         | `22`                                                                                |
-| `DEPLOY_FRONTEND_DIR` | `/var/www/family.rybnikov.su/public_html`                                           |
-| `DEPLOY_BACKEND_DIR`  | `/var/www/family.rybnikov.su/server`                                                |
-| `DEPLOY_PM2_APP`      | `family-backend`                                                                    |
-| `DEPLOY_NODE_PATH`    | пусто (remote-скрипт сам ищет node/npm; при неудаче указать bin-каталог на сервере) |
+| Переменная            | Дефолт                                                                                                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DEPLOY_HOST`         | `family.rybnikov.su` (для второго хоста — `itg-ru-gw.rybnikov.su`)                                                                                         |
+| `DEPLOY_USER`         | `root` (дефолт скрипта); в `.env.example` и фактически на основном хосте — `rybnikov`. Без корневого `.env` SSH пойдёт под `root` и подключение провалится |
+| `DEPLOY_PORT`         | `22`                                                                                                                                                       |
+| `DEPLOY_FRONTEND_DIR` | `/var/www/family.rybnikov.su/public_html`                                                                                                                  |
+| `DEPLOY_BACKEND_DIR`  | `/var/www/family.rybnikov.su/server`                                                                                                                       |
+| `DEPLOY_PM2_APP`      | `family-backend`                                                                                                                                           |
+| `DEPLOY_NODE_PATH`    | пусто (remote-скрипт сам ищет node/npm; при неудаче указать bin-каталог на сервере)                                                                        |
 
 ## Этапы (локально)
 
