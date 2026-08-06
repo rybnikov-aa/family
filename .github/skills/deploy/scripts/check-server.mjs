@@ -30,7 +30,10 @@ function loadEnvFile() {
     const eq = line.indexOf('=');
     if (eq === -1) continue;
     const key = line.slice(0, eq).trim();
-    const value = line.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    const value = line
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     if (process.env[key] === undefined) process.env[key] = value;
   }
 }
@@ -58,14 +61,7 @@ const app = args.app ?? process.env.DEPLOY_PM2_APP ?? 'family-backend';
 const lines = args.lines;
 
 const target = `${user}@${host}`;
-const sshArgs = [
-  '-p',
-  port,
-  '-o',
-  'StrictHostKeyChecking=accept-new',
-  '-o',
-  'ConnectTimeout=15',
-];
+const sshArgs = ['-p', port, '-o', 'StrictHostKeyChecking=accept-new', '-o', 'ConnectTimeout=15'];
 if (args.batch) sshArgs.push('-o', 'BatchMode=yes');
 
 const remote = `
@@ -111,6 +107,8 @@ try {
   });
   console.log('\n[check-server] Диагностика завершена.');
 } catch {
-  console.error('\n[check-server] Ошибка при подключении/выполнении (см. выше). Возможно, нет SSH-ключа — используйте --batch для явного отказа от пароля.');
+  console.error(
+    '\n[check-server] Ошибка при подключении/выполнении (см. выше). Возможно, нет SSH-ключа — используйте --batch для явного отказа от пароля.',
+  );
   process.exitCode = 1;
 }
