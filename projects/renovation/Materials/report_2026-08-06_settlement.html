@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Применяем сохранённую тему до отрисовки, чтобы не было «мигания». -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+
+    <title>Ведомость по материалам — 06.08.2026</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Общие стили страниц проектов (дизайн + тема приложения) -->
+    <link rel="stylesheet" href="../../styles.css" />
+
+    <!-- Акцентный цвет проекта (оранжевый — как карточка «Ремонт») -->
+    <style>
+      :root {
+        --project-accent: #e8872e;
+        --project-accent-soft: rgba(232, 135, 46, 0.14);
+      }
+    </style>
+    <style>
+      /* Документ ведомости: таблицы и блоки. Каркас и тема — общие (/projects/styles.css). */
+      .doc {
+        max-width: 1550px;
+        width: 100%;
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 16px 48px rgba(0, 20, 40, 0.1);
+        padding: 30px 24px 40px;
+        overflow-x: auto;
+      }
+
+      .doc-head {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 16px;
+        row-gap: 14px;
+        align-items: start;
+        margin-bottom: 18px;
+        border-bottom: 2px solid #e4ebf5;
+        padding-bottom: 18px;
+      }
+
+      .doc-head-title {
+        grid-column: 1 / -1;
+        font-size: 26px;
+        font-weight: 700;
+        color: #0b1a33;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .doc-head-title .picon {
+        color: var(--project-accent);
+      }
+
+      .doc-head-left {
+        min-width: 0;
+      }
+
+      .doc-head-left .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+        font-size: 13px;
+        color: #3f5672;
+        line-height: 1.5;
+      }
+
+      .doc-head-left .meta-item {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        background: #f3f7fc;
+        border: 1px solid #e2eaf4;
+        border-radius: 30px;
+        padding: 5px 12px;
+      }
+
+      .doc-head-left .meta-item strong {
+        color: #0b1a33;
+        font-weight: 600;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border-radius: 18px;
+        border: 1px solid #e2e9f0;
+        background: white;
+        margin-bottom: 1.8rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      th {
+        background: #f7fafd;
+        font-weight: 600;
+        color: #1a2d3f;
+        padding: 14px 12px;
+        text-align: left;
+        border-bottom: 1px solid #d8e1ea;
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 12px 12px;
+        border-bottom: 1px solid #e7edf4;
+        vertical-align: middle;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      .col-num {
+        width: 44px;
+        text-align: center;
+        color: #4b6379;
+        font-weight: 450;
+      }
+
+      .col-date {
+        white-space: nowrap;
+        text-align: center;
+      }
+
+      .col-desc {
+        min-width: 150px;
+      }
+
+      .col-amount,
+      .col-used,
+      .col-balance {
+        text-align: right;
+        white-space: nowrap;
+        font-feature-settings: 'tnum';
+      }
+
+      .col-amount {
+        font-weight: 500;
+        color: #0b6b3a;
+      }
+
+      .col-used {
+        color: #b1422a;
+      }
+
+      .col-balance {
+        font-weight: 600;
+        color: #0b1a2b;
+      }
+
+      .row-total {
+        background: #f6faff;
+        font-weight: 600;
+        border-top: 2px solid #cbd7e3;
+      }
+
+      .row-total td {
+        padding: 16px 12px;
+        background: #f6faff;
+      }
+
+      .row-total .col-balance {
+        font-size: 1.05rem;
+      }
+
+      .row-subtotal {
+        background: #fafcfe;
+        border-top: 1px dashed #d0dbe8;
+      }
+
+      .row-subtotal td {
+        padding: 10px 12px;
+      }
+
+      .totals-block {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 20px 40px;
+        background: #f5f9fe;
+        border-radius: 40px;
+        padding: 0.9rem 2rem;
+        border: 1px solid #dce4ed;
+        margin: 0.2rem 0 1.8rem;
+      }
+
+      .totals-block .item {
+        font-size: 0.95rem;
+      }
+
+      .totals-block .item strong {
+        font-weight: 600;
+        color: #0b1a2b;
+      }
+
+      .totals-block .item .val {
+        font-weight: 600;
+        font-size: 1.05rem;
+      }
+
+      .totals-block .item .val.green {
+        color: #0b6b3a;
+      }
+
+      .totals-block .item .val.red {
+        color: #b1422a;
+      }
+
+      .totals-block .item .val.blue {
+        color: #0b1a2b;
+      }
+
+      .notice {
+        background: #fafcfe;
+        border-radius: 16px;
+        padding: 0.8rem 1.5rem;
+        border: 1px solid #e6edf5;
+        margin-top: 1.2rem;
+        font-size: 0.92rem;
+        color: #1f3a4b;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px 20px;
+      }
+
+      .notice .label {
+        font-weight: 500;
+      }
+
+      @media (max-width: 700px) {
+        .doc {
+          padding: 16px 12px;
+        }
+
+        .doc-head {
+          grid-template-columns: 1fr;
+        }
+
+        .totals-block {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 6px;
+        }
+
+        .notice {
+          flex-direction: column;
+          align-items: stretch;
+          text-align: center;
+        }
+      }
+
+      .doc-back {
+        display: inline-block;
+        margin-bottom: 16px;
+        font-size: 14px;
+        color: var(--project-accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .doc-back:hover {
+        text-decoration: underline;
+      }
+
+      /* Тёмная тема: документ подстраивается под каркас проекта */
+      [data-theme='dark'] .doc {
+        background: var(--surface);
+        color: var(--text);
+      }
+      [data-theme='dark'] .doc th {
+        background: #252a35;
+        color: #cbd6e6;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .doc td {
+        border-color: #343b47;
+        color: #c9d2de;
+      }
+      [data-theme='dark'] .doc-head-title {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc-head-left .meta {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc-head-left .meta-item {
+        background: #1c222b;
+        border-color: #343b47;
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc-head-left .meta strong {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc .table-wrap {
+        background: var(--surface);
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .doc .col-num {
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .doc .col-amount {
+        color: #58c887;
+      }
+      [data-theme='dark'] .doc .col-used {
+        color: #ef7d70;
+      }
+      [data-theme='dark'] .doc .col-balance {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .doc .row-total {
+        background: #212730;
+      }
+      [data-theme='dark'] .doc .row-total td {
+        background: #212730;
+      }
+      [data-theme='dark'] .doc .row-subtotal {
+        background: #1f2730;
+      }
+      [data-theme='dark'] .totals-block {
+        background: #1d242e;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .totals-block .item strong {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .totals-block .item .val.blue {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .totals-block .item .val.green {
+        color: #58c887;
+      }
+      [data-theme='dark'] .totals-block .item .val.red {
+        color: #ef7d70;
+      }
+      [data-theme='dark'] .notice {
+        background: #1d242e;
+        border-color: #343b47;
+        color: #c3ccd8;
+      }
+      .doc-sources {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: #f3f7fc;
+        border: 1px solid #e2eaf4;
+        font-size: 14px;
+        color: #3f5672;
+      }
+      .doc-sources .picon {
+        color: var(--project-accent);
+      }
+      .doc-sources a {
+        color: var(--project-accent);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .doc-sources a:hover {
+        text-decoration: underline;
+      }
+      [data-theme='dark'] .doc-sources {
+        background: #16233a;
+        border-color: #23344f;
+        color: #9fb0c6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <a href="/#/" class="brand">
+          <h1>
+            <span class="brand-mark"
+              ><svg class="picon" aria-hidden="true">
+                <use href="../../icon-sprite.svg#users"></use></svg></span
+            >Семейное пространство
+          </h1>
+        </a>
+        <div class="header-actions">
+          <nav class="nav">
+            <a href="/#/">Главная</a>
+            <a href="/#/news">Новости</a>
+            <a href="/#/projects">Проекты</a>
+          </nav>
+          <div class="theme-toggle" data-theme-toggle></div>
+        </div>
+      </header>
+
+      <main class="page">
+        <a class="doc-back" href="../index.html">← К отчётам проекта</a>
+        <div class="doc">
+          <div class="doc-head">
+            <h1 class="doc-head-title">
+              <svg class="picon" aria-hidden="true">
+                <use href="../../icon-sprite.svg#money"></use>
+              </svg>
+              Ведомость по материалам — 06.08.2026
+            </h1>
+            <div class="doc-head-left">
+              <div class="meta">
+                <span class="meta-item"
+                  ><strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3,
+                  кв.548, этаж 7</span
+                >
+                <span class="meta-item"><strong>Подрядчик:</strong> ООО «А-сервис»</span>
+                <span class="meta-item"><strong>Дата старта:</strong> 30.06.2026</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>№</th>
+                  <th>Дата</th>
+                  <th>Обоснование</th>
+                  <th style="text-align: right">Внесено</th>
+                  <th style="text-align: right">Использовано, в т.ч. накладные расходы</th>
+                  <th style="text-align: right">Остаток</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="col-num">1</td>
+                  <td class="col-date">17.07.2026</td>
+                  <td class="col-desc">Оплата</td>
+                  <td class="col-amount">200 000,00</td>
+                  <td class="col-used">—</td>
+                  <td class="col-balance">200 000,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">2</td>
+                  <td class="col-date">17.07.2026</td>
+                  <td class="col-desc">Отчет №1</td>
+                  <td class="col-amount">—</td>
+                  <td class="col-used">108 732,04</td>
+                  <td class="col-balance">91 267,96</td>
+                </tr>
+                <tr>
+                  <td class="col-num">3</td>
+                  <td class="col-date">30.07.2026</td>
+                  <td class="col-desc">Оплата</td>
+                  <td class="col-amount">200 000,00</td>
+                  <td class="col-used">—</td>
+                  <td class="col-balance">291 267,96</td>
+                </tr>
+                <tr>
+                  <td class="col-num">4</td>
+                  <td class="col-date">31.07.2026</td>
+                  <td class="col-desc">Отчет №2</td>
+                  <td class="col-amount">—</td>
+                  <td class="col-used">136 462,48</td>
+                  <td class="col-balance">154 805,48</td>
+                </tr>
+                <tr>
+                  <td class="col-num">5</td>
+                  <td class="col-date">05.08.2026</td>
+                  <td class="col-desc">Отчет №3</td>
+                  <td class="col-amount">—</td>
+                  <td class="col-used">127 638,28</td>
+                  <td class="col-balance">27 167,20</td>
+                </tr>
+                <tr class="row-subtotal">
+                  <td colspan="5" style="text-align: right; font-weight: 500; padding-right: 12px">
+                    Подотчетные прораба
+                  </td>
+                  <td class="col-balance" style="color: #b1422a">−50 000,00</td>
+                </tr>
+                <tr class="row-total">
+                  <td colspan="3" style="font-weight: 600">Всего</td>
+                  <td class="col-amount" style="font-weight: 600">400 000,00</td>
+                  <td class="col-used" style="font-weight: 600">422 832,80</td>
+                  <td class="col-balance" style="font-weight: 600">−22 832,80</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="totals-block">
+            <span class="item"
+              ><strong>Всего внесено:</strong> <span class="val green">400 000,00</span></span
+            >
+            <span class="item"
+              ><strong>Использовано (с накладными):</strong>
+              <span class="val red">422 832,80</span></span
+            >
+            <span class="item"
+              ><strong>Остаток:</strong> <span class="val blue">−22 832,80</span></span
+            >
+          </div>
+
+          <div class="notice">
+            <span><span class="label">Подотчетные прораба:</span> 50 000,00</span>
+            <span style="color: #4f6b82; font-size: 0.85rem"
+              >* включены в итоговую сумму использования</span
+            >
+          </div>
+
+          <!-- Ссылка на исходный PDF -->
+          <div class="doc-sources">
+            <svg class="picon" aria-hidden="true">
+              <use href="../../icon-sprite.svg#link"></use>
+            </svg>
+            <span class="doc-sources-label">Исходный документ (PDF):</span>
+            <a
+              href="/projects/renovation/pdf/Взаиморасчеты/6124%20-%20ВВ%20материалы%202026-08-06.pdf"
+              target="_blank"
+              rel="noopener"
+              >ВВ материалы 2026-08-06.pdf</a
+            >
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>Проект «Ремонт» — отчётность</span>
+        <span>
+          <a href="/#/">Главная</a>
+          <a href="/#/news">Новости</a>
+          <a href="/#/projects">Проекты</a>
+        </span>
+      </footer>
+    </div>
+
+    <script src="../../theme.js" defer></script>
+  </body>
+</html>

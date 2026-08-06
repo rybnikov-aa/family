@@ -21,6 +21,7 @@
     `/home/rybnikov/.nvm/versions/node/v24.19.0/bin/pm2`
 - **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется вручную (SQL/клиентом) **или через форму добавления VPS в UI** (`POST /api/vps`), импорт из JSON (`POST /api/vps/import`), удаление — кнопка-корзина в детализации (`DELETE /api/vps/:name`). Путь задаётся через `DB_PATH` (по умолчанию `data/vps.sqlite`). При деплое папка `data/` **не удаляется** (как и `.env`); схема таблиц создаётся автоматически при первом обращении.
 - **Проекты (раздел «Проекты»):** проект — подпапка `public_html/projects/<slug>/` с `index.html` (например, «Ремонт» — `public_html/projects/renovation/`). Список проектов отдаёт `GET /api/projects` (сканирует каталог из `PROJECTS_DIR`, по умолчанию `../public_html/projects`). Страницы проектов используют общий шаблон `projects/` (стиль + тема приложения): `projects/styles.css`, `projects/theme.js`, иконки — SVG-спрайт `projects/icon-sprite.svg` (эмодзи как иконки не используются); тема хранится в `localStorage['theme']` (общая для домена). Шаблон новой страницы — `projects/_template/index.html` в репозитории (на сервер не деплоится).
+- **Загрузка PDF в проекты** — через UI (кнопка «Загрузить PDF» на странице «Проекты») → `POST /api/projects/upload`; файлы сохраняются в `PROJECTS_DIR/<папка>/` (папка выбирается из `GET /api/projects/dirs` и создаётся при необходимости) и раздаются nginx как статика по `/projects/…`. Для работы нужен `client_max_body_size 20m` в `location /api/`.
 - **Файл `.env` бэкенда** (`server/.env`) — конфигурация рантайма, при деплое **сохраняется** (не перезаписывается и не удаляется). Переменные:
   - `PORT` — порт API (по умолчанию `3000`);
   - `NODE_ENV` — в проде `production` (задаётся скриптом деплоя);
@@ -63,6 +64,7 @@ DEPLOY_PM2_APP=family-backend
 - `location /` — раздача статики фронтенда (`try_files $uri $uri/ =404`).
 - `location /api/` — прокси на бэкенд:
   `proxy_pass http://127.0.0.1:3000;` — **без** завершающего слэша (иначе срезается `/api` → 404).
+- Для загрузки PDF (`POST /api/projects/upload`) в `location /api/` задан `client_max_body_size 20m` (дефолт nginx — 1 МБ, без этого загрузка упадёт с 413).
 - Редирект старого адреса проекта «Ремонт»: `location ^~ /renovation/` → `return 301 /projects$request_uri` (путь после `/renovation/` сохраняется, напр. `/renovation/estimate.html` → `/projects/renovation/estimate.html`); `location = /renovation` → `return 301 /projects/renovation/` — старые ссылки/закладки на `/renovation/...` не ломаются после переноса проекта.
 - `location /projects/renovation/` — HTML-страницы проекта отдаются с `Cache-Control: no-cache` (обновляются деплоем, чтобы не было «залипшего» кэша), статику кэширует 1ч (`expires 1h`, `Cache-Control: public, immutable`). Безопасные заголовки повторяются внутри блока (add_header не наследуется во вложенные location); файлы раздаёт основной `location /`.
 - Проекты (`/projects/<slug>/`, в т.ч. `renovation/`) и общие ассеты `projects/` (`styles.css`, `theme.js`) раздаёт основной `location /` — для раздачи правки nginx не требуются. Для `/projects/renovation/` (единственный с явным кэшем) HTML-страницы отдаются с `Cache-Control: no-cache` (блок `location ~ ^/projects/renovation/.*\.html$`), статика кэшируется 1ч (блок `location /projects/renovation/`).
@@ -104,6 +106,9 @@ server {
         # Без слэша в конце proxy_pass сохраняет полный URI:
         # /api/health -> http://127.0.0.1:3000/api/health
         proxy_pass http://127.0.0.1:3000;
+
+        # Загрузка PDF (POST /api/projects/upload) — дефолт nginx 1 МБ, поднимаем до 20 МБ
+        client_max_body_size 20m;
 
         # HTTP/1.1 и передача заголовков клиента
         proxy_http_version 1.1;

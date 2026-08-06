@@ -881,6 +881,20 @@ select.vps-form__control {
   height: 15px;
 }
 
+/* Загрузка PDF: строка «Выбрать файл» + имя выбранного файла */
+.pdf-upload__file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pdf-upload__file-name {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Поле «Сервисы» (чипы + кнопка с троеточием) */
 .vps-services {
   display: flex;
@@ -1166,6 +1180,10 @@ select.vps-form__control {
 .page__icon--projects {
   background: color-mix(in srgb, #0ea5e9 14%, transparent);
   color: #0ea5e9;
+}
+/* Действия в шапке страницы (например кнопка «Загрузить PDF») — прижимаем к правому краю */
+.page__head-actions {
+  margin-left: auto;
 }
 .page__head h2 {
   font-size: 1.8rem;

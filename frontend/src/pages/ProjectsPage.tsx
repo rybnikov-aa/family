@@ -1,7 +1,8 @@
-import type { ComponentType } from 'react';
+import { useState, type ComponentType } from 'react';
 import PageLayout from '../components/PageLayout';
+import PdfUploadModal from '../components/PdfUploadModal';
 import SectionCard from '../components/SectionCard';
-import { FolderIcon, ProjectsIcon, RenovationIcon } from '../components/icons';
+import { FolderIcon, ProjectsIcon, RenovationIcon, UploadIcon } from '../components/icons';
 import type { IconProps } from '../components/icons';
 import { useProjects } from '../hooks/useProjects';
 
@@ -18,6 +19,7 @@ const projectIcons: Record<string, ComponentType<IconProps>> = {
  */
 function ProjectsPage() {
   const { projects, error, loading } = useProjects();
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   return (
     <PageLayout>
@@ -29,6 +31,16 @@ function ProjectsPage() {
           <div>
             <h2>Проекты</h2>
             <div className="page__sub">Отдельные подпроекты: документация, отчёты и архивы</div>
+          </div>
+          <div className="page__head-actions">
+            <button
+              type="button"
+              className="vps-form__button vps-form__button--primary"
+              onClick={() => setUploadOpen(true)}
+            >
+              <UploadIcon />
+              Загрузить PDF
+            </button>
           </div>
         </div>
 
@@ -57,6 +69,8 @@ function ProjectsPage() {
           </div>
         )}
       </section>
+
+      {uploadOpen && <PdfUploadModal onClose={() => setUploadOpen(false)} />}
     </PageLayout>
   );
 }

@@ -39,6 +39,51 @@ export async function fetchProjects(): Promise<Project[]> {
   return res.json() as Promise<Project[]>;
 }
 
+/**
+ * Список папок на сервере внутри каталога проектов: `GET /api/projects/dirs`.
+ * Возвращает относительные пути (например `renovation/pdf/00 Дизайн-проект`) —
+ * для выбора папки загрузки PDF.
+ */
+export async function fetchProjectDirs(): Promise<string[]> {
+  const res = await fetch(`${API_BASE}/projects/dirs`);
+  if (!res.ok) {
+    throw new Error(`Request failed with status ${res.status}`);
+  }
+  const data = (await res.json()) as { dirs: string[] };
+  return data.dirs;
+}
+
+/** Результат загрузки PDF на сервер. */
+export interface PdfUploadResult {
+  /** URL загруженного файла (например `/projects/renovation/pdf/…/файл.pdf`). */
+  url: string;
+}
+
+/**
+ * Загружает PDF на сервер в указанную папку: `POST /api/projects/upload` (multipart).
+ * Поля формы: `folder` (относительный путь внутри каталога проектов),
+ * `name` (имя файла, UTF-8) и `file` (PDF).
+ */
+export async function uploadProjectPdf(folder: string, file: File): Promise<PdfUploadResult> {
+  const form = new FormData();
+  form.append('folder', folder);
+  form.append('name', file.name);
+  form.append('file', file);
+
+  const res = await fetch(`${API_BASE}/projects/upload`, { method: 'POST', body: form });
+  if (!res.ok) {
+    let message = `Request failed with status ${res.status}`;
+    try {
+      const d = (await res.json()) as { message?: string };
+      if (d.message) message = d.message;
+    } catch {
+      /* не JSON — оставляем сообщение по умолчанию */
+    }
+    throw new Error(message);
+  }
+  return res.json() as Promise<PdfUploadResult>;
+}
+
 export interface VpsServiceStatus {
   name: string;
   type: string;
