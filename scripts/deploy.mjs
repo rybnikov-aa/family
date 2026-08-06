@@ -202,20 +202,29 @@ rm -rf "$PUBLIC/assets"
 cp -a /tmp/family-deploy/frontend/. "$PUBLIC"/
 
 # 2b. Copy projects (subfolder sites: /renovation/ etc.) into the web root.
+#     Project folders -> public_html/<slug>/ (e.g. /renovation/).
+#     Shared files (styles.css, theme.js, icon-sprite.svg) -> public_html/projects/
+#     (pages reference them as /projects/... see docs/server.md).
 #     Only folders present in the repo are overwritten; other subfolders on
 #     the server are preserved. Existing project folders are backed up to
 #     /tmp/family-projects-backup-<timestamp> before being overwritten.
 if [ -d /tmp/family-deploy/projects ]; then
   BACKUP="/tmp/family-projects-backup-$(date +%Y%m%d%H%M%S)"
-  mkdir -p "$BACKUP"
-  for p in /tmp/family-deploy/projects/*/; do
-    [ -d "$p" ] || continue
+  mkdir -p "$BACKUP" "$PUBLIC/projects"
+  for p in /tmp/family-deploy/projects/*; do
+    [ -e "$p" ] || continue
     name=$(basename "$p")
-    if [ -d "$PUBLIC/$name" ]; then
-      cp -a "$PUBLIC/$name" "$BACKUP/"
+    if [ -d "$p" ]; then
+      # Project subfolder -> web root: /renovation/ etc.
+      if [ -d "$PUBLIC/$name" ]; then
+        cp -a "$PUBLIC/$name" "$BACKUP/"
+      fi
+      cp -a "$p" "$PUBLIC/"
+    else
+      # Shared file (styles.css, theme.js, icon-sprite.svg) -> /projects/
+      cp -a "$p" "$PUBLIC/projects/"
     fi
   done
-  cp -a /tmp/family-deploy/projects/. "$PUBLIC"/
   echo "[deploy] Projects copied to $PUBLIC (backup: $BACKUP)"
 fi
 

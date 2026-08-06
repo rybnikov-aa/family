@@ -438,3 +438,18 @@ a {
     text-align: center;
   }
 }
+
+/* ==========================================================================
+   Иконки проектов (SVG-спрайт /projects/icon-sprite.svg).
+   В проектах не используем эмодзи как иконки — только SVG:
+     <svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#имя"></use></svg>
+   .picon масштабируется по текущему font-size контекста (1em): в карточках
+   (font-size 34px у .card .icon), в заголовках, в ячейках таблиц.
+   ========================================================================== */
+.picon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  flex-shrink: 0;
+}

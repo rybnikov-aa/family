@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Общий SVG-спрайт иконок проектов (раздел «Проекты» family.rybnikov.su).
+
+  Подключение в HTML:
+    <svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#имя"></use></svg>
+  Размер задаёт класс .picon (1em) из /projects/styles.css — масштабируется
+  под текущий font-size контекста (заголовок, карточка, ячейка таблицы).
+
+  Иконки цветные — цвет сохранён от исходной эмодзи/иконки, которую они
+  заменяют (clipboard 📋, package 📦, money 💰 и т.д.). Исключение — 'users'
+  (бренд «Семейное пространство»): контурная, наследует currentColor, как
+  в основном приложении.
+
+  Правило: в проектах НЕ использовать эмодзи как иконки — только SVG из
+  этого спрайта. Деплой: файл лежит в корне projects/, публикуется в
+  /projects/icon-sprite.svg через npm run deploy.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+
+  <!-- Бренд «Семейное пространство» — два человека (контур, наследует currentColor) -->
+  <symbol id="users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </symbol>
+
+  <!-- Дом 🏠 -->
+  <symbol id="house" viewBox="0 0 24 24">
+    <path d="M12 2.8 3 10.6V21h18V10.6L12 2.8Z" fill="#f2e2c4" stroke="#d9b380" stroke-width="1.2"/>
+    <path d="M12 2.8 3 10.6h18L12 2.8Z" fill="#d3543a" stroke="#b8432c" stroke-width="1"/>
+    <rect x="6" y="14.5" width="3.6" height="6.5" rx="0.8" fill="#a9633a"/>
+    <rect x="14.2" y="11.5" width="4" height="3.4" rx="0.7" fill="#a8c8e8" stroke="#7fa8cc" stroke-width="0.8"/>
+  </symbol>
+
+  <!-- Планшет/документ 📋 -->
+  <symbol id="clipboard" viewBox="0 0 24 24">
+    <rect x="4" y="5" width="16" height="16" rx="2.2" fill="#f3f4f6" stroke="#c3cad4" stroke-width="1.3"/>
+    <rect x="7" y="2.8" width="10" height="3.6" rx="1.1" fill="#5b9bd5"/>
+    <path d="M7.5 10.6h9M7.5 13.8h9M7.5 17h6" stroke="#a7b0bc" stroke-width="1.6" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- Коробка 📦 -->
+  <symbol id="package" viewBox="0 0 24 24">
+    <path d="M12 2.6 3.6 7v10L12 21.4 20.4 17V7L12 2.6Z" fill="#c8874e"/>
+    <path d="M12 11 3.6 7v10L12 21.4V11Z" fill="#e09a63"/>
+    <path d="M12 11v10.4L20.4 17V7L12 11Z" fill="#b2733f"/>
+    <path d="M3.6 7l8.4 4 8.4-4" fill="#eec28e"/>
+    <rect x="8.6" y="5.6" width="6.8" height="2.6" rx="1" fill="#f6e7c4" opacity="0.95"/>
+  </symbol>
+
+  <!-- Мешок с деньгами 💰 -->
+  <symbol id="money" viewBox="0 0 24 24">
+    <path d="M12 2.2c-2.6 0-4.2 2-4.2 3.6 0 .9.5 1.7 1.1 2.2C6.5 9 4 11.5 4 15.5c0 3.9 3.2 6.3 8 6.3s8-2.4 8-6.3c0-4-2.5-6.5-4.9-7.5.6-.5 1.1-1.3 1.1-2.2C16.2 4.2 14.6 2.2 12 2.2Z" fill="#f2b31a" stroke="#d9950f" stroke-width="1.1" stroke-linejoin="round"/>
+    <path d="M12 7.6v8.8" stroke="#7a4e00" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M9.8 10.2c0-1.1.9-1.9 2.2-1.9 1.2 0 2.2.7 2.2 1.8 0 2.6-4.4 1.5-4.4 4.4 0 1.2 1 1.9 2.2 1.9 1.3 0 2.2-.8 2.2-1.9" fill="none" stroke="#7a4e00" stroke-width="1.4" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- Кирпич 🧱 -->
+  <symbol id="brick" viewBox="0 0 24 24">
+    <rect x="2" y="2.5" width="20" height="19" rx="1.6" fill="#e6dfd4"/>
+    <rect x="2.6" y="3.2" width="9" height="5.4" rx="0.8" fill="#c65a34"/>
+    <rect x="12.4" y="3.2" width="9" height="5.4" rx="0.8" fill="#cf6a40"/>
+    <rect x="2.6" y="9.4" width="5" height="5.4" rx="0.8" fill="#cf6a40"/>
+    <rect x="8.4" y="9.4" width="9" height="5.4" rx="0.8" fill="#c65a34"/>
+    <rect x="18.2" y="9.4" width="3.2" height="5.4" rx="0.8" fill="#c65a34"/>
+    <rect x="2.6" y="15.6" width="9" height="5.4" rx="0.8" fill="#c65a34"/>
+    <rect x="12.4" y="15.6" width="9" height="5.4" rx="0.8" fill="#cf6a40"/>
+  </symbol>
+
+  <!-- Молния ⚡ -->
+  <symbol id="bolt" viewBox="0 0 24 24">
+    <path d="M13.2 2 4.5 13.6h6.1l-1.2 8.4 8.9-11.7h-6.1l1-8.3Z" fill="#ffd02e" stroke="#f0b400" stroke-width="1.1" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- Душ 🚿 -->
+  <symbol id="shower" viewBox="0 0 24 24">
+    <path d="M2.5 4.6H5" stroke="#8b95a5" stroke-width="2.1" stroke-linecap="round"/>
+    <rect x="4.9" y="3" width="8.6" height="3" rx="1.5" fill="#8b95a5" transform="rotate(18 9.2 4.5)"/>
+    <path d="M8 9.4c-.7 1.1.2 1.9.2 1.9s-.9.8-.2 1.9" stroke="#4a90d9" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M11.3 8.8c-.7 1.1.2 1.9.2 1.9s-.9.8-.2 1.9" stroke="#4a90d9" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M14.6 8.3c-.7 1.1.2 1.9.2 1.9s-.9.8-.2 1.9" stroke="#4a90d9" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- Зелёная галочка в круге ✅ -->
+  <symbol id="check" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" fill="#3cb54a"/>
+    <path d="m7 12.6 3.2 3.2L17 9.2" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- Красный крест в круге ❌ -->
+  <symbol id="cross" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" fill="#e5484d"/>
+    <path d="m9 9 6 6M15 9l-6 6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- Предупреждение ⚠️ -->
+  <symbol id="warn" viewBox="0 0 24 24">
+    <path d="M12 2.6 22.2 20.4H1.8L12 2.6Z" fill="#f0b429" stroke="#dc9e00" stroke-width="1.1" stroke-linejoin="round"/>
+    <path d="M12 9v5.2" stroke="#6b4d00" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="12" cy="17.2" r="1.4" fill="#6b4d00"/>
+  </symbol>
+
+  <!-- Красный кружок 🔴 -->
+  <symbol id="dot-red" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" fill="#e5484d"/>
+  </symbol>
+
+  <!-- Зелёный кружок 🟢 -->
+  <symbol id="dot-green" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" fill="#3cb54a"/>
+  </symbol>
+
+  <!-- Синий ромб 🔹 -->
+  <symbol id="diamond" viewBox="0 0 24 24">
+    <path d="M12 2.6 21.4 12 12 21.4 2.6 12 12 2.6Z" fill="#4a90d9"/>
+  </symbol>
+
+  <!-- Кнопка 📌 -->
+  <symbol id="pin" viewBox="0 0 24 24">
+    <path d="M12 2.4c-1.9 0-3.2 1.4-3.2 3 0 .9.5 1.8 1.1 2.5L8.4 13.6h7.2l-1.5-5.7c.6-.7 1.1-1.6 1.1-2.5 0-1.6-1.3-3-3.2-3Z" fill="#e5484d"/>
+    <circle cx="12" cy="5.2" r="1.3" fill="#ff8a80"/>
+    <path d="M8.4 13.6h7.2" stroke="#e5484d" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M12 13.6v6.4l-2.2 1.6" stroke="#e5484d" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+  </symbol>
+
+  <!-- Ссылка/цепь 🔗 -->
+  <symbol id="link" viewBox="0 0 24 24">
+    <path d="M10.5 13.5a4.2 4.2 0 0 0 6 0l2-2a4.2 4.2 0 0 0-6-6l-.9.9" fill="none" stroke="#9aa4b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M13.5 10.5a4.2 4.2 0 0 0-6 0l-2 2a4.2 4.2 0 0 0 6 6l.9-.9" fill="none" stroke="#9aa4b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- Диаграмма 📊 -->
+  <symbol id="chart" viewBox="0 0 24 24">
+    <rect x="3" y="3" width="18" height="18" rx="2.2" fill="#f3f4f6" stroke="#c3cad4" stroke-width="1.3"/>
+    <rect x="6" y="12" width="2.8" height="6" rx="0.6" fill="#4a90d9"/>
+    <rect x="10.6" y="8" width="2.8" height="10" rx="0.6" fill="#e5484d"/>
+    <rect x="15.2" y="10.5" width="2.8" height="7.5" rx="0.6" fill="#3cb54a"/>
+  </symbol>
+
+  <!-- Галочка ✔ (без круга) -->
+  <symbol id="check-sm" viewBox="0 0 24 24">
+    <path d="M4 12.5 9.5 18 20 6.5" fill="none" stroke="#3cb54a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+
+</svg>

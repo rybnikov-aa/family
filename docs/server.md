@@ -7,20 +7,20 @@
 
 ## 1. Веб-приложение
 
-| Что                                        | Путь на сервере                                       |
-| ------------------------------------------ | ----------------------------------------------------- |
-| Фронтенд (статик-файлы, сборка Vite)       | `/var/www/family.rybnikov.su/public_html`             |
-| Бэкенд (Express, рантайм + `node_modules`) | `/var/www/family.rybnikov.su/server`                  |
-| SQLite-база VPS (runtime, не в git)        | `/var/www/family.rybnikov.su/server/data/vps.sqlite`  |
-| Отчёты по ремонту (проект «Ремонт»)        | `/var/www/family.rybnikov.su/public_html/renovation/` |
-| Общие ассеты страниц проектов (стиль/тема) | `/var/www/family.rybnikov.su/public_html/projects/`   |
+| Что                                               | Путь на сервере                                       |
+| ------------------------------------------------- | ----------------------------------------------------- |
+| Фронтенд (статик-файлы, сборка Vite)              | `/var/www/family.rybnikov.su/public_html`             |
+| Бэкенд (Express, рантайм + `node_modules`)        | `/var/www/family.rybnikov.su/server`                  |
+| SQLite-база VPS (runtime, не в git)               | `/var/www/family.rybnikov.su/server/data/vps.sqlite`  |
+| Отчёты по ремонту (проект «Ремонт»)               | `/var/www/family.rybnikov.su/public_html/renovation/` |
+| Общие ассеты страниц проектов (стиль/тема/иконки) | `/var/www/family.rybnikov.su/public_html/projects/`   |
 
 - Бэкенд слушает `127.0.0.1:3000` (не публичный порт), доступен только через nginx-прокси `/api/`.
 - Процесс бэкенда управляется **pm2**, имя приложения: `family-backend`.
   - pm2 не в PATH в неинтерактивной сессии, полный путь:
     `/home/rybnikov/.nvm/versions/node/v24.19.0/bin/pm2`
 - **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется вручную (SQL/клиентом) **или через форму добавления VPS в UI** (`POST /api/vps`), импорт из JSON (`POST /api/vps/import`), удаление — кнопка-корзина в детализации (`DELETE /api/vps/:name`). Путь задаётся через `DB_PATH` (по умолчанию `data/vps.sqlite`). При деплое папка `data/` **не удаляется** (как и `.env`); схема таблиц создаётся автоматически при первом обращении.
-- **Проекты (раздел «Проекты»):** проект — подпапка `public_html/<slug>/` с `index.html`. Список проектов отдаёт `GET /api/projects` (сканирует каталог из `PROJECTS_DIR`, по умолчанию `../public_html`). Страницы проектов используют общий шаблон `projects/` (стиль + тема приложения): `projects/styles.css`, `projects/theme.js`; тема хранится в `localStorage['theme']` (общая для домена). Шаблон новой страницы — `projects/_template/index.html` в репозитории (на сервер не деплоится).
+- **Проекты (раздел «Проекты»):** проект — подпапка `public_html/<slug>/` с `index.html`. Список проектов отдаёт `GET /api/projects` (сканирует каталог из `PROJECTS_DIR`, по умолчанию `../public_html`). Страницы проектов используют общий шаблон `projects/` (стиль + тема приложения): `projects/styles.css`, `projects/theme.js`, иконки — SVG-спрайт `projects/icon-sprite.svg` (эмодзи как иконки не используются); тема хранится в `localStorage['theme']` (общая для домена). Шаблон новой страницы — `projects/_template/index.html` в репозитории (на сервер не деплоится).
 - **Файл `.env` бэкенда** (`server/.env`) — конфигурация рантайма, при деплое **сохраняется** (не перезаписывается и не удаляется). Переменные:
   - `PORT` — порт API (по умолчанию `3000`);
   - `NODE_ENV` — в проде `production` (задаётся скриптом деплоя);

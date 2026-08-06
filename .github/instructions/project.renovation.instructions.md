@@ -38,3 +38,6 @@ applyTo: ['projects/renovation/**']
   каркаса (`.container`, `.header`, `.footer`, `.card`, `.stats`, `.stat`) внутри документа.
 - Обязательна тёмная тема: `[data-theme='dark'] .doc { ... }`.
 - Числа: суммы через неразрывный пробел, запятая как десятичный разделитель (`141 127,88 ₽`).
+- Иконки — только SVG из общего спрайта `/projects/icon-sprite.svg`
+  (`<svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#имя"></use></svg>`);
+  цвет сохранён от исходной эмодзи, бренд в шапке — `#users`. Эмодзи как иконки не использовать.
