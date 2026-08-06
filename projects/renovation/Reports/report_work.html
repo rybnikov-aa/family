@@ -100,6 +100,21 @@
         border-radius: 14px;
         border: 1px solid #e0e8f2;
       }
+      a.doc-head-total {
+        display: block;
+        text-decoration: none;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+      }
+      a.doc-head-total:hover {
+        border-color: var(--project-accent);
+        box-shadow: 0 8px 20px rgba(232, 135, 46, 0.12);
+      }
+      .doc-head-total .head-total-badges {
+        margin-top: 8px;
+        font-size: 12px;
+      }
       .doc-head-total .total-big {
         font-size: 24px;
         font-weight: 700;
@@ -169,6 +184,10 @@
       .badge-red {
         background: #f8d7da;
         color: #721c24;
+      }
+      .badge-accent {
+        background: var(--project-accent-soft);
+        color: var(--project-accent);
       }
 
       table {
@@ -501,6 +520,10 @@
         background: #3a1414;
         color: #f0a0a0;
       }
+      [data-theme='dark'] .badge-accent {
+        background: rgba(232, 135, 46, 0.16);
+        color: #f0a45a;
+      }
     </style>
   </head>
   <body>
@@ -548,10 +571,13 @@
                 >
               </div>
             </div>
-            <div class="doc-head-total">
+            <a class="doc-head-total" href="../estimates.html">
               <div class="head-total-label">Итого по смете (план)</div>
               <div class="total-big">1 933 448,08 ₽</div>
-            </div>
+              <div class="head-total-badges">
+                <span class="badge badge-accent">Сметы и доп. соглашения →</span>
+              </div>
+            </a>
           </div>
 
           <!-- Прогресс: время от старта и освоение бюджета -->

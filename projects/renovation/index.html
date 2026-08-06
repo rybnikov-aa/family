@@ -55,6 +55,36 @@
         --project-accent-soft: rgba(232, 135, 46, 0.14);
       }
     </style>
+    <style>
+      /* Ссылки на документы дизайн-проекта внутри карточки */
+      .doc-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .doc-links a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--project-accent);
+        background: var(--project-accent-soft);
+        border: 1px solid color-mix(in srgb, var(--project-accent) 35%, var(--border-soft));
+        border-radius: 30px;
+        padding: 6px 14px;
+        text-decoration: none;
+        transition:
+          box-shadow 0.18s ease,
+          transform 0.18s ease;
+      }
+      .doc-links a:hover {
+        text-decoration: underline;
+        box-shadow: var(--shadow-card);
+        transform: translateY(-1px);
+      }
+    </style>
   </head>
   <body>
     <div class="container">
@@ -109,20 +139,28 @@
         </div>
 
         <div class="cards">
-          <a class="card" href="estimate.html">
+          <div class="card">
             <div class="icon">
               <svg class="picon" aria-hidden="true">
-                <use href="../icon-sprite.svg#clipboard"></use>
+                <use href="../icon-sprite.svg#house"></use>
               </svg>
             </div>
             <div class="body">
-              <div class="title">Смета на ремонт</div>
-              <p class="desc">
-                Плановая смета: разделы, позиции, объёмы и суммы. План по объекту — 1 933 448,08 ₽.
-              </p>
+              <div class="title">Дизайн-проект</div>
+              <p class="desc">Документы дизайн-проекта квартиры (PDF):</p>
+              <div class="doc-links">
+                <a href="pdf/00%20Дизайн-проект/Обмерный%20план.pdf" target="_blank" rel="noopener"
+                  >Обмерный план</a
+                >
+                <a
+                  href="pdf/00%20Дизайн-проект/1%20этап%20%2B%20электрика%20(1).pdf"
+                  target="_blank"
+                  rel="noopener"
+                  >1 этап + электрика</a
+                >
+              </div>
             </div>
-            <div class="arrow">→</div>
-          </a>
+          </div>
 
           <a class="card" href="Reports/report_work.html">
             <div class="icon">
