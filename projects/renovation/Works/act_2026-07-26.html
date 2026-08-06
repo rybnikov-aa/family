@@ -316,57 +316,6 @@
         margin-bottom: 0;
       }
 
-      .signatures {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: flex-end;
-        border-top: 1px solid #dde3ea;
-        padding-top: 2rem;
-        margin-top: 0.8rem;
-        gap: 30px 20px;
-      }
-
-      .signature-box {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .signature-box .label {
-        font-weight: 500;
-        color: #0b1a2b;
-      }
-
-      .signature-box .position {
-        color: #2f4a62;
-        font-size: 0.92rem;
-      }
-
-      .signature-box .name {
-        font-weight: 500;
-        margin-top: 4px;
-      }
-
-      .signature-line {
-        display: flex;
-        align-items: center;
-        gap: 16px 30px;
-        flex-wrap: wrap;
-        margin-top: 6px;
-      }
-
-      .signature-line .line {
-        border-bottom: 1px solid #7b8fa0;
-        min-width: 140px;
-        padding-bottom: 2px;
-        display: inline-block;
-      }
-
-      .signature-line .spacer {
-        min-width: 20px;
-      }
-
       .text-muted {
         color: #4f6b82;
       }
@@ -409,16 +358,6 @@
           flex-direction: column;
           align-items: stretch;
           gap: 8px;
-        }
-
-        .signatures {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 24px;
-        }
-
-        .signature-line {
-          flex-wrap: wrap;
         }
       }
 
@@ -525,18 +464,6 @@
         border-color: #343b47;
         color: #c3ccd8;
       }
-      [data-theme='dark'] .signatures {
-        border-color: #343b47;
-      }
-      [data-theme='dark'] .signature-box .label {
-        color: #eef2f7;
-      }
-      [data-theme='dark'] .signature-box .position {
-        color: #a8b2c2;
-      }
-      [data-theme='dark'] .signature-line .line {
-        border-color: #4a5568;
-      }
       [data-theme='dark'] .text-muted {
         color: #8b95a5;
       }
@@ -619,7 +546,6 @@
           <div class="parties">
             <div class="party">
               <span class="role">Заказчик</span>
-              <span class="name">Рыбников Алексей Александрович</span>
             </div>
             <div class="party">
               <span class="role">Подрядчик</span>
@@ -698,43 +624,6 @@
               работ проверено Заказчиком в присутствии Исполнителя и соответствует требованиям
               Заказчика и условиям Договора.
             </p>
-          </div>
-
-          <!-- Подписи сторон -->
-          <div class="signatures">
-            <div class="signature-box">
-              <span class="label">Подрядчик</span>
-              <span class="position">Директор ООО «А-сервис»</span>
-              <div class="signature-line">
-                <span class="line"
-                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
-                >
-                <span>Глушков Е.О.</span>
-              </div>
-            </div>
-            <div class="signature-box">
-              <span class="label">Заказчик</span>
-              <div class="signature-line">
-                <span class="line"
-                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
-                >
-                <span>Рыбников А.А.</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Нижняя подпись / дата (опционально) -->
-          <div
-            style="
-              margin-top: 1.8rem;
-              font-size: 0.8rem;
-              color: #6f889e;
-              text-align: right;
-              border-top: 1px solid #e4ebf2;
-              padding-top: 1.2rem;
-            "
-          >
-            Акт составлен «26» июля 2026 г.
           </div>
 
           <!-- Ссылка на исходный PDF -->
