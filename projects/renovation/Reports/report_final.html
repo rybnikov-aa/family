@@ -41,51 +41,79 @@
     <style>
       /* Документ отчёта: таблицы и блоки. Каркас и тема — общие (/projects/styles.css). */
       .doc {
-        max-width: 1400px;
+        max-width: 1550px;
         width: 100%;
         background: #ffffff;
-        border-radius: 28px;
+        border-radius: 24px;
         box-shadow: 0 16px 48px rgba(0, 20, 40, 0.1);
-        padding: 30px 28px 40px;
+        padding: 30px 24px 40px;
         overflow-x: auto;
       }
       .doc-head {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: flex-start;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 16px;
+        row-gap: 14px;
+        align-items: start;
+        margin-bottom: 18px;
         border-bottom: 2px solid #e4ebf5;
         padding-bottom: 18px;
-        margin-bottom: 20px;
-        gap: 12px 20px;
       }
-      .doc-head-left h1 {
-        font-size: 25px;
+      .doc-head-title {
+        grid-column: 1 / -1;
+        font-size: 26px;
         font-weight: 700;
         color: #0b1a33;
-        margin: 0 0 4px 0;
+        margin: 0;
+      }
+      .doc-head-left {
+        min-width: 0;
       }
       .doc-head-left .meta {
-        font-size: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+        font-size: 13px;
         color: #3f5672;
-        line-height: 1.6;
+        line-height: 1.5;
       }
-      .doc-head-left .meta strong {
+      .doc-head-left .meta-item {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        background: #f3f7fc;
+        border: 1px solid #e2eaf4;
+        border-radius: 30px;
+        padding: 5px 12px;
+      }
+      .doc-head-left .meta-item strong {
         color: #0b1a33;
+        font-weight: 600;
       }
-      .doc-head-right {
+      .doc-head-total {
         text-align: right;
         font-size: 14px;
         color: #3f5672;
         background: #f5f8fe;
-        padding: 12px 20px;
+        padding: 14px 22px;
         border-radius: 14px;
         border: 1px solid #e0e8f2;
       }
-      .doc-head-right .total-big {
-        font-size: 22px;
+      .doc-head-total .head-total-label {
+        margin-bottom: 4px;
+        font-size: 12px;
+        color: #4a6482;
+      }
+      .doc-head-total .total-big {
+        font-size: 24px;
         font-weight: 700;
         color: #0b1a33;
+        white-space: nowrap;
+      }
+      .doc-head-total .head-total-badges {
+        margin-top: 8px;
+        font-size: 12px;
       }
       .badge {
         display: inline-block;
@@ -139,7 +167,6 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 14px;
-        min-width: 620px;
       }
       th {
         background: #f2f6fd;
@@ -259,9 +286,11 @@
         .doc {
           padding: 16px 12px;
         }
-        .doc-head-right {
+        .doc-head {
+          grid-template-columns: 1fr;
+        }
+        .doc-head-total {
           text-align: left;
-          width: 100%;
         }
       }
 
@@ -279,7 +308,7 @@
         border-color: #343b47;
         color: #c9d2de;
       }
-      [data-theme='dark'] .doc-head-right {
+      [data-theme='dark'] .doc-head-total {
         background: #1c222b;
         border-color: #343b47;
         color: #a8b2c2;
@@ -287,10 +316,18 @@
       [data-theme='dark'] .doc-head-left .meta {
         color: #a8b2c2;
       }
-      [data-theme='dark'] .doc-head-left h1,
+      [data-theme='dark'] .doc-head-left .meta-item {
+        background: #1c222b;
+        border-color: #343b47;
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc-head-title,
       [data-theme='dark'] .doc-head-left .meta strong,
-      [data-theme='dark'] .doc-head-right .total-big {
+      [data-theme='dark'] .doc-head-total .total-big {
         color: #eef2f7;
+      }
+      [data-theme='dark'] .head-total-label {
+        color: #a8b2c2;
       }
       [data-theme='dark'] .block {
         border-color: #343b47;
@@ -367,7 +404,12 @@
     <div class="container">
       <header class="header">
         <a href="/#/" class="brand">
-          <h1><span class="brand-mark"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#users"></use></svg></span>Семейное пространство</h1>
+          <h1>
+            <span class="brand-mark"
+              ><svg class="picon" aria-hidden="true">
+                <use href="/projects/icon-sprite.svg#users"></use></svg></span
+            >Семейное пространство
+          </h1>
         </a>
         <div class="header-actions">
           <nav class="nav">
@@ -383,20 +425,27 @@
         <a class="doc-back" href="/renovation/">← К отчётам проекта</a>
         <div class="doc">
           <div class="doc-head">
+            <h1 class="doc-head-title">
+              <svg class="picon" aria-hidden="true">
+                <use href="/projects/icon-sprite.svg#money"></use>
+              </svg>
+              Итоговый отчёт по объекту
+            </h1>
             <div class="doc-head-left">
-              <h1><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#money"></use></svg> Итоговый отчёт по объекту</h1>
               <div class="meta">
-                <strong>Заказчик:</strong> Рыбников Алексей Александрович &nbsp;|&nbsp;
-                <strong>Подрядчик:</strong> ООО «А-сервис» &nbsp;|&nbsp;
-                <strong>Договор подряда:</strong> №6124 от 26.12.2025<br />
-                <strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв. 100,
-                этаж 7
+                <span class="meta-item"
+                  ><strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв.
+                  100, этаж 7</span
+                >
+                <span class="meta-item"><strong>Подрядчик:</strong> ООО «А-сервис»</span>
+                <span class="meta-item"><strong>Договор подряда:</strong> №6124 от 26.12.2025</span>
+                <span class="meta-item"><strong>Дата старта:</strong> 30.06.2026</span>
               </div>
             </div>
-            <div class="doc-head-right">
-              <div style="font-size: 13px; color: #4a6482">Итоговая сводка по объекту</div>
+            <div class="doc-head-total">
+              <div class="head-total-label">Итоговая сводка по объекту</div>
               <div class="total-big">202 016,16 ₽</div>
-              <div style="font-size: 13px; margin-top: 4px">
+              <div class="head-total-badges">
                 <span class="badge badge-blue">Внесено: 501 876,00 ₽</span>
                 <span class="badge badge-red" style="margin-left: 6px"
                   >Использовано: 299 859,84 ₽</span
@@ -408,7 +457,12 @@
           <!-- ==================== БЛОК 1. РАБОТЫ ==================== -->
           <div class="block">
             <div class="block-title">
-              <span><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#brick"></use></svg> Блок 1. Работы</span>
+              <span
+                ><svg class="picon" aria-hidden="true">
+                  <use href="/projects/icon-sprite.svg#brick"></use>
+                </svg>
+                Блок 1. Работы</span
+              >
               <span class="bt-meta"
                 >Источники: смета <a href="../estimate.html">estimate.html</a>, акт
                 <a href="../Works/act_01.html">act_01.html</a>, ведомость
@@ -478,7 +532,12 @@
           <!-- ==================== БЛОК 2. МАТЕРИАЛЫ ==================== -->
           <div class="block">
             <div class="block-title">
-              <span><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#package"></use></svg> Блок 2. Материалы</span>
+              <span
+                ><svg class="picon" aria-hidden="true">
+                  <use href="/projects/icon-sprite.svg#package"></use>
+                </svg>
+                Блок 2. Материалы</span
+              >
               <span class="bt-meta"
                 >Источники: отчёты <a href="../Materials/report_01.html">report_01.html</a>,
                 <a href="../Materials/report_02.html">report_02.html</a>, ведомость
@@ -543,7 +602,12 @@
           <!-- ==================== БЛОК 3. СВОДНАЯ СВЕРКА ==================== -->
           <div class="block">
             <div class="block-title">
-              <span><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#chart"></use></svg> Блок 3. Сводная сверка</span>
+              <span
+                ><svg class="picon" aria-hidden="true">
+                  <use href="/projects/icon-sprite.svg#chart"></use>
+                </svg>
+                Блок 3. Сводная сверка</span
+              >
               <span class="bt-meta"
                 >Источники: <a href="../Settlement/sm_works_01.html">sm_works_01.html</a>,
                 <a href="../Settlement/sm_materials_01.html">sm_materials_01.html</a></span
@@ -599,7 +663,12 @@
 
           <!-- Ссылки -->
           <div class="links-block">
-            <h3><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#link"></use></svg> Документы по объекту</h3>
+            <h3>
+              <svg class="picon" aria-hidden="true">
+                <use href="/projects/icon-sprite.svg#link"></use>
+              </svg>
+              Документы по объекту
+            </h3>
             <ul>
               <li>Смета: <a href="../estimate.html">estimate.html</a></li>
               <li>

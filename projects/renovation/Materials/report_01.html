@@ -41,52 +41,89 @@
     <style>
       /* Документ заказа: таблицы и блоки. Каркас и тема — общие (/projects/styles.css). */
       .doc {
-        max-width: 1200px;
+        max-width: 1550px;
         width: 100%;
-        background: white;
-        border-radius: 32px;
-        box-shadow:
-          0 12px 30px rgba(0, 0, 0, 0.05),
-          0 4px 12px rgba(0, 0, 0, 0.03);
-        padding: 2rem 2.2rem 2.2rem;
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 16px 48px rgba(0, 20, 40, 0.1);
+        padding: 30px 24px 40px;
+        overflow-x: auto;
       }
 
       .doc-head {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 16px;
+        row-gap: 14px;
+        align-items: start;
+        margin-bottom: 18px;
+        border-bottom: 2px solid #e4ebf5;
+        padding-bottom: 18px;
+      }
+
+      .doc-head-title {
+        grid-column: 1 / -1;
+        font-size: 26px;
+        font-weight: 700;
+        color: #0b1a33;
+        margin: 0;
+      }
+
+      .doc-head-left {
+        min-width: 0;
+      }
+
+      .doc-head-left .meta {
         display: flex;
         flex-wrap: wrap;
-        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 14px;
+        font-size: 13px;
+        color: #3f5672;
+        line-height: 1.5;
+      }
+
+      .doc-head-left .meta-item {
+        display: inline-flex;
         align-items: baseline;
-        border-bottom: 1px solid #dde3ea;
-        padding-bottom: 1rem;
-        margin-bottom: 1.8rem;
-        gap: 10px 20px;
+        gap: 6px;
+        background: #f3f7fc;
+        border: 1px solid #e2eaf4;
+        border-radius: 30px;
+        padding: 5px 12px;
       }
 
-      .title {
-        font-size: 1.8rem;
-        font-weight: 500;
-        letter-spacing: -0.3px;
-        color: #0b1a2b;
+      .doc-head-left .meta-item strong {
+        color: #0b1a33;
+        font-weight: 600;
       }
 
-      .meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 24px;
-        font-size: 0.95rem;
-        color: #1f3a4b;
+      .doc-head-total {
+        text-align: right;
+        font-size: 14px;
+        color: #3f5672;
+        background: #f5f8fe;
+        padding: 14px 22px;
+        border-radius: 14px;
+        border: 1px solid #e0e8f2;
       }
 
-      .meta span {
-        background: #f2f6fa;
-        padding: 4px 16px;
-        border-radius: 40px;
+      .doc-head-total .head-total-label {
+        margin-bottom: 4px;
+        font-size: 12px;
+        color: #4a6482;
+      }
+
+      .doc-head-total .total-big {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0b1a33;
         white-space: nowrap;
       }
 
-      .meta strong {
-        font-weight: 600;
-        color: #0b1a2b;
+      .doc-head-total .head-total-badges {
+        margin-top: 8px;
+        font-size: 12px;
       }
 
       .table-wrap {
@@ -101,7 +138,6 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 0.9rem;
-        min-width: 780px;
       }
 
       th {
@@ -249,14 +285,33 @@
         font-weight: 500;
       }
 
+      /* Адаптив: скрываем второстепенные колонки, не удаляя их из сетки */
+      @media (max-width: 1100px) {
+        th.col-unit,
+        td.col-unit,
+        th.col-price,
+        td.col-price {
+          width: 0;
+          max-width: 0;
+          padding: 0;
+          border: 0;
+          font-size: 0;
+          line-height: 0;
+          visibility: hidden;
+          overflow: hidden;
+        }
+      }
       @media (max-width: 700px) {
         .doc {
-          padding: 1.2rem;
+          padding: 16px 12px;
         }
 
         .doc-head {
-          flex-direction: column;
-          align-items: stretch;
+          grid-template-columns: 1fr;
+        }
+
+        .doc-head-total {
+          text-align: left;
         }
 
         .total-box {
@@ -302,17 +357,30 @@
         border-color: #343b47;
         color: #c9d2de;
       }
-      [data-theme='dark'] .doc .title {
+      [data-theme='dark'] .doc-head-title {
         color: #eef2f7;
       }
-      [data-theme='dark'] .doc .meta {
-        color: #c3ccd8;
+      [data-theme='dark'] .doc-head-left .meta {
+        color: #a8b2c2;
       }
-      [data-theme='dark'] .doc .meta span {
+      [data-theme='dark'] .doc-head-left .meta-item {
         background: #1c222b;
+        border-color: #343b47;
+        color: #a8b2c2;
       }
-      [data-theme='dark'] .doc .meta strong {
+      [data-theme='dark'] .doc-head-left .meta strong {
         color: #eef2f7;
+      }
+      [data-theme='dark'] .doc-head-total {
+        background: #1c222b;
+        border-color: #343b47;
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc-head-total .total-big {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .head-total-label {
+        color: #a8b2c2;
       }
       [data-theme='dark'] .doc .table-wrap {
         background: var(--surface);
@@ -362,7 +430,12 @@
     <div class="container">
       <header class="header">
         <a href="/#/" class="brand">
-          <h1><span class="brand-mark"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#users"></use></svg></span>Семейное пространство</h1>
+          <h1>
+            <span class="brand-mark"
+              ><svg class="picon" aria-hidden="true">
+                <use href="/projects/icon-sprite.svg#users"></use></svg></span
+            >Семейное пространство
+          </h1>
         </a>
         <div class="header-actions">
           <nav class="nav">
@@ -378,14 +451,25 @@
         <a class="doc-back" href="/renovation/">← К отчётам проекта</a>
         <div class="doc">
           <div class="doc-head">
-            <div class="title"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#package"></use></svg> Заказ материалов №1</div>
-            <div class="meta">
-              <span><strong>Заказчик:</strong> Рыбников Алексей Александрович</span>
-              <span
-                ><strong>Адрес:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв. 100,
-                этаж 7</span
-              >
-              <span><strong>Подрядчик:</strong> ООО «А-сервис»</span>
+            <h1 class="doc-head-title">
+              <svg class="picon" aria-hidden="true">
+                <use href="/projects/icon-sprite.svg#package"></use>
+              </svg>
+              Заказ материалов №1
+            </h1>
+            <div class="doc-head-left">
+              <div class="meta">
+                <span class="meta-item"
+                  ><strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв.
+                  100, этаж 7</span
+                >
+                <span class="meta-item"><strong>Подрядчик:</strong> ООО «А-сервис»</span>
+                <span class="meta-item"><strong>Дата старта:</strong> 30.06.2026</span>
+              </div>
+            </div>
+            <div class="doc-head-total">
+              <div class="head-total-label">Итого по заказу</div>
+              <div class="total-big">108 732,04 ₽</div>
             </div>
           </div>
 
@@ -531,11 +615,6 @@
                 </tr>
               </tbody>
             </table>
-          </div>
-
-          <div class="total-box">
-            <span class="label">Итого:</span>
-            <span class="value"><small>₽</small> 108 732,04</span>
           </div>
 
           <div class="signatures">
