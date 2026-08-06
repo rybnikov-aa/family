@@ -362,6 +362,11 @@ function main() {
       const p = join(ROOT, 'backend', file);
       if (existsSync(p)) copyFileSync(p, join(stageBackend, file));
     }
+    // CLI-скрипты (например, `users.mjs` — управление пользователями на сервере)
+    const backendScripts = join(ROOT, 'backend', 'scripts');
+    if (existsSync(backendScripts)) {
+      cpSync(backendScripts, join(stageBackend, 'scripts'), { recursive: true, force: true });
+    }
 
     // Projects -> public_html/projects/ (repo mirrors web root /projects/ 1:1:
     // shared files styles.css/theme.js AND project subfolders like renovation/).

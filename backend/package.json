@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "start": "node dist/app.cjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "user": "node scripts/users.mjs"
   },
   "dependencies": {
     "cors": "^2.8.6",

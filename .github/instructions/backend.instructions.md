@@ -27,6 +27,15 @@ applyTo:
 
 - В `app.ts` слушать только при `NODE_ENV=production` ЛИБО прямом запуске. Под pm2 `process.argv[1]` — враппер pm2 (не скрипт), поэтому основной сигнал — `NODE_ENV=production`. В dev Vite монтирует `app` сам — слушать нельзя.
 
+## Авторизация
+
+- Весь портал закрыт входом: `requireAuth` на роутах `/api/vps` и `/api/projects` (в `app.ts`); мутации (POST/DELETE VPS, импорт, загрузка PDF) — `requireAdmin`. `/api/health` и `POST /api/auth/login` — публичны.
+- Middleware — `middlewares/auth.ts`: `requireAuth` (401 без действующей сессии), `requireAdmin` (403 для роли не `admin`); cookie парсится вручную (без cookie-parser), токен сессии берётся из `env.AUTH_COOKIE_NAME`.
+- Логика — `services/authService.ts`: пароли — только scrypt (`scrypt$N$r$p$<salt>$<hash>`, constant-time), сессии в SQLite (в БД — SHA-256 от токена), `ensureBootstrapAdmin()` (первый админ из `AUTH_BOOTSTRAP_PASSWORD` при пустой `users`).
+- Роуты `/api/auth`: `POST login`, `POST logout`, `GET me` (`routes/auth.ts`).
+- Управление пользователями — CLI `npm run user -w backend` (`scripts/users.mjs`: add/list/set-role/remove; тот же формат scrypt).
+- Env: `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `AUTH_BOOTSTRAP_PASSWORD/USERNAME/NAME` (`config/env.ts`). Cookie сессии: httpOnly, `SameSite=Lax`, `Secure` в проде.
+
 ## Кэши
 
 - `GET /api/vps` кэшируется 30с (`services/vpsChecker.ts`), `GET /api/projects` — 60с (`services/projectsService.ts`). Сохранять обход `?refresh=1`/force там, где он есть.

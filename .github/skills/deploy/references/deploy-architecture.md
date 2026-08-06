@@ -30,7 +30,7 @@
 1. **Сборка**: `npm run build` (если не `--no-build`). На Windows npm — `npm.cmd` через `cmd.exe`.
 2. **Стейджинг** в `mkdtemp`:
    - `frontend/` ← `frontend/dist` (содержимое: `index.html`, `assets/`…).
-   - `backend/` ← `backend/dist` (сохраняя layout `dist/`, чтобы на сервере было `dist/app.cjs`) + `package.json` + `package-lock.json`.
+   - `backend/` ← `backend/dist` (сохраняя layout `dist/`, чтобы на сервере было `dist/app.cjs`) + `package.json` + `package-lock.json` + `backend/scripts/` (CLI, например `users.mjs` — управление пользователями авторизации прямо на сервере).
    - `projects/` ← `projects/` без служебных записей `_*` (`_template` не деплоится).
    - Если нет `frontend/dist` или `backend/dist` — ошибка: «Run `npm run build` first or drop `--no-build`».
 3. **Архив**: `tar -czf` (`frontend`, `backend`[, `projects`]).

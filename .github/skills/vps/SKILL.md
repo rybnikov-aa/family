@@ -22,7 +22,8 @@ user-invocable: true
 2. **Live-binding**: после любой INSERT/DELETE обязательно вызывать `reloadVpsEntries()` (перечитывает `vpsEntries` из БД в памяти; работает и в CJS-бандле).
 3. **Кэш 30с**: `GET /api/vps` кэшируется на 30с. Чтобы UI сразу увидел изменения — `fetchVps(true)` (`?refresh=1`), обычно через `onRefresh()`.
 4. **`npm run typecheck` — единственный gate**: `noUnusedLocals`/`noUnusedParameters` включены → неиспользуемые переменные/параметры = ошибки (TS6133); неиспользуемые параметры называть `_req`/`_next`.
-5. **Документация синхронно с кодом**: при изменении требований/API/UI обновлять `docs/specification.md` (сначала — спецификация), затем `README.md` и `docs/server.md` при необходимости. Общие правила проекта — в [AGENTS.md](../../../AGENTS.md).
+5. **Авторизация**: `GET /api/vps` требует действующую сессию (httpOnly-cookie `sid`; без неё — 401); мутации (`POST /api/vps`, импорт, `DELETE`) — только роль `admin` (иначе 403). UI скрывает админ-кнопки для не-админа (`useAuth().user?.role === 'admin'`). При ручной диагностике через curl — сначала логин и cookie: `curl -c ck -X POST http://127.0.0.1:3000/api/auth/login -H 'Content-Type: application/json' -d '{"username":"…","password":"…"}'`, затем `curl -b ck …`.
+6. **Документация синхронно с кодом**: при изменении требований/API/UI обновлять `docs/specification.md` (сначала — спецификация), затем `README.md` и `docs/server.md` при необходимости. Общие правила проекта — в [AGENTS.md](../../../AGENTS.md).
 
 ## Процедуры
 

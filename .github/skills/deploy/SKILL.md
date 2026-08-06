@@ -40,6 +40,20 @@ user-invocable: true
   `$env:DEPLOY_HOST = "itg-ru-gw.rybnikov.su"; $env:DEPLOY_USER = "rybnikov"; npm run deploy`
 - Пользователь `rybnikov`, SSH без пароля; на хосте есть passwordless `sudo`.
 
+### Управление пользователями на сервере
+
+- `server/scripts/users.mjs` (CLI из `backend/scripts/`) входит в деплой — работает прямо на сервере из каталога бэкенда.
+- В неинтерактивной SSH-сессии `node`/`pm2` нет в PATH — использовать полный путь: `/home/rybnikov/.nvm/versions/node/v24.19.0/bin/node`.
+- Примеры (из `/var/www/family.rybnikov.su/server`):
+  ```bash
+  /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs add mama Мама user
+  /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs list
+  /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs set-role mama admin
+  /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs remove mama
+  ```
+- Пароль запрашивается интерактивно (не эхонируется) либо через `--password <пароль>`.
+- Первый администратор: `AUTH_BOOTSTRAP_PASSWORD` в `server/.env` — создаётся при рестарте, если таблица `users` пуста; после входа переменную убрать.
+
 ### Диагностика (после деплоя / при 502)
 
 Быстрый read-only снимок сервера одной командой (health, порт, pm2, nginx -t):

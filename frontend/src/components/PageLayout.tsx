@@ -2,9 +2,10 @@ import { useEffect, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import StatusCard from './StatusCard';
 import ThemeToggle from './ThemeToggle';
-import { UsersIcon } from './icons';
+import { LogoutIcon, UsersIcon } from './icons';
 import { ROUTES } from '../routes';
 import { useHealth } from '../hooks/useHealth';
+import { useAuth } from '../hooks/useAuth';
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -12,6 +13,7 @@ interface PageLayoutProps {
 
 function PageLayout({ children }: PageLayoutProps) {
   const { error, loading } = useHealth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -74,6 +76,23 @@ function PageLayout({ children }: PageLayoutProps) {
               Проекты
             </NavLink>
           </nav>
+          {user && (
+            <div className="user">
+              <span className="user__name" title={user.name}>
+                {user.username}
+              </span>
+              {user.role === 'admin' && <span className="user__role">админ</span>}
+              <button
+                type="button"
+                className="user__logout"
+                onClick={() => void logout()}
+                aria-label="Выйти"
+                data-tooltip="Выйти"
+              >
+                <LogoutIcon />
+              </button>
+            </div>
+          )}
           <ThemeToggle />
         </div>
       </header>

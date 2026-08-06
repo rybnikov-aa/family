@@ -13,6 +13,7 @@ import {
 } from './icons';
 import VpsAddModal from './VpsAddModal';
 import { availabilityState, overallAvailability, vpsAvailability } from '../utils/availability';
+import { useAuth } from '../hooks/useAuth';
 
 /** Состояние импорта VPS из JSON-файла. */
 type ImportState =
@@ -39,6 +40,9 @@ function VpsDetailsModal({
   refreshing = false,
 }: VpsDetailsModalProps) {
   const overall = overallAvailability(statuses);
+  // Управление VPS (добавление/импорт/удаление) — только для admin.
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [copiedIp, setCopiedIp] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -154,25 +158,29 @@ function VpsDetailsModal({
         <div className="modal__head">
           <h3>Доступность VPS</h3>
           <div className="modal__head-actions">
-            <button
-              type="button"
-              className="modal__add"
-              onClick={() => setAdding(true)}
-              aria-label="Добавить VPS"
-              title="Добавить VPS"
-            >
-              <PlusIcon />
-            </button>
-            <button
-              type="button"
-              className="modal__add"
-              onClick={() => fileInputRef.current?.click()}
-              aria-label="Импорт из JSON"
-              title="Импорт VPS из JSON-файла"
-              disabled={importState.status === 'reading' || importState.status === 'importing'}
-            >
-              <UploadIcon />
-            </button>
+            {isAdmin && (
+              <button
+                type="button"
+                className="modal__add"
+                onClick={() => setAdding(true)}
+                aria-label="Добавить VPS"
+                title="Добавить VPS"
+              >
+                <PlusIcon />
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                type="button"
+                className="modal__add"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label="Импорт из JSON"
+                title="Импорт VPS из JSON-файла"
+                disabled={importState.status === 'reading' || importState.status === 'importing'}
+              >
+                <UploadIcon />
+              </button>
+            )}
             <input
               ref={fileInputRef}
               type="file"
@@ -276,16 +284,18 @@ function VpsDetailsModal({
                         <SettingsIcon />
                       </a>
                     )}
-                    <button
-                      type="button"
-                      className="modal__vps-delete"
-                      onClick={() => handleDelete(vps.name)}
-                      aria-label="Удалить VPS"
-                      data-tooltip="Удалить VPS"
-                      disabled={deleting === vps.name}
-                    >
-                      <TrashIcon />
-                    </button>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        className="modal__vps-delete"
+                        onClick={() => handleDelete(vps.name)}
+                        aria-label="Удалить VPS"
+                        data-tooltip="Удалить VPS"
+                        disabled={deleting === vps.name}
+                      >
+                        <TrashIcon />
+                      </button>
+                    )}
                   </span>
                 </div>
                 <div className="modal__vps-ip-row">

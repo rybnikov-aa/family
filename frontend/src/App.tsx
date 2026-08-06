@@ -3,7 +3,9 @@ import { Navigate, Outlet, RouterProvider, createHashRouter, useLocation } from 
 import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
 import ProjectsPage from './pages/ProjectsPage';
+import LoginPage from './pages/LoginPage';
 import { ROUTES } from './routes';
+import { useAuth } from './hooks/useAuth';
 
 /** Устанавливает заголовок вкладки по текущему маршруту. */
 function RouteLayout() {
@@ -21,15 +23,35 @@ function RouteLayout() {
   return <Outlet />;
 }
 
+/** Экран-заглушка на время проверки сессии при старте. */
+function AuthLoading() {
+  return <div className="auth-loading">Загрузка…</div>;
+}
+
+/**
+ * Гейт авторизации: пока сессия не подтверждена — экран входа,
+ * иначе — приложение (весь портал закрыт авторизацией).
+ */
+function AuthGate() {
+  const { user, loading } = useAuth();
+  if (loading) return <AuthLoading />;
+  return user ? <Outlet /> : <LoginPage />;
+}
+
 const router = createHashRouter([
   {
-    element: <RouteLayout />,
+    element: <AuthGate />,
     children: [
-      { path: ROUTES.home, element: <HomePage /> },
-      { path: ROUTES.news, element: <NewsPage /> },
-      { path: ROUTES.projects, element: <ProjectsPage /> },
-      // Неизвестные пути (например, старый якорь #sections) — на главную.
-      { path: '*', element: <Navigate to={ROUTES.home} replace /> },
+      {
+        element: <RouteLayout />,
+        children: [
+          { path: ROUTES.home, element: <HomePage /> },
+          { path: ROUTES.news, element: <NewsPage /> },
+          { path: ROUTES.projects, element: <ProjectsPage /> },
+          // Неизвестные пути (например, старый якорь #sections) — на главную.
+          { path: '*', element: <Navigate to={ROUTES.home} replace /> },
+        ],
+      },
     ],
   },
 ]);

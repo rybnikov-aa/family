@@ -5,6 +5,11 @@ const parsePort = (value: string | undefined, fallback: number): number => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
+const parseHours = (value: string | undefined, fallback: number): number => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
 export const env = {
   PORT: parsePort(process.env.PORT, 3000),
   NODE_ENV: process.env.NODE_ENV ?? 'development',
@@ -20,4 +25,19 @@ export const env = {
    * репозитория.
    */
   PROJECTS_DIR: process.env.PROJECTS_DIR ?? '../public_html/projects',
+
+  // ── Авторизация ────────────────────────────────────────────────────────────
+  /** Имя cookie сессии (httpOnly, SameSite=Lax). */
+  AUTH_COOKIE_NAME: process.env.AUTH_COOKIE_NAME ?? 'sid',
+  /** Срок жизни сессии в часах (по умолчанию 7 суток). */
+  SESSION_TTL_HOURS: parseHours(process.env.SESSION_TTL_HOURS, 168),
+  /**
+   * Bootstrap администратора: если в БД ещё нет ни одного пользователя,
+   * при старте создаётся учётка с ролью `admin`. Пароль берётся из этой
+   * переменной. После создания первого пользователя переменную можно убрать
+   * из `.env` (дальнейшие учётки создаются скриптом `npm run user -w backend`).
+   */
+  AUTH_BOOTSTRAP_PASSWORD: process.env.AUTH_BOOTSTRAP_PASSWORD ?? '',
+  AUTH_BOOTSTRAP_USERNAME: process.env.AUTH_BOOTSTRAP_USERNAME ?? 'admin',
+  AUTH_BOOTSTRAP_NAME: process.env.AUTH_BOOTSTRAP_NAME ?? 'Администратор',
 };

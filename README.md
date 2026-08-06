@@ -21,9 +21,11 @@ graph TD
 ├── AGENTS.md                 # инструкции для ИИ-агентов (команды, правила, грабли)
 ├── .github/                  # кастомизации для ИИ-агентов
 │   ├── agents/               # агенты (специализированные роли, выбор в чате)
-│   │   ├── frontend-dev.agent.md  # фронтенд-разработчик (React/TS/Vite)
-│   │   ├── backend-dev.agent.md   # бэкенд-разработчик (Express/SQLite)
-│   │   └── fullstack-dev.agent.md # сквозные фичи (бэкенд + фронтенд)
+│   │   ├── frontend-dev.agent.md     # фронтенд-разработчик (React/TS/Vite)
+│   │   ├── backend-dev.agent.md      # бэкенд-разработчик (Express/SQLite)
+│   │   ├── fullstack-dev.agent.md    # сквозные фичи (бэкенд + фронтенд)
+│   │   ├── projects-dev.agent.md     # статичные проекты (projects/**)
+│   │   └── projects-explorer.agent.md # read-only исследование проектов
 │   ├── instructions/         # файловые инструкции (авто-применение по applyTo)
 │   │   ├── frontend.instructions.md # конвенции фронтенда (frontend/src/**)
 │   │   ├── backend.instructions.md  # конвенции бэкенда (backend/src/**)
@@ -31,7 +33,9 @@ graph TD
 │   └── skills/               # скиллы (загружаются по запросу)
 │       ├── vps/              # VPS-мониторинг: SKILL.md, справочник, scripts/list-vps.mjs
 │       ├── deploy/           # деплой и диагностика сервера: SKILL.md, справочник
-│       ├── project-renovation-build-reports/ # отчётность по ремонту (projects/renovation)
+│       ├── project-import/   # импорт/создание нового проекта (projects/**)
+│       ├── project-renovation-update-from-pdf/ # PDF → HTML-документы ремонта
+│       ├── project-renovation-build-reports/   # отчётность по ремонту (projects/renovation)
 │       └── parse-pdf/        # конвертация PDF → HTML (общий, для любых проектов)
 ├── README.md
 ├── docs/                     # спецификация и справочники (см. «Документация»)
@@ -64,8 +68,8 @@ graph TD
 │       ├── index.css         # глобальные стили
 │       ├── api/              # HTTP-клиент (fetch к /api)
 │       ├── components/       # переиспользуемые UI-компоненты
-│       ├── hooks/            # пользовательские React-хуки
-│       ├── pages/            # страницы приложения
+│       ├── hooks/            # пользовательские React-хуки (в т.ч. useAuth — авторизация)
+│       ├── pages/            # страницы приложения (в т.ч. LoginPage — экран входа)
 │       └── vite-env.d.ts
 │
 └── backend/                  # Node + Express + Vite
@@ -73,14 +77,15 @@ graph TD
     ├── tsconfig.json
     ├── vite.config.ts        # dev-порт 3000, HMR через vite-plugin-node
     ├── .env.example
+    ├── scripts/              # CLI: users.mjs — управление пользователями авторизации
     └── src/
         ├── app.ts            # Express-приложение (экспорт app + автостарт при прямом запуске)
         ├── config/           # конфигурация окружения + типы VPS
         ├── db/               # SQLite (node:sqlite): соединение + репозиторий VPS
-        ├── routes/           # маршруты API
+        ├── routes/           # маршруты API (в т.ч. auth — вход/выход/me)
         ├── controllers/      # обработчики запросов
-        ├── services/         # бизнес-логика (проверка доступности VPS)
-        └── middlewares/      # middleware (ошибки, 404 и т.д.)
+        ├── services/         # бизнес-логика (проверка доступности VPS, авторизация)
+        └── middlewares/      # middleware (ошибки, 404, requireAuth/requireAdmin)
 ```
 
 ## Установка
@@ -93,15 +98,16 @@ npm install
 
 ## Запуск
 
-| Команда                | Описание                                           |
-| ---------------------- | -------------------------------------------------- |
-| `npm run dev`          | Запуск фронтенда и бэкенда одновременно            |
-| `npm run dev:frontend` | Только фронтенд (http://localhost:5173)            |
-| `npm run dev:backend`  | Только бэкенд (http://localhost:3000)              |
-| `npm run build`        | Сборка фронтенда и бэкенда                         |
-| `npm start`            | Запуск собранного бэкенда (`backend/dist/app.cjs`) |
-| `npm run typecheck`    | Проверка типов во всех воркспейсах                 |
-| `npm run format`       | Форматирование кода через Prettier                 |
+| Команда                   | Описание                                                                    |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `npm run dev`             | Запуск фронтенда и бэкенда одновременно                                     |
+| `npm run dev:frontend`    | Только фронтенд (http://localhost:5173)                                     |
+| `npm run dev:backend`     | Только бэкенд (http://localhost:3000)                                       |
+| `npm run build`           | Сборка фронтенда и бэкенда                                                  |
+| `npm start`               | Запуск собранного бэкенда (`backend/dist/app.cjs`)                          |
+| `npm run typecheck`       | Проверка типов во всех воркспейсах                                          |
+| `npm run format`          | Форматирование кода через Prettier                                          |
+| `npm run user -w backend` | Управление пользователями авторизации (`add`, `list`, `set-role`, `remove`) |
 
 ## Как это работает
 
@@ -110,7 +116,38 @@ npm install
 - **Хранилище VPS** — SQLite (встроенный `node:sqlite`, без новых зависимостей). Файл БД — `backend/data/vps.sqlite` (путь через `DB_PATH`), наполняется вручную, через форму добавления VPS в UI (`POST /api/vps`), импортом из JSON-файла структуры `vps.json` (`POST /api/vps/import`) или удаляется через кнопку-корзину в детализации (`DELETE /api/vps/:name`); схема таблиц создаётся автоматически при первом обращении. В git не попадает, при деплое не затирается.
 - **Раздел «Проекты»** — проект это подпапка `public_html/projects/<slug>/` с `index.html` (страницы — по `/projects/<slug>/`, например `/projects/renovation/`). Список проектов динамический: `GET /api/projects` сканирует каталог `PROJECTS_DIR` (по умолчанию `../public_html/projects`). Страницы проектов используют общий шаблон `projects/` (стиль и тема приложения; тема — общий `localStorage['theme']`; иконки — общий SVG-спрайт `projects/icon-sprite.svg`, эмодзи как иконки не используются). Добавление проекта = новая подпапка с `index.html` (мета-теги `project-title`, `description`, `project-accent`, `project-order`).
 - **Загрузка PDF** — на странице «Проекты» есть кнопка «Загрузить PDF» (модалка выбора папки на сервере + файла). Список папок — `GET /api/projects/dirs`, загрузка — `POST /api/projects/upload` (multipart, лимит 20 МБ, `multer`); файлы сохраняются в `PROJECTS_DIR/<папка>/` и раздаются nginx как статика. Вариант «просто доставка»: ссылки на страницах проектов добавляются вручную. Для загрузки на сервере в nginx задан `client_max_body_size 20m`.
+- **Авторизация** — весь портал (SPA и API) закрыт входом: без сессии фронтенд показывает экран входа, API отвечает 401. Учётные записи хранятся в SQLite (таблицы `users` + `sessions`), пароли — только хэши scrypt; вход/выход по httpOnly `SameSite=Lax` cookie (`sid`, в проде `Secure`). Роли: `admin` (управление VPS, загрузка PDF) и `user` (чтение). Первый администратор создаётся при старте из `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей), дальнейшие учётки — `npm run user -w backend`. CLI входит в деплой (`server/scripts/users.mjs`), поэтому учётками можно управлять и прямо на сервере. Эндпоинты: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`.
 - **Общие dev-зависимости** (`typescript`, `vite`, `@vitejs/plugin-react`, `vite-plugin-node`, `@types/*`, `prettier`, `concurrently`) подняты в корневой `package.json`, рантайм-зависимости лежат в `frontend/` и `backend/` соответственно.
+
+## Управление пользователями
+
+Портал закрыт авторизацией: учётные записи хранятся в SQLite (таблицы `users` + `sessions`), пароли — хэши scrypt (без новых зависимостей, `node:crypto`). Роли: `admin` (управление VPS, загрузка PDF) и `user` (чтение).
+
+**Первый администратор** создаётся автоматически при старте бэкенда, если в `users` нет записей и в `.env` задан `AUTH_BOOTSTRAP_PASSWORD` (учётка `admin`; имя/отображаемое имя — `AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME`). После первого входа переменную рекомендуется убрать.
+
+**Остальные учётки** — CLI `npm run user -w backend` (скрипт `backend/scripts/users.mjs`, работает без сборки, тот же формат хэша):
+
+| Команда                                                     | Что делает                                                              |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `add <username> <name> <admin\|user> [--password <пароль>]` | Создать пользователя (пароль можно ввести интерактивно, не эхонируется) |
+| `list`                                                      | Список пользователей (username, имя, роль, дата создания)               |
+| `set-role <username> <admin\|user>`                         | Сменить роль                                                            |
+| `remove <username>`                                         | Удалить пользователя                                                    |
+
+Пример (локально, из корня репозитория):
+
+```bash
+npm run user -w backend -- add mama Мама user --password 'пароль'
+npm run user -w backend -- add papa Папа admin
+npm run user -w backend -- list
+```
+
+**На сервере** скрипт входит в деплой (`server/scripts/users.mjs`). В неинтерактивной SSH-сессии `node` нет в PATH, поэтому запускайте полным путём:
+
+```bash
+cd /var/www/family.rybnikov.su/server
+/home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs add mama Мама user
+```
 
 ## Конфигурация окружения (файлы `.env`)
 
@@ -119,11 +156,11 @@ npm install
 | Файл            | Кто читает                                  | Переменные                                                                                                                     |
 | --------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Корневой `.env` | `scripts/deploy.mjs` (деплой)               | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH` |
-| `backend/.env`  | Бэкенд (`src/config/env.ts` через `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `PROJECTS_DIR`                                                                   |
+| `backend/.env`  | Бэкенд (`src/config/env.ts` через `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `PROJECTS_DIR`, `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `AUTH_BOOTSTRAP_*`      |
 | `frontend/.env` | Vite (только `VITE_*`)                      | `VITE_API_BASE_URL`                                                                                                            |
 
 - **Корневой `.env` / `.env.example`** — конфигурация **деплоя** (SSH-хост, пользователь, пути на сервере, имя pm2-приложения). Загружается `scripts/deploy.mjs` собственным мини-загрузчиком. Шаблон — `.env.example` в корне.
-- **`backend/.env.example`** — конфигурация **рантайма бэкенда**: порт API (`PORT`), разрешённый CORS-origin (`CORS_ORIGIN`), окружение (`NODE_ENV`), путь к SQLite-базе (`DB_PATH`, по умолчанию `data/vps.sqlite`), каталог проектов (`PROJECTS_DIR`, по умолчанию `../public_html/projects`; в dev можно указать `../projects`). В dev подхватывается `dotenv` из `backend/.env`; в проде — из `server/.env`, который сохраняется при деплое.
+- **`backend/.env.example`** — конфигурация **рантайма бэкенда**: порт API (`PORT`), разрешённый CORS-origin (`CORS_ORIGIN`), окружение (`NODE_ENV`), путь к SQLite-базе (`DB_PATH`, по умолчанию `data/vps.sqlite`), каталог проектов (`PROJECTS_DIR`, по умолчанию `../public_html/projects`; в dev можно указать `../projects`), а также авторизация: `AUTH_COOKIE_NAME` (имя cookie сессии, `sid`), `SESSION_TTL_HOURS` (срок жизни сессии, 168 ч), `AUTH_BOOTSTRAP_PASSWORD`/`AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME` (создание первого администратора при старте, если в БД нет пользователей). В dev подхватывается `dotenv` из `backend/.env`; в проде — из `server/.env`, который сохраняется при деплое.
 - **`frontend/.env.example`** — конфигурация **фронтенда**: только переменные с префиксом `VITE_`. `VITE_API_BASE_URL` задаёт базовый URL API (пусто → Vite dev-прокси `/api` → `:3000`), используется в `src/api/client.ts`.
 
 Общее правило: `.env.example` — документированный шаблон в git; реальный `.env` — локальный/серверный, в git не попадает (см. `.gitignore`).

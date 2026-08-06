@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS vps_services (
 CREATE INDEX IF NOT EXISTS idx_vps_services_vps_id ON vps_services(vps_id);
 ```
 
+В той же БД также таблицы `users` и `sessions` (авторизация: см. `backend/src/services/authService.ts`) — в этот справочник они не входят.
+
 ## Типы (`backend/src/config/vps.ts`)
 
 - `VpsServiceConfig` = `{ name, type, address }` (type: `http` | `ocserv` | …).
@@ -48,6 +50,7 @@ CREATE INDEX IF NOT EXISTS idx_vps_services_vps_id ON vps_services(vps_id);
 | POST   | `/api/vps`        | 201 + созданная запись; 400 (нет country/name/ip); 409 (дубликат `name`)   |
 | DELETE | `/api/vps/:name`  | 204; 400 (пустое имя); 404 (не найдено)                                    |
 
+- **Авторизация**: все эндпоинты `/api/vps` требуют действующую сессию (httpOnly-cookie `sid`; без неё — 401). Мутации (POST, import, DELETE) доступны только роли `admin` (иначе 403). UI гейтит админ-действия по `useAuth().user?.role === 'admin'`.
 - Валидация — `normalizeEntry()`: trim полей, обязательны `country`/`name`/`ip`; сервисы фильтруются по непустым `name`/`type`/`address`.
 - 409 — `isConstraintError(err)`: `(err.errcode & 0xff) === 19` (SQLITE_CONSTRAINT; фактический errcode 2067 = SQLITE_CONSTRAINT_UNIQUE). НЕ полагаться на `err.code` (`ERR_SQLITE_ERROR`).
 - После любой мутации (create/import/delete) — `reloadVpsEntries()`.

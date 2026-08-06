@@ -260,3 +260,24 @@ export function TrashIcon(props: IconProps) {
     </svg>
   );
 }
+
+/** Выход — стрелка из двери */
+export function LogoutIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" x2="9" y1="12" y2="12" />
+    </svg>
+  );
+}
+
+/** Замок — вход в приватную зону */
+export function LockIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}

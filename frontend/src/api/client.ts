@@ -1,5 +1,29 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
+/**
+ * Обёртка над fetch: базовый путь `/api` и единая обработка 401.
+ * При 401 (истекла/потеряна сессия) рассылает событие `auth:unauthorized`,
+ * на которое AuthProvider сбрасывает пользователя и показывает экран входа.
+ */
+async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  const res = await fetch(`${API_BASE}${path}`, init);
+  if (res.status === 401) {
+    window.dispatchEvent(new Event('auth:unauthorized'));
+  }
+  return res;
+}
+
+/** Извлекает сообщение об ошибке из ответа API (или запасной текст). */
+async function errorMessage(res: Response, fallback: string): Promise<string> {
+  try {
+    const data = (await res.json()) as { message?: string };
+    if (data.message) return data.message;
+  } catch {
+    /* не JSON — используем запасной текст */
+  }
+  return fallback;
+}
+
 export interface HealthResponse {
   status: string;
   uptime: number;
@@ -8,11 +32,46 @@ export interface HealthResponse {
 }
 
 export async function fetchHealth(): Promise<HealthResponse> {
-  const res = await fetch(`${API_BASE}/health`);
-  if (!res.ok) {
-    throw new Error(`Request failed with status ${res.status}`);
-  }
+  const res = await apiFetch('/health');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<HealthResponse>;
+}
+
+// ── Авторизация ──────────────────────────────────────────────────────────────
+
+/** Пользователь, возвращаемый бэкендом. */
+export interface AuthUser {
+  id: number;
+  username: string;
+  name: string;
+  role: 'admin' | 'user';
+}
+
+/**
+ * Вход: `POST /api/auth/login`. При успехе сервер ставит httpOnly-cookie.
+ * 401 здесь — просто неверные учётные данные (не «потерянная сессия»),
+ * поэтому событие auth:unauthorized не рассылается.
+ */
+export async function login(username: string, password: string): Promise<{ user: AuthUser }> {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ user: AuthUser }>;
+}
+
+/** Выход: `POST /api/auth/logout` (удаляет сессию на сервере). */
+export async function logout(): Promise<void> {
+  await apiFetch('/auth/logout', { method: 'POST' });
+}
+
+/** Текущий пользователь: `GET /api/auth/me`. 401 → событие auth:unauthorized. */
+export async function fetchMe(): Promise<{ user: AuthUser }> {
+  const res = await apiFetch('/auth/me');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ user: AuthUser }>;
 }
 
 /**
@@ -32,10 +91,8 @@ export interface Project {
 
 /** Список проектов: `GET /api/projects`. */
 export async function fetchProjects(): Promise<Project[]> {
-  const res = await fetch(`${API_BASE}/projects`);
-  if (!res.ok) {
-    throw new Error(`Request failed with status ${res.status}`);
-  }
+  const res = await apiFetch('/projects');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<Project[]>;
 }
 
@@ -45,10 +102,8 @@ export async function fetchProjects(): Promise<Project[]> {
  * для выбора папки загрузки PDF.
  */
 export async function fetchProjectDirs(): Promise<string[]> {
-  const res = await fetch(`${API_BASE}/projects/dirs`);
-  if (!res.ok) {
-    throw new Error(`Request failed with status ${res.status}`);
-  }
+  const res = await apiFetch('/projects/dirs');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   const data = (await res.json()) as { dirs: string[] };
   return data.dirs;
 }
@@ -70,17 +125,8 @@ export async function uploadProjectPdf(folder: string, file: File): Promise<PdfU
   form.append('name', file.name);
   form.append('file', file);
 
-  const res = await fetch(`${API_BASE}/projects/upload`, { method: 'POST', body: form });
-  if (!res.ok) {
-    let message = `Request failed with status ${res.status}`;
-    try {
-      const d = (await res.json()) as { message?: string };
-      if (d.message) message = d.message;
-    } catch {
-      /* не JSON — оставляем сообщение по умолчанию */
-    }
-    throw new Error(message);
-  }
+  const res = await apiFetch('/projects/upload', { method: 'POST', body: form });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<PdfUploadResult>;
 }
 
@@ -106,10 +152,8 @@ export interface VpsStatus {
 }
 
 export async function fetchVps(force = false): Promise<VpsStatus[]> {
-  const res = await fetch(`${API_BASE}/vps${force ? '?refresh=1' : ''}`);
-  if (!res.ok) {
-    throw new Error(`Request failed with status ${res.status}`);
-  }
+  const res = await apiFetch(`/vps${force ? '?refresh=1' : ''}`);
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<VpsStatus[]>;
 }
 
@@ -131,21 +175,12 @@ export interface VpsEntryInput {
 
 /** Добавляет VPS на мониторинг: `POST /api/vps`. Возвращает созданную запись. */
 export async function createVps(entry: VpsEntryInput): Promise<VpsEntryInput> {
-  const res = await fetch(`${API_BASE}/vps`, {
+  const res = await apiFetch('/vps', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(entry),
   });
-  if (!res.ok) {
-    let message = `Request failed with status ${res.status}`;
-    try {
-      const data = (await res.json()) as { message?: string };
-      if (data.message) message = data.message;
-    } catch {
-      /* не JSON — оставляем сообщение по умолчанию */
-    }
-    throw new Error(message);
-  }
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<VpsEntryInput>;
 }
 
@@ -161,37 +196,19 @@ export interface VpsImportResult {
 
 /** Импортирует VPS из JSON: `POST /api/vps/import` (структура как в vps.json). */
 export async function importVps(data: { vps: VpsEntryInput[] }): Promise<VpsImportResult> {
-  const res = await fetch(`${API_BASE}/vps/import`, {
+  const res = await apiFetch('/vps/import', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) {
-    let message = `Request failed with status ${res.status}`;
-    try {
-      const d = (await res.json()) as { message?: string };
-      if (d.message) message = d.message;
-    } catch {
-      /* не JSON — оставляем сообщение по умолчанию */
-    }
-    throw new Error(message);
-  }
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<VpsImportResult>;
 }
 
 /** Удаляет VPS по имени: `DELETE /api/vps/:name`. */
 export async function deleteVps(name: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/vps/${encodeURIComponent(name)}`, {
+  const res = await apiFetch(`/vps/${encodeURIComponent(name)}`, {
     method: 'DELETE',
   });
-  if (!res.ok) {
-    let message = `Request failed with status ${res.status}`;
-    try {
-      const d = (await res.json()) as { message?: string };
-      if (d.message) message = d.message;
-    } catch {
-      /* не JSON — оставляем сообщение по умолчанию */
-    }
-    throw new Error(message);
-  }
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
 }

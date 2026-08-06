@@ -30,6 +30,14 @@ applyTo:
 - Состояние — через хуки в `hooks/` (`useServices`, `useVps`, `useProjects`, `useHealth`, `useTheme`).
 - Принудительная перепроверка (GET-кэш бэкенда 30с): `fetchVps(true)` (`?refresh=1`).
 
+## Авторизация
+
+- Весь портал закрыт входом: `AuthProvider` оборачивает приложение в `main.tsx`, `useAuth` (`hooks/useAuth.tsx`) даёт `{user, loading, login, logout}`, гейт `AuthGate` в `App.tsx` (нет пользователя → `LoginPage`).
+- Экран входа — `pages/LoginPage.tsx` (карточка: логин/пароль, ошибка, переключатель темы).
+- API-клиент: `apiFetch` в `api/client.ts` на 401 рассылает событие `auth:unauthorized` → `useAuth` сбрасывает пользователя к экрану входа; `login()` событие не рассылает (401 там = неверные данные).
+- Роли: `admin` — админ-действия (добавление/импорт/удаление VPS, загрузка PDF); гейтить в UI по `useAuth().user?.role === 'admin'` (бэкенд всё равно отвечает 403).
+- Кнопка «Выйти» и имя/роль пользователя — в шапке (`PageLayout.tsx`, классы `.user*`).
+
 ## Иконки
 
 - Инлайн SVG-компоненты в `components/icons.tsx` с `stroke="currentColor"`. Внешние библиотеки иконок не добавлять.

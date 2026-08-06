@@ -28,7 +28,8 @@ You are a backend specialist for the «family» app (Node + Express 5 + Vite via
   - Vite leaves `node:sqlite` external (not inlined) — that is fine.
 - **Live-binding**: after INSERT/DELETE of VPS always call `reloadVpsEntries()` (`config/vps.ts` re-reads from DB; works in ESM dev and CJS bundle).
 - **Caching**: `GET /api/vps` is cached 30s (`services/vpsChecker.ts`), `GET /api/projects` — 60s (`services/projectsService.ts`); keep the `?refresh=1`/force bypass where it exists.
-- **Config**: env vars only via `config/env.ts` (`PORT`, `NODE_ENV`, `CORS_ORIGIN`, `DB_PATH`, `PROJECTS_DIR`); real `.env` values never override already-set process env.
+- **Config**: env vars only via `config/env.ts` (`PORT`, `NODE_ENV`, `CORS_ORIGIN`, `DB_PATH`, `PROJECTS_DIR`, `AUTH_*`); real `.env` values never override already-set process env.
+- **Auth**: the whole portal is behind login — `requireAuth` is applied to `/api/vps` and `/api/projects` in `app.ts`; mutations (POST/DELETE VPS, import, PDF upload) need `requireAdmin` (`middlewares/auth.ts`). `/api/health` and `POST /api/auth/login` are public. Auth logic lives in `services/authService.ts` (scrypt password hashing, sessions in SQLite — token stored as SHA-256, httpOnly `SameSite=Lax` cookie `sid`, `Secure` in prod). User management: bootstrap admin via `AUTH_BOOTSTRAP_PASSWORD` (on empty `users`), or CLI `npm run user -w backend` (`scripts/users.mjs`: add/list/set-role/remove). Protected endpoints return 401 without a session and 403 for non-admin.
 - **Errors**: controllers map validation → 400 and duplicate name → 409 themselves; unexpected errors are re-thrown to `errorHandler` (500). 404 — `notFoundHandler`.
 - **VPS work**: consult the `vps` skill (`.github/skills/vps/SKILL.md`) for procedures, schema and checker details.
 - **Format**: Prettier — singleQuote, semi, printWidth 100, trailingComma all (`npm run format`).

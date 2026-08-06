@@ -5,6 +5,7 @@ import SectionCard from '../components/SectionCard';
 import { FolderIcon, ProjectsIcon, RenovationIcon, UploadIcon } from '../components/icons';
 import type { IconProps } from '../components/icons';
 import { useProjects } from '../hooks/useProjects';
+import { useAuth } from '../hooks/useAuth';
 
 /** Иконки проектов по имени из `<meta name="project-icon">` (см. `projects/_template`). */
 const projectIcons: Record<string, ComponentType<IconProps>> = {
@@ -19,6 +20,9 @@ const projectIcons: Record<string, ComponentType<IconProps>> = {
  */
 function ProjectsPage() {
   const { projects, error, loading } = useProjects();
+  // Загрузка PDF — только для admin.
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [uploadOpen, setUploadOpen] = useState(false);
 
   return (
@@ -32,16 +36,18 @@ function ProjectsPage() {
             <h2>Проекты</h2>
             <div className="page__sub">Отдельные подпроекты: документация, отчёты и архивы</div>
           </div>
-          <div className="page__head-actions">
-            <button
-              type="button"
-              className="vps-form__button vps-form__button--primary"
-              onClick={() => setUploadOpen(true)}
-            >
-              <UploadIcon />
-              Загрузить PDF
-            </button>
-          </div>
+          {isAdmin && (
+            <div className="page__head-actions">
+              <button
+                type="button"
+                className="vps-form__button vps-form__button--primary"
+                onClick={() => setUploadOpen(true)}
+              >
+                <UploadIcon />
+                Загрузить PDF
+              </button>
+            </div>
+          )}
         </div>
 
         {error ? (
