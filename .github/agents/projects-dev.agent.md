@@ -40,6 +40,9 @@ conventions (shared frame `projects/styles.css`, theme light/dark/system, icon s
 - DO NOT create project folders with `_`/`.` prefix (they are skipped by the backend scanner and not
   deployed); `projects/_template` is a scaffold, not a project — do not duplicate it.
 - DO NOT run `npm run deploy` before asking the user for confirmation.
+- DO NOT leave a report/page layout change in `projects/renovation/**` without syncing the docs and
+  skill: update `.github/skills/project-renovation-build-reports/SKILL.md` and
+  `docs/specification.md` in the same change.
 - DO NOT leave unused variables/parameters in TS code you touch — TS6133
   (`noUnusedLocals`/`noUnusedParameters`); name unused params `_req`/`_next`.
 - Comments, UI strings and page content must be in Russian.
@@ -78,12 +81,15 @@ src="/projects/theme.js" defer>`; markup `<div class="container">` → `<header 
    (renovation reports), `parse-pdf` (PDF), `deploy` (publish).
 3. Make edits preserving the conventions above; reuse patterns from `projects/_template/index.html`
    and `projects/renovation/` (reference implementation) instead of inventing new ones.
-4. Verify locally: serve from repo root (`npx serve .` or `python -m http.server`), open
+4. Sync docs & skill with the change: if the report/page layout or structure changed, update
+   `.github/skills/project-renovation-build-reports/SKILL.md` and `docs/specification.md` in the same
+   change; `grep` for stale markers (old class names, removed labels) to confirm nothing is left.
+5. Verify locally: serve from repo root (`npx serve .` or `python -m http.server`), open
    `http://localhost:8080/projects/<slug>/` in the browser and check frame, theme (light/dark),
    cards, subpages, tables, links.
-5. Run `npm run typecheck` (root gate); run `npm run format` if formatting changed.
-6. After explicit user confirmation, publish: `npm run deploy`.
-7. Post-deploy check: `curl -i https://family.rybnikov.su/api/projects` (60s backend cache — wait or
+6. Run `npm run typecheck` (root gate); run `npm run format` if formatting changed.
+7. After explicit user confirmation, publish: `npm run deploy`.
+8. Post-deploy check: `curl -i https://family.rybnikov.su/api/projects` (60s backend cache — wait or
    recheck) and open `https://family.rybnikov.su/<slug>/`.
 
 ## Output Format

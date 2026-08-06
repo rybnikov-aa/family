@@ -54,9 +54,14 @@
         justify-content: space-between;
         flex-wrap: wrap;
         align-items: flex-start;
+        gap: 16px;
         margin-bottom: 18px;
         border-bottom: 2px solid #e4ebf5;
         padding-bottom: 18px;
+      }
+      .doc-head-left {
+        flex: 1 1 380px;
+        min-width: 0;
       }
       .doc-head-left h1 {
         font-size: 26px;
@@ -65,26 +70,96 @@
         margin: 0 0 4px 0;
       }
       .doc-head-left .meta {
-        font-size: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+        margin-bottom: 14px;
+        font-size: 13px;
         color: #3f5672;
-        line-height: 1.6;
+        line-height: 1.5;
       }
-      .doc-head-left .meta strong {
+      .doc-head-left .meta-item {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        background: #f3f7fc;
+        border: 1px solid #e2eaf4;
+        border-radius: 30px;
+        padding: 5px 12px;
+      }
+      .doc-head-left .meta-item strong {
         color: #0b1a33;
+        font-weight: 600;
       }
-      .doc-head-right {
+      .doc-head-total {
         text-align: right;
         font-size: 14px;
         color: #3f5672;
         background: #f5f8fe;
-        padding: 12px 20px;
+        padding: 14px 22px;
         border-radius: 14px;
         border: 1px solid #e0e8f2;
+        align-self: flex-start;
       }
-      .doc-head-right .total-big {
-        font-size: 22px;
+      .doc-head-total .total-big {
+        font-size: 24px;
         font-weight: 700;
         color: #0b1a33;
+        white-space: nowrap;
+      }
+      .doc-head-total .head-total-badge {
+        margin-top: 8px;
+        font-size: 12px;
+      }
+      .plan-progress {
+        font-size: 13px;
+        color: #4a6482;
+      }
+      .plan-progress-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 6px;
+      }
+      .plan-progress-top strong {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0b1a33;
+      }
+      .plan-progress-track {
+        height: 8px;
+        background: #e8eef7;
+        border-radius: 30px;
+        overflow: hidden;
+      }
+      .plan-progress-fill {
+        height: 100%;
+        border-radius: 30px;
+        background: var(--project-accent);
+      }
+      .doc-progress {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+      .doc-progress .plan-progress {
+        background: #f5f8fe;
+        border: 1px solid #e0e8f2;
+        border-radius: 14px;
+        padding: 12px 16px;
+      }
+      .plan-progress-sub {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #5a7290;
+      }
+      .head-total-label {
+        margin-bottom: 4px;
+        font-size: 12px;
+        color: #4a6482;
       }
       .badge {
         display: inline-block;
@@ -288,10 +363,13 @@
         .doc {
           padding: 16px 12px;
         }
-        .doc-head-right {
+        .doc-head-total {
           text-align: left;
           width: 100%;
           margin-top: 12px;
+        }
+        .doc-progress {
+          grid-template-columns: 1fr;
         }
       }
 
@@ -312,7 +390,7 @@
       [data-theme='dark'] .doc td.left {
         color: #dde4ee;
       }
-      [data-theme='dark'] .doc-head-right {
+      [data-theme='dark'] .doc-head-total {
         background: #1c222b;
         border-color: #343b47;
         color: #a8b2c2;
@@ -322,8 +400,32 @@
       }
       [data-theme='dark'] .doc-head-left h1,
       [data-theme='dark'] .doc-head-left .meta strong,
-      [data-theme='dark'] .doc-head-right .total-big {
+      [data-theme='dark'] .doc-head-total .total-big {
         color: #eef2f7;
+      }
+      [data-theme='dark'] .plan-progress {
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .plan-progress-top strong {
+        color: #eef2f7;
+      }
+      [data-theme='dark'] .plan-progress-track {
+        background: #2a3342;
+      }
+      [data-theme='dark'] .doc-head-left .meta-item {
+        background: #1c222b;
+        border-color: #343b47;
+        color: #a8b2c2;
+      }
+      [data-theme='dark'] .doc-progress .plan-progress {
+        background: #1c222b;
+        border-color: #343b47;
+      }
+      [data-theme='dark'] .plan-progress-sub {
+        color: #8b95a5;
+      }
+      [data-theme='dark'] .head-total-label {
+        color: #a8b2c2;
       }
       [data-theme='dark'] .section-row {
         background: #232a38;
@@ -400,7 +502,12 @@
     <div class="container">
       <header class="header">
         <a href="/#/" class="brand">
-          <h1><span class="brand-mark"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#users"></use></svg></span>Семейное пространство</h1>
+          <h1>
+            <span class="brand-mark"
+              ><svg class="picon" aria-hidden="true">
+                <use href="/projects/icon-sprite.svg#users"></use></svg></span
+            >Семейное пространство
+          </h1>
         </a>
         <div class="header-actions">
           <nav class="nav">
@@ -417,22 +524,55 @@
         <div class="doc">
           <div class="doc-head">
             <div class="doc-head-left">
-              <h1><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#clipboard"></use></svg> Отчёт о ходе работ</h1>
+              <h1>
+                <svg class="picon" aria-hidden="true">
+                  <use href="/projects/icon-sprite.svg#chart"></use>
+                </svg>
+                Отчёт о ходе работ
+              </h1>
               <div class="meta">
-                <strong>Заказчик:</strong> Рыбников Алексей Александрович &nbsp;|&nbsp;
-                <strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв. 100,
-                этаж 7<br />
-                <strong>Площадь:</strong> 91,91 м² &nbsp;|&nbsp;
-                <strong>Срок исполнения:</strong> 200 раб. дней &nbsp;|&nbsp;
-                <strong>Смета составлена:</strong> Яковлев Артём Сергеевич
+                <span class="meta-item"
+                  ><strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв.
+                  100, этаж 7</span
+                >
+                <span class="meta-item"><strong>Площадь:</strong> 91,91 м²</span>
+                <span class="meta-item"><strong>Дата старта:</strong> 30.06.2026</span>
+                <span class="meta-item"><strong>Срок:</strong> 200 раб. дней</span>
+                <span class="meta-item"
+                  ><strong>Смета составлена:</strong> Яковлев Артём Сергеевич</span
+                >
               </div>
             </div>
-            <div class="doc-head-right">
-              <div style="font-size: 13px; color: #4a6482">Итого по смете (план)</div>
+            <div class="doc-head-total">
+              <div class="head-total-label">Итого по смете (план)</div>
               <div class="total-big">1 968 172,63 ₽</div>
-              <div style="font-size: 13px; margin-top: 4px">
+              <div class="head-total-badge">
                 <span class="badge badge-green">Выполнено: 141 127,88 ₽</span>
               </div>
+            </div>
+          </div>
+
+          <!-- Прогресс: время от старта и освоение бюджета -->
+          <div class="doc-progress">
+            <div class="plan-progress">
+              <div class="plan-progress-top">
+                <span>Прошло времени от старта</span>
+                <strong>13,2%</strong>
+              </div>
+              <div class="plan-progress-track">
+                <div class="plan-progress-fill" style="width: 13.2%"></div>
+              </div>
+              <div class="plan-progress-sub">30.06.2026 → 06.08.2026 · 37 из ~280 дн.</div>
+            </div>
+            <div class="plan-progress">
+              <div class="plan-progress-top">
+                <span>Освоение бюджета</span>
+                <strong>7,2%</strong>
+              </div>
+              <div class="plan-progress-track">
+                <div class="plan-progress-fill" style="width: 7.2%"></div>
+              </div>
+              <div class="plan-progress-sub">141 127,88 ₽ из 1 968 172,63 ₽</div>
             </div>
           </div>
 
@@ -449,11 +589,17 @@
               ><span class="legend-color lc-notdone"></span> Не выполнено</span
             >
             <span class="legend-item" style="margin-left: 12px"
-              ><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#dot-red"></use></svg> <span style="color: #b12a2a; font-weight: 600">Красный</span> = перерасход (факт >
+              ><svg class="picon" aria-hidden="true">
+                <use href="/projects/icon-sprite.svg#dot-red"></use>
+              </svg>
+              <span style="color: #b12a2a; font-weight: 600">Красный</span> = перерасход (факт >
               плана)</span
             >
             <span class="legend-item"
-              ><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#dot-green"></use></svg> <span style="color: #0b7b3e; font-weight: 600">Зелёный</span> = экономия (факт <
+              ><svg class="picon" aria-hidden="true">
+                <use href="/projects/icon-sprite.svg#dot-green"></use>
+              </svg>
+              <span style="color: #0b7b3e; font-weight: 600">Зелёный</span> = экономия (факт <
               плана)</span
             >
           </div>
@@ -480,7 +626,12 @@
             <tbody>
               <!-- ==================== РАЗДЕЛ 2. ПОЛЫ ==================== -->
               <tr class="section-row">
-                <td colspan="10"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#diamond"></use></svg> Раздел 2. Полы</td>
+                <td colspan="10">
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#diamond"></use>
+                  </svg>
+                  Раздел 2. Полы
+                </td>
               </tr>
 
               <tr class="status-notdone">
@@ -493,7 +644,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>2</td>
@@ -505,7 +660,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>3</td>
@@ -517,7 +676,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>4</td>
@@ -529,7 +692,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>5</td>
@@ -541,7 +708,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>6</td>
@@ -553,7 +724,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>7</td>
@@ -565,7 +740,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>8</td>
@@ -577,7 +756,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>9</td>
@@ -591,7 +774,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>10</td>
@@ -603,7 +790,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>11</td>
@@ -615,7 +806,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>12</td>
@@ -627,7 +822,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>13</td>
@@ -639,7 +838,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>14</td>
@@ -651,11 +854,20 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
 
               <tr class="subtotal-row">
-                <td colspan="5" style="text-align: right"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#check-sm"></use></svg> Итого по разделу «Полы»</td>
+                <td colspan="5" style="text-align: right">
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#check-sm"></use>
+                  </svg>
+                  Итого по разделу «Полы»
+                </td>
                 <td class="col-sum">250 753,41</td>
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
@@ -665,7 +877,12 @@
 
               <!-- ==================== РАЗДЕЛ 3. СТЕНЫ ==================== -->
               <tr class="section-row">
-                <td colspan="10"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#diamond"></use></svg> Раздел 3. Стены</td>
+                <td colspan="10">
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#diamond"></use>
+                  </svg>
+                  Раздел 3. Стены
+                </td>
               </tr>
 
               <!-- 15. Монтаж перегородок — выполнено, перерасход (факт > план), Акт №1 -->
@@ -681,7 +898,12 @@
                 <td class="col-qty-fact">73,50</td>
                 <td class="col-sum-fact">120 907,50</td>
                 <td class="col-diff diff-over">+38 657,50</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#warn"></use></svg> +47%</td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#warn"></use>
+                  </svg>
+                  +47%
+                </td>
               </tr>
 
               <!-- 16. Формирование дверного проема — выполнено, перерасход (факт > план), Акт №1 -->
@@ -695,7 +917,12 @@
                 <td class="col-qty-fact">5,00</td>
                 <td class="col-sum-fact">13 500,00</td>
                 <td class="col-diff diff-over">+5 400,00</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#warn"></use></svg> +67%</td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#warn"></use>
+                  </svg>
+                  +67%
+                </td>
               </tr>
 
               <tr class="status-notdone">
@@ -708,7 +935,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>18</td>
@@ -720,7 +951,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>19</td>
@@ -734,7 +969,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>20</td>
@@ -746,7 +985,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>21</td>
@@ -758,7 +1001,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>22</td>
@@ -770,7 +1017,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>23</td>
@@ -784,7 +1035,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>24</td>
@@ -796,7 +1051,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>25</td>
@@ -810,7 +1069,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>26</td>
@@ -822,7 +1085,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>27</td>
@@ -834,7 +1101,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>28</td>
@@ -846,7 +1117,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>29</td>
@@ -858,7 +1133,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>30</td>
@@ -870,7 +1149,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>31</td>
@@ -882,7 +1165,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>32</td>
@@ -894,7 +1181,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>33</td>
@@ -908,7 +1199,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>34</td>
@@ -920,7 +1215,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>35</td>
@@ -932,7 +1231,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>36</td>
@@ -946,7 +1249,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>37</td>
@@ -960,7 +1267,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>38</td>
@@ -972,7 +1283,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>39</td>
@@ -984,7 +1299,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>40</td>
@@ -996,11 +1315,20 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
 
               <tr class="subtotal-row">
-                <td colspan="5" style="text-align: right"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#check-sm"></use></svg> Итого по разделу «Стены»</td>
+                <td colspan="5" style="text-align: right">
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#check-sm"></use>
+                  </svg>
+                  Итого по разделу «Стены»
+                </td>
                 <td class="col-sum">1 302 243,71</td>
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">134 407,50</td>
@@ -1010,7 +1338,12 @@
 
               <!-- ==================== РАЗДЕЛ 5. ЭЛЕКТРИКА ==================== -->
               <tr class="section-row">
-                <td colspan="10"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#diamond"></use></svg> Раздел 5. Электрика</td>
+                <td colspan="10">
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#diamond"></use>
+                  </svg>
+                  Раздел 5. Электрика
+                </td>
               </tr>
 
               <tr class="status-notdone">
@@ -1023,7 +1356,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>42</td>
@@ -1037,7 +1374,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>43</td>
@@ -1049,7 +1390,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>44</td>
@@ -1061,7 +1406,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>45</td>
@@ -1073,7 +1422,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>46</td>
@@ -1085,7 +1438,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>47</td>
@@ -1097,11 +1454,20 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
 
               <tr class="subtotal-row">
-                <td colspan="5" style="text-align: right"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#check-sm"></use></svg> Итого по разделу «Электрика»</td>
+                <td colspan="5" style="text-align: right">
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#check-sm"></use>
+                  </svg>
+                  Итого по разделу «Электрика»
+                </td>
                 <td class="col-sum">190 408,00</td>
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
@@ -1111,7 +1477,12 @@
 
               <!-- ==================== РАЗДЕЛ 6. САНТЕХНИКА ==================== -->
               <tr class="section-row">
-                <td colspan="10"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#diamond"></use></svg> Раздел 6. Сантехника</td>
+                <td colspan="10">
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#diamond"></use>
+                  </svg>
+                  Раздел 6. Сантехника
+                </td>
               </tr>
 
               <tr class="status-notdone">
@@ -1124,7 +1495,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>49</td>
@@ -1136,7 +1511,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>50</td>
@@ -1148,7 +1527,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>51</td>
@@ -1160,7 +1543,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>52</td>
@@ -1172,7 +1559,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>53</td>
@@ -1184,7 +1575,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>54</td>
@@ -1196,7 +1591,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>55</td>
@@ -1208,7 +1607,11 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
               <tr class="status-notdone">
                 <td>56</td>
@@ -1220,11 +1623,20 @@
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
                 <td class="col-diff diff-na">—</td>
-                <td><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#cross"></use></svg></td>
+                <td>
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#cross"></use>
+                  </svg>
+                </td>
               </tr>
 
               <tr class="subtotal-row">
-                <td colspan="5" style="text-align: right"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#check-sm"></use></svg> Итого по разделу «Сантехника»</td>
+                <td colspan="5" style="text-align: right">
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#check-sm"></use>
+                  </svg>
+                  Итого по разделу «Сантехника»
+                </td>
                 <td class="col-sum">131 045,00</td>
                 <td class="col-qty-fact">—</td>
                 <td class="col-sum-fact">—</td>
@@ -1234,7 +1646,12 @@
 
               <!-- ==================== ИТОГО ПО РАЗДЕЛАМ ==================== -->
               <tr class="grand-total">
-                <td colspan="6" style="text-align: right"><svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#pin"></use></svg> ИТОГО по всем разделам</td>
+                <td colspan="6" style="text-align: right">
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#pin"></use>
+                  </svg>
+                  ИТОГО по всем разделам
+                </td>
                 <td class="col-qty-fact">78,50</td>
                 <td class="col-sum-fact">134 407,50</td>
                 <td class="col-diff diff-over">+44 057,50</td>
@@ -1253,7 +1670,10 @@
               <!-- ==================== ВСЕГО С НАКЛАДНЫМИ ==================== -->
               <tr class="grand-total">
                 <td colspan="6" style="text-align: right; font-size: 16px">
-                  <svg class="picon" aria-hidden="true"><use href="/projects/icon-sprite.svg#money"></use></svg> ВСЕГО с накладными расходами
+                  <svg class="picon" aria-hidden="true">
+                    <use href="/projects/icon-sprite.svg#money"></use>
+                  </svg>
+                  ВСЕГО с накладными расходами
                 </td>
                 <td class="col-qty-fact" style="font-size: 16px">78,50</td>
                 <td class="col-sum-fact" style="font-size: 16px">141 127,88</td>
