@@ -9,8 +9,9 @@
  *   4. On the server: extract to
  *        - /var/www/family.rybnikov.su/public_html  (frontend)
  *        - /var/www/family.rybnikov.su/server       (backend)
- *      Projects (subfolder sites: /renovation/, ...) are copied from the
- *      repo's projects/ folder into public_html/<slug>/.
+ *      Projects: the repo's projects/ folder is mirrored 1:1 into
+ *      public_html/projects/ (shared files AND project subfolders, e.g.
+ *      /projects/renovation/).
  *   5. Install production deps (npm install --omit=dev)
  *   6. Restart the backend under pm2 (family-backend)
  *
@@ -201,31 +202,27 @@ find "$PUBLIC" -maxdepth 1 -type f -delete
 rm -rf "$PUBLIC/assets"
 cp -a /tmp/family-deploy/frontend/. "$PUBLIC"/
 
-# 2b. Copy projects (subfolder sites: /renovation/ etc.) into the web root.
-#     Project folders -> public_html/<slug>/ (e.g. /renovation/).
-#     Shared files (styles.css, theme.js, icon-sprite.svg) -> public_html/projects/
-#     (pages reference them as /projects/... see docs/server.md).
-#     Only folders present in the repo are overwritten; other subfolders on
-#     the server are preserved. Existing project folders are backed up to
-#     /tmp/family-projects-backup-<timestamp> before being overwritten.
+# 2b. Copy projects into the web root.
+#     The repo's projects/ folder mirrors the web root's /projects/ folder
+#     1:1: shared files (styles.css, theme.js, icon-sprite.svg) AND project
+#     subfolders (renovation/ etc.) all go to public_html/projects/.
+#     Project pages are served at /projects/<slug>/ (e.g. /projects/renovation/,
+#     see docs/server.md). Only entries present in the repo are overwritten;
+#     other subfolders on the server are preserved. Existing entries are
+#     backed up to /tmp/family-projects-backup-<timestamp> before overwrite.
 if [ -d /tmp/family-deploy/projects ]; then
   BACKUP="/tmp/family-projects-backup-$(date +%Y%m%d%H%M%S)"
   mkdir -p "$BACKUP" "$PUBLIC/projects"
   for p in /tmp/family-deploy/projects/*; do
     [ -e "$p" ] || continue
     name=$(basename "$p")
-    if [ -d "$p" ]; then
-      # Project subfolder -> web root: /renovation/ etc.
-      if [ -d "$PUBLIC/$name" ]; then
-        cp -a "$PUBLIC/$name" "$BACKUP/"
-      fi
-      cp -a "$p" "$PUBLIC/"
-    else
-      # Shared file (styles.css, theme.js, icon-sprite.svg) -> /projects/
-      cp -a "$p" "$PUBLIC/projects/"
+    # Project subfolder or shared file -> /projects/ (repo mirrors web root 1:1)
+    if [ -d "$PUBLIC/projects/$name" ]; then
+      cp -a "$PUBLIC/projects/$name" "$BACKUP/"
     fi
+    cp -a "$p" "$PUBLIC/projects/"
   done
-  echo "[deploy] Projects copied to $PUBLIC (backup: $BACKUP)"
+  echo "[deploy] Projects copied to $PUBLIC/projects (backup: $BACKUP)"
 fi
 
 # 3. Replace backend files (server).
@@ -371,9 +368,10 @@ function main() {
       if (existsSync(p)) copyFileSync(p, join(stageBackend, file));
     }
 
-    // Projects -> public_html/<slug>/ (subfolder sites: renovation/, ...).
-    // Every entry (shared files styles.css/theme.js AND project folders) is
-    // deployed; service entries starting with '_' (e.g. _template) are skipped.
+    // Projects -> public_html/projects/ (repo mirrors web root /projects/ 1:1:
+    // shared files styles.css/theme.js AND project subfolders like renovation/).
+    // Project pages are served at /projects/<slug>/ (e.g. /projects/renovation/).
+    // Service entries starting with '_' (e.g. _template) are skipped.
     const stageProjects = join(staging, 'projects');
     let haveProjects = false;
     const projectsRoot = join(ROOT, 'projects');

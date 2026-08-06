@@ -16,7 +16,7 @@ applyTo:
 ## Роутинг
 
 - Только `react-router-dom` v7 + `createHashRouter` (в `App.tsx`). **Hash-роутинг обязателен** — nginx без SPA-fallback (`try_files ... =404`). Не менять на history-роутинг.
-- Пути — константы `ROUTES` в `routes.ts`. Внутренние ссылки — `Link`/`NavLink` (авто-класс `active`); внешние (например `/renovation/`) — обычный `<a>`.
+- Пути — константы `ROUTES` в `routes.ts`. Внутренние ссылки — `Link`/`NavLink` (авто-класс `active`); внешние (например `/projects/renovation/`) — обычный `<a>`.
 
 ## Тема
 

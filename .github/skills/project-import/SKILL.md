@@ -34,9 +34,10 @@ argument-hint: 'Название/описание проекта и источн
 | `project-icon`   | Иконка в списке: `renovation` \| `folder` \| `projects` (иначе fallback) | `folder`         |
 | `project-order`  | Порядок в списке (сортировка по `order`, затем по названию, ru)          | `2`              |
 
-URL проекта на сервере — `/<slug>/` (например, `https://family.rybnikov.su/dacha/`).
+URL проекта на сервере — `/projects/<slug>/` (например, `https://family.rybnikov.su/projects/dacha/`).
 
-Деплой: `npm run deploy` копирует подпапки `projects/*` в `public_html/<slug>/`. Папки `_*`
+Деплой: `npm run deploy` зеркалит папку `projects/` репозитория в `public_html/projects/` (и подпапки
+проектов, и общие файлы `styles.css`/`theme.js`/`icon-sprite.svg`). Папки `_*`
 не деплоятся. **Удаление папки проекта из репозитория НЕ удаляет её с сервера** — если проект
 нужно снять, удалить его надо вручную на сервере.
 
@@ -150,7 +151,7 @@ URL проекта на сервере — `/<slug>/` (например, `https:
 - [ ] Для многодокументного проекта: главная с сеткой `.cards`, подстраницы с `.doc`
       и ссылкой возврата `doc-back`.
 - [ ] `npm run typecheck` проходит (не меняет код приложения, но это общий gate репо).
-- [ ] Проект виден на `https://family.rybnikov.su/api/projects` и открывается по `/<slug>/`.
+- [ ] Проект виден на `https://family.rybnikov.su/api/projects` и открывается по `/projects/<slug>/`.
 
 ## Антипаттерны
 

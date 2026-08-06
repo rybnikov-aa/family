@@ -5,8 +5,10 @@ import { env } from '../config/env';
 /**
  * Метаданные проекта (раздел «Проекты»).
  *
- * Проект — это подпапка на сервере (в каталоге `PROJECTS_DIR`) с файлом
- * `index.html`. Метаданные для списка берутся из самого `index.html`:
+ * Проект — это подпапка в каталоге `PROJECTS_DIR` (папка проектов на сервере,
+ * по умолчанию `public_html/projects`) с файлом `index.html`. Страницы проекта
+ * обслуживаются по `/projects/<slug>/`. Метаданные для списка берутся из
+ * самого `index.html`:
  *
  *   <title>…</title>                                  — название (заголовок вкладки)
  *   <meta name="project-title" content="Ремонт">      — короткое название для карточки (приоритетнее `<title>`)
@@ -22,6 +24,7 @@ export interface ProjectInfo {
   accent: string;
   /** Имя иконки из `<meta name="project-icon">` (например, `renovation`); пусто — иконка по умолчанию. */
   icon: string;
+  /** URL страницы проекта на сервере: `/projects/<slug>/` (например, `/projects/renovation/`). */
   url: string;
   order: number;
 }
@@ -77,7 +80,9 @@ export function listProjects(force = false): ProjectInfo[] {
           description: readMeta(html, 'description') ?? '',
           accent: readMeta(html, 'project-accent') ?? '#3b82f6',
           icon: readMeta(html, 'project-icon') ?? '',
-          url: `/${entry.name}/`,
+          // Папка проектов зеркалится деплоем в `public_html/projects/` и
+          // обслуживается по `/projects/` → URL проекта — `/projects/<slug>/`.
+          url: `/projects/${entry.name}/`,
           order: rawOrder === null ? Number.MAX_SAFE_INTEGER : Number(rawOrder) || 0,
         });
       } catch {

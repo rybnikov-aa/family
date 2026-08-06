@@ -17,7 +17,7 @@ applyTo: ['projects/**']
 - `GET /api/projects` сканирует подпапки `PROJECTS_DIR` с `index.html` (кэш 60 с). Папки,
   начинающиеся с `_` или `.`, проектами не считаются (поэтому `projects/_template` — это заготовка,
   а не проект, и не деплоится).
-- URL проекта на сервере — `/<slug>/` (например, `https://family.rybnikov.su/dacha/`).
+- URL проекта на сервере — `/projects/<slug>/` (например, `https://family.rybnikov.su/projects/dacha/`).
 
 ## Мета-теги в `index.html`
 
@@ -70,11 +70,13 @@ applyTo: ['projects/**']
 
 ## Публикация
 
-- `npm run deploy` копирует подпапки `projects/*` в `public_html/<slug>/`; папки `_*` не деплоятся.
+- `npm run deploy` зеркалит папку `projects/` репозитория в `public_html/projects/` (и подпапки
+  проектов — `projects/<slug>/` → `/projects/<slug>/`, и общие файлы `styles.css`/`theme.js`/
+  `icon-sprite.svg`); папки `_*` не деплоятся.
 - **Удаление папки проекта из репозитория НЕ удаляет её с сервера** — если проект нужно снять,
   удалить его надо вручную на сервере.
 - Перед деплоем — подтверждение пользователя; после — проверка `curl -i
-https://family.rybnikov.su/api/projects` (кэш 60 с) и открытие `https://family.rybnikov.su/<slug>/`.
+https://family.rybnikov.su/api/projects` (кэш 60 с) и открытие `https://family.rybnikov.su/projects/<slug>/`.
 
 ## Ссылки
 

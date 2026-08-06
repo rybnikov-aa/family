@@ -90,7 +90,7 @@ src="/projects/theme.js" defer>`; markup `<div class="container">` → `<header 
 6. Run `npm run typecheck` (root gate); run `npm run format` if formatting changed.
 7. After explicit user confirmation, publish: `npm run deploy`.
 8. Post-deploy check: `curl -i https://family.rybnikov.su/api/projects` (60s backend cache — wait or
-   recheck) and open `https://family.rybnikov.su/<slug>/`.
+   recheck) and open `https://family.rybnikov.su/projects/<slug>/`.
 
 ## Output Format
 

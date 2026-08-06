@@ -1,5 +1,5 @@
 ---
-description: 'Use when working in projects/renovation/**: HTML-подстраницы проекта «Ремонт», конвертация PDF в HTML, формирование отчётности по ремонту (смета estimate.html, акты Works/, материалы Materials/, взаиморасчёты Settlement/), конвенции оформления (styles.css, тема, акцент #e8872e), публикация /renovation/ через npm run deploy.'
+description: 'Use when working in projects/renovation/**: HTML-подстраницы проекта «Ремонт», конвертация PDF в HTML, формирование отчётности по ремонту (смета estimate.html, акты Works/, материалы Materials/, взаиморасчёты Settlement/), конвенции оформления (styles.css, тема, акцент #e8872e), публикация /projects/renovation/ через npm run deploy.'
 name: 'Renovation Project Conventions'
 applyTo: ['projects/renovation/**']
 ---
@@ -7,7 +7,8 @@ applyTo: ['projects/renovation/**']
 # Project Renovation (family)
 
 Проект «Ремонт» — статичный HTML-проект семейного приложения, лежит в `projects/renovation/`.
-Деплоится в `/renovation/` через `npm run deploy` (`scripts/deploy.mjs`).
+Деплоится в `/projects/renovation/` через `npm run deploy` (`scripts/deploy.mjs`; папка
+`projects/` репозитория зеркалится в `public_html/projects/` 1:1).
 
 ## Структура
 
@@ -42,7 +43,7 @@ applyTo: ['projects/renovation/**']
   тема light/dark/system, inline-скрипт применения темы в `<head>` (без «мигания»).
 - Разметка: `<div class="container">` → `<header class="header">` → `<main class="page">` →
   `<footer class="footer">`; контент документа — в `<div class="doc">`; ссылка возврата —
-  `<a class="doc-back" href="/renovation/">← К отчётам проекта</a>`.
+  `<a class="doc-back" href="/projects/renovation/">← К отчётам проекта</a>`.
 - Табличные стили — локальные `<style>` в `<head>` (гибридный подход); не использовать классы
   каркаса (`.container`, `.header`, `.footer`, `.card`, `.stats`, `.stat`) внутри документа.
 - Обязательна тёмная тема: `[data-theme='dark'] .doc { ... }`.

@@ -18,7 +18,7 @@ You are a frontend specialist for the «family» app (React 19 + TypeScript + Vi
 
 ## Conventions (follow these)
 
-- **Routing**: `react-router-dom` v7, `createHashRouter` in `frontend/src/App.tsx`; paths are constants `ROUTES` in `frontend/src/routes.ts`. Internal links via `Link`/`NavLink` (auto-class `active`), external links (`/renovation/`, immich) via plain `<a>`.
+- **Routing**: `react-router-dom` v7, `createHashRouter` in `frontend/src/App.tsx`; paths are constants `ROUTES` in `frontend/src/routes.ts`. Internal links via `Link`/`NavLink` (auto-class `active`), external links (`/projects/renovation/`, immich) via plain `<a>`.
 - **Theme**: `hooks/useTheme.ts` (mode in `localStorage['theme']`, `data-theme` on `<html>`, `system` watches `prefers-color-scheme`). Colors only as CSS variables in `index.css` (`:root` / `[data-theme='dark']`) — never hardcode hex. Don't break the inline theme script in `index.html` (no flash).
 - **Data**: fetch only via `frontend/src/api/client.ts` (base `VITE_API_BASE_URL ?? '/api'`); state via hooks in `frontend/src/hooks/` (`useServices`, `useVps`, `useProjects`, `useHealth`, `useTheme`). Force re-check with `fetchVps(true)` (`?refresh=1`) — backend GET cache is 30s.
 - **Icons**: inline SVG components (`stroke=currentColor`) in `frontend/src/components/icons.tsx` — do not add icon libraries.

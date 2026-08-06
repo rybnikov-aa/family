@@ -12,10 +12,12 @@ export const env = {
   /** Путь к файлу SQLite. По умолчанию — `data/vps.sqlite` рядом с backend. */
   DB_PATH: process.env.DB_PATH ?? 'data/vps.sqlite',
   /**
-   * Каталог, в котором подпапки с `index.html` считаются проектами (раздел
-   * «Проекты»). По умолчанию — `public_html` рядом с каталогом бэкенда
-   * (на сервере: `/var/www/<host>/public_html`). В dev можно указать
-   * путь к папке `projects/` репозитория.
+   * Каталог проектов (раздел «Проекты»): подпапки с `index.html` считаются
+   * проектами и обслуживаются по `/projects/<slug>/`. По умолчанию — папка
+   * `public_html/projects` рядом с каталогом бэкенда (на сервере:
+   * `/var/www/<host>/public_html/projects`; деплой зеркалит папку `projects/`
+   * репозитория в неё 1:1). В dev можно указать путь к папке `projects/`
+   * репозитория.
    */
-  PROJECTS_DIR: process.env.PROJECTS_DIR ?? '../public_html',
+  PROJECTS_DIR: process.env.PROJECTS_DIR ?? '../public_html/projects',
 };

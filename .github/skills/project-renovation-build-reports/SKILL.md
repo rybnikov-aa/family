@@ -184,7 +184,7 @@ light/dark/system + акцентный цвет), как остальные по
 - Контент документа — в `<div class="doc">` внутри `<main class="page">`. В начале — ссылка возврата:
 
   ```html
-  <a class="doc-back" href="/renovation/">← К отчётам проекта</a>
+  <a class="doc-back" href="/projects/renovation/">← К отчётам проекта</a>
   ```
 
   со стилем:
@@ -255,11 +255,12 @@ light/dark/system + акцентный цвет), как остальные по
 
 ### Расположение на сервере (важно для ссылок)
 
-Проект деплоится из репозитория: `projects/renovation/` → `/renovation/` (`npm run deploy`,
-`scripts/deploy.mjs`). Отчёты публикуются **только** в подпапку `Reports/` (`/renovation/Reports/`).
-В корне `/renovation/` лежат только `index.html`, `estimate.html` и подпапки `Materials/`,
-`Settlement/`, `Works/`. Не размещать копии отчётов в корне `/renovation/`: их относительные
-ссылки (`../estimate.html`, `../Materials/...`) тогда уходят на уровень выше и дают 404.
+Проект деплоится из репозитория: `projects/renovation/` → `/projects/renovation/` (`npm run deploy`,
+`scripts/deploy.mjs`; папка `projects/` репозитория зеркалится в `public_html/projects/` 1:1).
+Отчёты публикуются **только** в подпапку `Reports/` (`/projects/renovation/Reports/`).
+В корне `/projects/renovation/` лежат только `index.html`, `estimate.html` и подпапки `Materials/`,
+`Settlement/`, `Works/`. Не размещать копии отчётов в корне `/projects/renovation/`: их
+относительные ссылки (`../estimate.html`, `../Materials/...`) тогда уходят на уровень выше и дают 404.
 Старый скрипт публикации `publish.ps1` больше не используется и в репозиторий не импортируется.
 
 ## Проверка
