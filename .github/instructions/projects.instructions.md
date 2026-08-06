@@ -74,7 +74,7 @@ applyTo: ['projects/**']
 - **Удаление папки проекта из репозитория НЕ удаляет её с сервера** — если проект нужно снять,
   удалить его надо вручную на сервере.
 - Перед деплоем — подтверждение пользователя; после — проверка `curl -i
-  https://family.rybnikov.su/api/projects` (кэш 60 с) и открытие `https://family.rybnikov.su/<slug>/`.
+https://family.rybnikov.su/api/projects` (кэш 60 с) и открытие `https://family.rybnikov.su/<slug>/`.
 
 ## Ссылки
 

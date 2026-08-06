@@ -53,7 +53,7 @@ conventions (shared frame `projects/styles.css`, theme light/dark/system, icon s
   `GET /api/projects` scans subfolders with `index.html` (60s cache); folders starting with `_`/`.`
   are not projects.
 - **Frame**: `<link href="/projects/styles.css">` + theme script in `<head>` + `<script
-  src="/projects/theme.js" defer>`; markup `<div class="container">` → `<header class="header">` →
+src="/projects/theme.js" defer>`; markup `<div class="container">` → `<header class="header">` →
   `<main class="page">` → `<footer class="footer">`; document content in `<div class="doc">`;
   back-link `<a class="doc-back" href="...">← …</a>`. External links to the app use hash routing:
   `/#/`, `/#/news`, `/#/projects`.
