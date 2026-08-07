@@ -20,6 +20,15 @@ export interface AuthUser {
   role: UserRole;
 }
 
+/** Пользователь для админ-панели (дополнительно — дата создания). */
+export interface AdminUser {
+  id: number;
+  username: string;
+  name: string;
+  role: UserRole;
+  createdAt: string;
+}
+
 /** Строка таблицы users (с хэшем пароля — только внутри сервиса). */
 interface UserRow {
   id: number;
@@ -110,6 +119,65 @@ export function updateUserProfile(
   const updated = getUserById(userId);
   if (!updated) throw new Error('Пользователь не найден');
   return toAuthUser(updated);
+}
+
+/** Список всех пользователей для админ-панели, отсортирован по логину. */
+export function listUsers(): AdminUser[] {
+  const db = getDb();
+  const rows = db
+    .prepare('SELECT id, username, name, role, created_at FROM users ORDER BY username')
+    .all() as unknown as Array<{
+    id: number;
+    username: string;
+    name: string;
+    role: string;
+    created_at: string;
+  }>;
+  return rows.map((row) => ({
+    id: row.id,
+    username: row.username,
+    name: row.name,
+    role: row.role as UserRole,
+    createdAt: row.created_at,
+  }));
+}
+
+/**
+ * Создаёт пользователя (админ-панель). Пароль хэшируется так же, как при
+ * регистрации/CLI. При дубликате `username` бросается UNIQUE-ошибка SQLite.
+ */
+export function createUser(input: {
+  username: string;
+  name: string;
+  role: UserRole;
+  password: string;
+}): AuthUser {
+  const db = getDb();
+  db.prepare('INSERT INTO users (username, name, password_hash, role) VALUES (?, ?, ?, ?)').run(
+    input.username,
+    input.name,
+    hashPassword(input.password),
+    input.role,
+  );
+  const created = getUserByUsername(input.username);
+  if (!created) throw new Error('Не удалось создать пользователя');
+  return toAuthUser(created);
+}
+
+/** Удаляет пользователя (сессии каскадно); false — если его не было. */
+export function deleteUser(id: number): boolean {
+  const db = getDb();
+  const result = db.prepare('DELETE FROM users WHERE id = ?').run(id);
+  return result.changes > 0;
+}
+
+/** Принудительно задаёт пароль пользователю; false — если пользователя нет. */
+export function setUserPassword(id: number, password: string): boolean {
+  const db = getDb();
+  const result = db
+    .prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+    .run(hashPassword(password), id);
+  return result.changes > 0;
 }
 
 /** Создаёт новую сессию, возвращает токен (в БД — только его SHA-256). */

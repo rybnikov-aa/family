@@ -18,7 +18,7 @@
 
 Кроме `/api/health` и `POST /api/auth/login` **все** эндпоинты требуют действующую сессию (httpOnly-cookie `sid`): отсутствие/истёкшая сессия → **401**.
 
-Мутирующие операции (`POST /api/vps`, `POST /api/vps/import`, `DELETE /api/vps/:name`, `POST /api/projects/upload`) доступны только роли `admin`; иначе — **403**.
+Мутирующие операции (`POST /api/vps`, `POST /api/vps/import`, `DELETE /api/vps/:name`, `POST /api/projects/upload`, а также все эндпоинты `/api/auth/admin/*`) доступны только роли `admin`; иначе — **403**.
 
 - **Сессия:** cookie `sid` — httpOnly, `SameSite=Lax`, `Secure` в проде (`NODE_ENV=production`), срок `SESSION_TTL_HOURS` (по умолчанию 168 ч). В БД хранится только SHA-256 от токена.
 - **Пароли** проверяются через scrypt (constant-time).
@@ -35,6 +35,15 @@
 | POST  | `/api/auth/logout`  | Выход (авторизованным)                | —; ответ — 204                                                                                                                              |
 | GET   | `/api/auth/me`      | Текущий пользователь (авторизованным) | —; ответ — `{user: {id, username, name, role}}`                                                                                             |
 | PATCH | `/api/auth/profile` | Обновление профиля (авторизованным)   | Тело — `{name?, currentPassword?, password?}` (имя и/или пароль); смена пароля — с подтверждением `currentPassword`; ответ — `{user}` (200) |
+
+**Админ-панель (только роль `admin`; иначе — 403):**
+
+| Метод  | Путь                                 | Назначение                  | Параметры                                                                                                                |
+| ------ | ------------------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| GET    | `/api/auth/admin/users`              | Список пользователей        | —; ответ — `{users: [{id, username, name, role, createdAt}]}`                                                            |
+| POST   | `/api/auth/admin/users`              | Создание пользователя       | Тело — `{username, name, role: 'admin'\|'user', password}` (пароль ≥ 6 симв.); ответ — `{user}` (201); 409 — логин занят |
+| PATCH  | `/api/auth/admin/users/:id/password` | Принудительная смена пароля | Тело — `{password}` (≥ 6 симв.); ответ — 204 (404 — пользователь не найден)                                              |
+| DELETE | `/api/auth/admin/users/:id`          | Удаление пользователя       | —; ответ — 204 (404 — не найден; 400 — нельзя удалить собственную учётку; сессии удаляются каскадно)                     |
 
 ### 2.2. Проекты
 

@@ -3,14 +3,24 @@ import { env } from '../config/env';
 import { getSessionToken } from '../middlewares/auth';
 import {
   createSession,
+  createUser,
+  deleteUser,
   destroySession,
   getUserById,
   getUserByUsername,
   hashPassword,
+  listUsers,
+  setUserPassword,
   toAuthUser,
   updateUserProfile,
   verifyPassword,
 } from '../services/authService';
+
+/** Признак ошибки нарушения ограничения SQLite (UNIQUE и т.п.). */
+function isConstraintError(err: unknown): boolean {
+  const sqliteErr = err as { errcode?: number } | undefined;
+  return ((sqliteErr?.errcode ?? 0) & 0xff) === 19; // SQLITE_CONSTRAINT
+}
 
 /** Очищает cookie сессии в ответе. */
 function clearSessionCookie(res: Response): void {
@@ -116,4 +126,104 @@ export function updateProfileController(req: Request, res: Response): void {
     ...(newPasswordHash !== undefined ? { passwordHash: newPasswordHash } : {}),
   });
   res.json({ user: updated });
+}
+
+// ── Админ-панель: управление пользователями (роуты защищены `requireAdmin`) ──
+
+/** Список пользователей: `GET /api/auth/admin/users`. */
+export function adminListUsersController(_req: Request, res: Response): void {
+  res.json({ users: listUsers() });
+}
+
+/** Добавление пользователя: `POST /api/auth/admin/users` (тело — `{username, name, role, password}`). */
+export function adminCreateUserController(req: Request, res: Response): void {
+  const { username, name, role, password } = (req.body ?? {}) as {
+    username?: unknown;
+    name?: unknown;
+    role?: unknown;
+    password?: unknown;
+  };
+
+  if (typeof username !== 'string' || !username.trim()) {
+    res.status(400).json({ message: 'Укажите имя пользователя (логин)' });
+    return;
+  }
+  const trimmedUsername = username.trim();
+  if (trimmedUsername.length > 50) {
+    res.status(400).json({ message: 'Имя пользователя слишком длинное (не более 50 символов)' });
+    return;
+  }
+  if (typeof name !== 'string' || !name.trim()) {
+    res.status(400).json({ message: 'Укажите отображаемое имя' });
+    return;
+  }
+  const trimmedName = name.trim();
+  if (trimmedName.length > 100) {
+    res.status(400).json({ message: 'Отображаемое имя слишком длинное (не более 100 символов)' });
+    return;
+  }
+  const userRole = role === 'admin' ? 'admin' : role === 'user' ? 'user' : undefined;
+  if (!userRole) {
+    res.status(400).json({ message: 'Роль должна быть «admin» или «user»' });
+    return;
+  }
+  if (typeof password !== 'string' || password.length < 6) {
+    res.status(400).json({ message: 'Пароль должен быть не короче 6 символов' });
+    return;
+  }
+
+  try {
+    const user = createUser({
+      username: trimmedUsername,
+      name: trimmedName,
+      role: userRole,
+      password,
+    });
+    res.status(201).json({ user });
+  } catch (err) {
+    // UNIQUE-ограничение на users.username → конфликт (409).
+    if (isConstraintError(err)) {
+      res.status(409).json({ message: `Пользователь «${trimmedUsername}» уже существует` });
+      return;
+    }
+    throw err; // прочие ошибки → errorHandler (500)
+  }
+}
+
+/** Удаление пользователя: `DELETE /api/auth/admin/users/:id`. Свою учётку удалить нельзя. */
+export function adminDeleteUserController(req: Request, res: Response): void {
+  const admin = req.user;
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ message: 'Некорректный id пользователя' });
+    return;
+  }
+  if (admin?.id === id) {
+    res.status(400).json({ message: 'Нельзя удалить собственную учётную запись' });
+    return;
+  }
+  if (!deleteUser(id)) {
+    res.status(404).json({ message: 'Пользователь не найден' });
+    return;
+  }
+  res.status(204).end();
+}
+
+/** Принудительная смена пароля: `PATCH /api/auth/admin/users/:id/password` (тело — `{password}`). */
+export function adminSetPasswordController(req: Request, res: Response): void {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ message: 'Некорректный id пользователя' });
+    return;
+  }
+  const { password } = (req.body ?? {}) as { password?: unknown };
+  if (typeof password !== 'string' || password.length < 6) {
+    res.status(400).json({ message: 'Пароль должен быть не короче 6 символов' });
+    return;
+  }
+  if (!setUserPassword(id, password)) {
+    res.status(404).json({ message: 'Пользователь не найден' });
+    return;
+  }
+  res.status(204).end();
 }

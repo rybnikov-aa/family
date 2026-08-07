@@ -83,7 +83,15 @@ function PageLayout({ children }: PageLayoutProps) {
               <Link to={ROUTES.profile} className="user__name" title="Профиль">
                 {user.name}
               </Link>
-              {user.role === 'admin' && <span className="user__role">админ</span>}
+              {user.role === 'admin' && (
+                <Link
+                  to={ROUTES.adminUsers}
+                  className="user__role user__role--link"
+                  title="Управление пользователями"
+                >
+                  админ
+                </Link>
+              )}
               <IconButton label="Выйти" tooltip="Выйти" onClick={() => void logout()}>
                 <LogoutIcon />
               </IconButton>

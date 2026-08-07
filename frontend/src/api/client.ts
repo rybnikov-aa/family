@@ -95,6 +95,60 @@ export async function updateProfile(input: ProfileUpdateInput): Promise<{ user: 
   return res.json() as Promise<{ user: AuthUser }>;
 }
 
+// ── Админ-панель: управление пользователями ──────────────────────────────────
+
+/** Пользователь в админ-панели (включая дату создания). */
+export interface AdminUser {
+  id: number;
+  username: string;
+  name: string;
+  role: 'admin' | 'user';
+  createdAt: string;
+}
+
+/** Входные данные для создания пользователя (админка). */
+export interface AdminUserInput {
+  username: string;
+  name: string;
+  role: 'admin' | 'user';
+  password: string;
+}
+
+/** Список пользователей: `GET /api/auth/admin/users`. */
+export async function fetchAdminUsers(): Promise<AdminUser[]> {
+  const res = await apiFetch('/auth/admin/users');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  const data = (await res.json()) as { users: AdminUser[] };
+  return data.users;
+}
+
+/** Создаёт пользователя: `POST /api/auth/admin/users`. Возвращает созданного (201). */
+export async function createAdminUser(input: AdminUserInput): Promise<{ user: AuthUser }> {
+  const res = await apiFetch('/auth/admin/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ user: AuthUser }>;
+}
+
+/** Принудительно задаёт пароль пользователю: `PATCH /api/auth/admin/users/:id/password`. */
+export async function setAdminUserPassword(id: number, password: string): Promise<void> {
+  const res = await apiFetch(`/auth/admin/users/${id}/password`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+}
+
+/** Удаляет пользователя: `DELETE /api/auth/admin/users/:id`. */
+export async function deleteAdminUser(id: number): Promise<void> {
+  const res = await apiFetch(`/auth/admin/users/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+}
+
 /**
  * Метаданные проекта (раздел «Проекты»).
  * Проект — подпапка на сервере с `index.html`; метаданные бэкенд читает

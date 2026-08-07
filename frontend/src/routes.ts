@@ -10,6 +10,7 @@ export const ROUTES = {
   news: '/news',
   projects: '/projects',
   profile: '/profile',
+  adminUsers: '/admin/users',
 } as const;
 
 export type AppRoute = keyof typeof ROUTES;

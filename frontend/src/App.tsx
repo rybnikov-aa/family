@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
 import ProjectsPage from './pages/ProjectsPage';
 import ProfilePage from './pages/ProfilePage';
+import AdminUsersPage from './pages/AdminUsersPage';
 import LoginPage from './pages/LoginPage';
 import { ROUTES } from './routes';
 import { useAuth } from './hooks/useAuth';
@@ -20,7 +21,9 @@ function RouteLayout() {
           ? 'Проекты • family.rybnikov.su'
           : location.pathname === ROUTES.profile
             ? 'Профиль • family.rybnikov.su'
-            : 'Семейное пространство • family.rybnikov.su';
+            : location.pathname === ROUTES.adminUsers
+              ? 'Пользователи • family.rybnikov.su'
+              : 'Семейное пространство • family.rybnikov.su';
   }, [location.pathname]);
 
   return <Outlet />;
@@ -41,6 +44,13 @@ function AuthGate() {
   return user ? <Outlet /> : <LoginPage />;
 }
 
+/** Гейт роли: админ-разделы доступны только пользователям с ролью `admin`. */
+function AdminGate() {
+  const { user } = useAuth();
+  if (user?.role !== 'admin') return <Navigate to={ROUTES.home} replace />;
+  return <Outlet />;
+}
+
 const router = createHashRouter([
   {
     element: <AuthGate />,
@@ -52,6 +62,11 @@ const router = createHashRouter([
           { path: ROUTES.news, element: <NewsPage /> },
           { path: ROUTES.projects, element: <ProjectsPage /> },
           { path: ROUTES.profile, element: <ProfilePage /> },
+          // Админ-разделы: доступны только роли `admin` (иначе — на главную).
+          {
+            element: <AdminGate />,
+            children: [{ path: ROUTES.adminUsers, element: <AdminUsersPage /> }],
+          },
           // Неизвестные пути (например, старый якорь #sections) — на главную.
           { path: '*', element: <Navigate to={ROUTES.home} replace /> },
         ],
