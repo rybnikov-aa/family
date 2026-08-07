@@ -130,10 +130,6 @@
         background: #d4edda;
         color: #155724;
       }
-      .badge-red {
-        background: #f8d7da;
-        color: #721c24;
-      }
 
       .block {
         border: 1px solid #e2e9f1;
@@ -185,6 +181,18 @@
       td.num {
         text-align: right;
         white-space: nowrap;
+      }
+      td.num.blue {
+        color: #2563eb;
+        font-weight: 600;
+      }
+      td.num.amount-pos {
+        color: #0b7b3e;
+        font-weight: 600;
+      }
+      td.num.amount-neg {
+        color: #b12a2a;
+        font-weight: 600;
       }
       .row-total {
         background: #dce6f2;
@@ -238,6 +246,13 @@
       }
       .doc-card.red .value {
         color: #721c24;
+      }
+      .doc-card.blue {
+        background: #eef4fd;
+        border-color: #cfe0f7;
+      }
+      .doc-card.blue .value {
+        color: #2563eb;
       }
 
       .links-block {
@@ -373,6 +388,22 @@
       [data-theme='dark'] .doc-card.red .value {
         color: #f0a0a0;
       }
+      [data-theme='dark'] .doc-card.blue {
+        background: #14263f;
+        border-color: #2c4a6e;
+      }
+      [data-theme='dark'] .doc-card.blue .value {
+        color: #9fc0f0;
+      }
+      [data-theme='dark'] td.num.blue {
+        color: #9fc0f0;
+      }
+      [data-theme='dark'] td.num.amount-pos {
+        color: #58c887;
+      }
+      [data-theme='dark'] td.num.amount-neg {
+        color: #ef7d70;
+      }
       [data-theme='dark'] .links-block {
         background: #1d242e;
         border-color: #343b47;
@@ -393,10 +424,6 @@
       [data-theme='dark'] .badge-green {
         background: #14301c;
         color: #7fd89a;
-      }
-      [data-theme='dark'] .badge-red {
-        background: #3a1414;
-        color: #f0a0a0;
       }
     </style>
   </head>
@@ -447,9 +474,7 @@
               <div class="total-big">137 915,40 ₽</div>
               <div class="head-total-badges">
                 <span class="badge badge-blue">Внесено: 701 876,00 ₽</span>
-                <span class="badge badge-red" style="margin-left: 6px"
-                  >Использовано: 563 960,60 ₽</span
-                >
+                <span class="badge" style="margin-left: 6px">Использовано: 563 960,60 ₽</span>
               </div>
             </div>
           </div>
@@ -497,7 +522,7 @@
                   </tr>
                   <tr class="row-sub">
                     <td>Внесено заказчиком (ведомость работ)</td>
-                    <td class="num">301 876,00 ₽</td>
+                    <td class="num blue">301 876,00 ₽</td>
                     <td>26.12.2025 + 17.07.2026</td>
                   </tr>
                   <tr class="row-sub">
@@ -507,21 +532,21 @@
                   </tr>
                   <tr class="row-sub">
                     <td>Остаток по работам</td>
-                    <td class="num">160 748,20 ₽</td>
+                    <td class="num amount-pos">160 748,20 ₽</td>
                     <td>301 876,00 − 141 127,80</td>
                   </tr>
                 </tbody>
               </table>
               <div class="totals-flex">
-                <div class="doc-card green">
+                <div class="doc-card blue">
                   <div class="label">Внесено по работам</div>
                   <div class="value">301 876,00 ₽</div>
                 </div>
-                <div class="doc-card red">
+                <div class="doc-card">
                   <div class="label">Использовано по актам</div>
                   <div class="value">141 127,80 ₽</div>
                 </div>
-                <div class="doc-card">
+                <div class="doc-card green">
                   <div class="label">Остаток по работам</div>
                   <div class="value">160 748,20 ₽</div>
                 </div>
@@ -570,7 +595,7 @@
                   </tr>
                   <tr class="row-sub">
                     <td>Внесено заказчиком (ведомость материалов)</td>
-                    <td class="num">400 000,00 ₽</td>
+                    <td class="num blue">400 000,00 ₽</td>
                     <td>17.07.2026 + 30.07.2026</td>
                   </tr>
                   <tr class="row-sub">
@@ -580,21 +605,21 @@
                   </tr>
                   <tr class="row-sub">
                     <td>Остаток по материалам</td>
-                    <td class="num">−22 832,80 ₽</td>
+                    <td class="num amount-neg">−22 832,80 ₽</td>
                     <td>400 000,00 − 422 832,80</td>
                   </tr>
                 </tbody>
               </table>
               <div class="totals-flex">
-                <div class="doc-card green">
+                <div class="doc-card blue">
                   <div class="label">Внесено по материалам</div>
                   <div class="value">400 000,00 ₽</div>
                 </div>
-                <div class="doc-card red">
+                <div class="doc-card">
                   <div class="label">Использовано (с накладными)</div>
                   <div class="value">422 832,80 ₽</div>
                 </div>
-                <div class="doc-card">
+                <div class="doc-card red">
                   <div class="label">Остаток по материалам</div>
                   <div class="value">−22 832,80 ₽</div>
                 </div>
@@ -633,34 +658,34 @@
                 <tbody>
                   <tr>
                     <td>Работы</td>
-                    <td class="num">301 876,00</td>
+                    <td class="num blue">301 876,00</td>
                     <td class="num">141 127,80</td>
-                    <td class="num">160 748,20</td>
+                    <td class="num amount-pos">160 748,20</td>
                   </tr>
                   <tr>
                     <td>Материалы</td>
-                    <td class="num">400 000,00</td>
+                    <td class="num blue">400 000,00</td>
                     <td class="num">422 832,80</td>
-                    <td class="num">−22 832,80</td>
+                    <td class="num amount-neg">−22 832,80</td>
                   </tr>
                   <tr class="row-total">
                     <td class="grand">ИТОГО</td>
-                    <td class="num grand">701 876,00</td>
+                    <td class="num grand blue">701 876,00</td>
                     <td class="num grand">563 960,60</td>
-                    <td class="num grand">137 915,40</td>
+                    <td class="num grand amount-pos">137 915,40</td>
                   </tr>
                 </tbody>
               </table>
               <div class="totals-flex">
-                <div class="doc-card green">
+                <div class="doc-card blue">
                   <div class="label">Всего внесено заказчиком</div>
                   <div class="value">701 876,00 ₽</div>
                 </div>
-                <div class="doc-card red">
+                <div class="doc-card">
                   <div class="label">Всего использовано</div>
                   <div class="value">563 960,60 ₽</div>
                 </div>
-                <div class="doc-card">
+                <div class="doc-card green">
                   <div class="label">Итоговый остаток</div>
                   <div class="value">137 915,40 ₽</div>
                 </div>

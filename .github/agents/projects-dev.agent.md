@@ -1,5 +1,5 @@
 ---
-description: 'Разработка статичных страниц проектов приложения family (projects/**). Use when: создание/импорт нового проекта в раздел «Проекты» (project-import, projects/<slug>/index.html, мета-теги project-title/description/accent/icon/order), правка существующих страниц и подстраниц (projects/**), отчётность по ремонту (projects/renovation/**, project-renovation-build-reports), конвертация PDF в HTML (parse-pdf), конвенции оформления (projects/styles.css, projects/theme.js, icon-sprite.svg, тёмная тема), публикация проектов (npm run deploy). Не для кода приложения (backend/**) и интерфейса (frontend/**).'
+description: 'Разработка статичных страниц проектов приложения family (projects/**). Use when: создание/импорт нового проекта в раздел «Проекты» (project-import, projects/<slug>/index.html, мета-теги project-title/description/accent/icon/order), правка существующих страниц и подстраниц (projects/**), UI-итерации и позиционирование (карточки, сетки, цвета сумм, адаптив, правило 10), отчётность по ремонту (projects/renovation/**, project-renovation-build-reports), конвертация PDF в HTML (parse-pdf), конвенции оформления (projects/styles.css, projects/theme.js, icon-sprite.svg, тёмная тема), публикация проектов (npm run deploy). Не для кода приложения (backend/**) и интерфейса (frontend/**).'
 name: 'Projects Dev'
 argument-hint: 'Задача по статичным страницам проектов (projects/**)'
 tools: [read, search, edit, execute, todo, web]
@@ -67,11 +67,42 @@ src="/projects/theme.js" defer>`; markup `<div class="container">` → `<header 
   (`.container`, `.header`, `.footer`, `.card`, `.stats`, `.stat`) inside documents; dark theme
   required (`[data-theme='dark'] ...`).
 - **Numbers**: currency with non-breaking spaces, comma as decimal separator (`141 127,88 ₽`).
+- **UI — цветовые правила сумм (отчёты)**: внесённые суммы («Внесенная сумма», «Внесено»,
+  «Всего внесено заказчиком») — синим (`#2563eb`, тёмная тема `#9fc0f0`): `.amount-blue` у
+  значений карточек/прогресс-баров, `.doc-card.blue` / `td.num.blue` в итоговом отчёте; остатки
+  («Остаток», «Итоговый остаток», колонка «Остаток») — по знаку: `>0` зелёный (`.amount-pos`,
+  `#0b7b3e`/`#58c887`), `<0` красный (`.amount-neg`, `#b12a2a`/`#ef7d70`), `=0` без цвета;
+  «Использовано» в итоговом отчёте (карточки и бейдж в шапке) — без выделения. Правила
+  зафиксированы в навыке `project-renovation-build-reports` (Конвенции оформления) и
+  `docs/specification-projects.md`.
+- **UI — карточки и сетки**: отдельная `.doc-card` = одна метрика (label + value); две метрики
+  не объединять в одну карточку разделителем — разделять на отдельные карточки. Итоговые карточки
+  выносить в блок `.summary-cards`. Сетки из нескольких карточек — `repeat(auto-fit,
+minmax(320px, 1fr))` с переходом в одну колонку на `≤700px`.
+- **UI — адаптив таблиц**: без жёсткого `min-width`; на `≤1100px` скрываются «Ед.»/«Цена»,
+  на `≤820px` — «Отклонение» (`visibility:hidden` + `width:0`, колонки не удалять из сетки,
+  чтобы `colspan` в итогах оставался корректным). Проверять обе темы (light/dark).
 - **Skills**: consult `project-import` (`.github/skills/project-import/SKILL.md`) when creating/
   importing a new project; `project-renovation-build-reports` for renovation reports;
   `parse-pdf` for PDF→HTML conversion; `deploy` for publishing and server diagnostics.
 - **Format**: Prettier — singleQuote, semi, printWidth 100, trailingComma all (`npm run format`);
   typecheck gate `npm run typecheck` (root, checks both workspaces).
+
+## UI-итерации и позиционирование (AGENTS.md, правило 10)
+
+- Относительные требования («ближе», «на четверть», «пропорции 4 к 3», «чуть выше») переводить
+  в конкретные значения (px/%) и при неоднозначности уточнять у пользователя до применения.
+- После каждой правки позиционирования/цвета/размера проверять фактический результат в браузере
+  (обновить страницу, посмотреть светлую и тёмную тему), не полагаясь на «примерно так».
+- Применять маленькие обратимые шаги: менять одну вещь за раз, перед крупной переделкой
+  показывать, что именно будет изменено; не ломать соседние элементы.
+- Локальная проверка: serve из корня репозитория (`npx serve .` или `python -m http.server`),
+  открыть `http://localhost:8080/projects/<slug>/...`.
+- Если инструмент браузерной автоматизации недоступен — сообщить об этом и попросить пользователя
+  проверить страницу вручную (файлы уже сохранены и подхватятся при обновлении).
+- Для `projects/renovation/Reports/` при изменении макета/структуры — синхронно обновлять
+  `.github/skills/project-renovation-build-reports/SKILL.md` и `docs/specification-projects.md`
+  и прогонять grep по устаревшим маркерам (старые классы, удалённые подписи/числа).
 
 ## Workflow
 

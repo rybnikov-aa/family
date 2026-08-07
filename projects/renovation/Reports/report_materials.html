@@ -91,46 +91,6 @@
         color: #0b1a33;
         font-weight: 600;
       }
-      .doc-head-total {
-        text-align: right;
-        font-size: 14px;
-        color: #3f5672;
-        background: #f5f8fe;
-        padding: 14px 22px;
-        border-radius: 14px;
-        border: 1px solid #e0e8f2;
-      }
-      .doc-head-total .head-total-label {
-        margin-bottom: 4px;
-        font-size: 12px;
-        color: #4a6482;
-      }
-      .doc-head-total .total-big {
-        font-size: 24px;
-        font-weight: 700;
-        color: #0b1a33;
-        white-space: nowrap;
-      }
-      .doc-head-total .head-total-badges {
-        margin-top: 8px;
-        font-size: 12px;
-      }
-      .badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 30px;
-        font-size: 12px;
-        font-weight: 600;
-      }
-      .badge-blue {
-        background: #eef2f9;
-        color: #1f3a60;
-      }
-      .badge-green {
-        background: #d4edda;
-        color: #155724;
-      }
-
       .summary-cards {
         display: flex;
         flex-wrap: wrap;
@@ -152,6 +112,15 @@
         font-size: 18px;
         font-weight: 700;
         color: #0b1a33;
+      }
+      .doc-card .value.amount-pos {
+        color: #0b7b3e;
+      }
+      .doc-card .value.amount-neg {
+        color: #b12a2a;
+      }
+      .doc-card .value.amount-blue {
+        color: #2563eb;
       }
 
       .report-block {
@@ -327,9 +296,6 @@
         .doc-head {
           grid-template-columns: 1fr;
         }
-        .doc-head-total {
-          text-align: left;
-        }
       }
 
       /* Тёмная тема: документ подстраивается под каркас проекта */
@@ -349,11 +315,6 @@
       [data-theme='dark'] .doc td.left {
         color: #dde4ee;
       }
-      [data-theme='dark'] .doc-head-total {
-        background: #1c222b;
-        border-color: #343b47;
-        color: #a8b2c2;
-      }
       [data-theme='dark'] .doc-head-left .meta {
         color: #a8b2c2;
       }
@@ -363,12 +324,8 @@
         color: #a8b2c2;
       }
       [data-theme='dark'] .doc-head-title,
-      [data-theme='dark'] .doc-head-left .meta strong,
-      [data-theme='dark'] .doc-head-total .total-big {
+      [data-theme='dark'] .doc-head-left .meta strong {
         color: #eef2f7;
-      }
-      [data-theme='dark'] .head-total-label {
-        color: #a8b2c2;
       }
       [data-theme='dark'] .doc-card {
         background: #1c222b;
@@ -379,6 +336,15 @@
       }
       [data-theme='dark'] .doc-card .value {
         color: #eef2f7;
+      }
+      [data-theme='dark'] .doc-card .value.amount-pos {
+        color: #58c887;
+      }
+      [data-theme='dark'] .doc-card .value.amount-neg {
+        color: #ef7d70;
+      }
+      [data-theme='dark'] .doc-card .value.amount-blue {
+        color: #9fc0f0;
       }
       [data-theme='dark'] .report-block {
         background: transparent;
@@ -420,14 +386,6 @@
       }
       [data-theme='dark'] .note {
         color: #8b95a5;
-      }
-      [data-theme='dark'] .badge-blue {
-        background: #223049;
-        color: #9fc0f0;
-      }
-      [data-theme='dark'] .badge-green {
-        background: #14301c;
-        color: #7fd89a;
       }
     </style>
   </head>
@@ -472,37 +430,29 @@
                 <span class="meta-item"><strong>Дата старта:</strong> 30.06.2026</span>
               </div>
             </div>
-            <div class="doc-head-total">
-              <div class="head-total-label">Итого закуплено материалов</div>
-              <div class="total-big">372 832,80 ₽</div>
-              <div class="head-total-badges">
-                <span class="badge badge-blue">3 отчёта о закупке</span>
-                <span class="badge badge-green" style="margin-left: 6px">в т.ч. накладные 10%</span>
-              </div>
-            </div>
           </div>
 
           <!-- Карточки-сводка -->
           <div class="summary-cards">
             <div class="doc-card">
-              <div class="label">Отчёт №1 (17.07.2026)</div>
-              <div class="value">108 732,04 ₽</div>
-            </div>
-            <div class="doc-card">
-              <div class="label">Отчёт №2 (01.08.2026)</div>
-              <div class="value">136 462,48 ₽</div>
-            </div>
-            <div class="doc-card">
-              <div class="label">Отчёт №3 (05.08.2026)</div>
-              <div class="value">127 638,28 ₽</div>
-            </div>
-            <div class="doc-card">
-              <div class="label">Всего с накладными</div>
+              <div class="label">Итого закуплено материалов</div>
               <div class="value">372 832,80 ₽</div>
+            </div>
+            <div class="doc-card">
+              <div class="label">в т.ч. накладные расходы</div>
+              <div class="value">33 893,89 ₽</div>
             </div>
             <div class="doc-card">
               <div class="label">в т.ч. доставка и подъём</div>
               <div class="value">37 340,00 ₽</div>
+            </div>
+            <div class="doc-card">
+              <div class="label">Внесенная сумма</div>
+              <div class="value amount-blue">400 000,00 ₽</div>
+            </div>
+            <div class="doc-card">
+              <div class="label">Остаток</div>
+              <div class="value amount-neg">−22 832,80 ₽</div>
             </div>
           </div>
 

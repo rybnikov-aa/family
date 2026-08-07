@@ -137,6 +137,15 @@
         font-weight: 700;
         color: #0b1a33;
       }
+      .plan-progress-top strong.amount-pos {
+        color: #0b7b3e;
+      }
+      .plan-progress-top strong.amount-neg {
+        color: #b12a2a;
+      }
+      .plan-progress-top strong.amount-blue {
+        color: #2563eb;
+      }
       .plan-progress-track {
         height: 8px;
         background: #e8eef7;
@@ -150,7 +159,7 @@
       }
       .doc-progress {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 16px;
         margin-bottom: 18px;
       }
@@ -164,6 +173,14 @@
         margin-top: 6px;
         font-size: 12px;
         color: #5a7290;
+      }
+      .plan-progress-divider {
+        height: 1px;
+        background: #e0e8f2;
+        margin: 2px 0 8px;
+      }
+      .plan-progress .plan-progress-top:last-child {
+        margin-bottom: 0;
       }
       .head-total-label {
         margin-bottom: 4px;
@@ -437,6 +454,15 @@
       [data-theme='dark'] .plan-progress-top strong {
         color: #eef2f7;
       }
+      [data-theme='dark'] .plan-progress-top strong.amount-pos {
+        color: #58c887;
+      }
+      [data-theme='dark'] .plan-progress-top strong.amount-neg {
+        color: #ef7d70;
+      }
+      [data-theme='dark'] .plan-progress-top strong.amount-blue {
+        color: #9fc0f0;
+      }
       [data-theme='dark'] .plan-progress-track {
         background: #2a3342;
       }
@@ -451,6 +477,9 @@
       }
       [data-theme='dark'] .plan-progress-sub {
         color: #8b95a5;
+      }
+      [data-theme='dark'] .plan-progress-divider {
+        background: #343b47;
       }
       [data-theme='dark'] .head-total-label {
         color: #a8b2c2;
@@ -580,7 +609,7 @@
             </a>
           </div>
 
-          <!-- Прогресс: время от старта и освоение бюджета -->
+          <!-- Прогресс: время от старта, освоение бюджета и взаиморасчёты -->
           <div class="doc-progress">
             <div class="plan-progress">
               <div class="plan-progress-top">
@@ -601,6 +630,17 @@
                 <div class="plan-progress-fill" style="width: 7.3%"></div>
               </div>
               <div class="plan-progress-sub">141 127,88 ₽ из 1 933 448,08 ₽</div>
+            </div>
+            <div class="plan-progress">
+              <div class="plan-progress-top">
+                <span>Внесенная сумма</span>
+                <strong class="amount-blue">301 876,00 ₽</strong>
+              </div>
+              <div class="plan-progress-divider"></div>
+              <div class="plan-progress-top">
+                <span>Остаток</span>
+                <strong class="amount-pos">160 748,20 ₽</strong>
+              </div>
             </div>
           </div>
 
