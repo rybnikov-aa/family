@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Применяем сохранённую тему до отрисовки, чтобы не было «мигания». -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+
+    <title>Дополнительное соглашение №3</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Общие стили страниц проектов (дизайн + тема приложения) -->
+    <link rel="stylesheet" href="../styles.css" />
+    <!-- Стили документов и отчётов (дизайн-система report.css) -->
+    <link rel="stylesheet" href="report.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <a href="/#/" class="brand">
+          <h1>
+            <span class="brand-mark"
+              ><svg class="picon" aria-hidden="true">
+                <use href="../icon-sprite.svg#users"></use></svg></span
+            >Семейное пространство
+          </h1>
+        </a>
+        <div class="header-actions">
+          <nav class="nav">
+            <a href="/#/">Главная</a>
+            <a href="/#/news">Новости</a>
+            <a href="/#/projects">Проекты</a>
+          </nav>
+          <div class="theme-toggle" data-theme-toggle></div>
+        </div>
+      </header>
+
+      <main class="page">
+        <a class="doc-back" href="index.html">← К отчётам проекта</a>
+        <div class="doc">
+          <!-- Шапка: заголовок + реквизиты -->
+          <div class="doc-head">
+            <h1 class="doc-head-title">
+              <svg class="picon" aria-hidden="true">
+                <use href="../icon-sprite.svg#clipboard"></use>
+              </svg>
+              Дополнительное соглашение №3
+            </h1>
+            <div class="doc-head-left">
+              <div class="meta">
+                <span class="meta-item"><strong>Договор подряда:</strong> №6124 от 26.12.2025</span>
+                <span class="meta-item"
+                  ><strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв.
+                  100, этаж 7</span
+                >
+                <span class="meta-item"><strong>Дата:</strong> 05.08.2026</span>
+              </div>
+            </div>
+            <div class="doc-head-total">
+              <div class="head-total-label">Стоимость работ по соглашению</div>
+              <div class="total-big">106 562,40 ₽</div>
+            </div>
+          </div>
+
+          <!-- Стороны -->
+          <div class="parties">
+            <div class="party">
+              <span class="role">Заказчик</span>
+            </div>
+            <div class="party">
+              <span class="role">Подрядчик</span>
+              <span class="name">ООО «А-сервис»</span>
+              <span class="detail"
+                >в лице Директора Глушкова Егора Олеговича, действующего на основании Устава</span
+              >
+            </div>
+          </div>
+
+          <!-- Вводная фраза -->
+          <div class="intro-text">
+            заключили настоящее Дополнительное соглашение к договору подряда №6124 от 26.12.2025 о
+            нижеследующем: произвести дополнительные работы по разделу «Стены».
+          </div>
+
+          <!-- Таблица дополнительных работ -->
+          <div>
+            <div class="section-title">
+              <svg class="picon" aria-hidden="true">
+                <use href="../icon-sprite.svg#brick"></use>
+              </svg>
+              Раздел 3. Стены — дополнительные работы
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>№</th>
+                    <th>Наименование работ</th>
+                    <th class="col-unit">Ед.</th>
+                    <th class="col-price">Цена за ед.</th>
+                    <th class="col-qty">Объём</th>
+                    <th class="col-sum">Сумма</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="col-num">1</td>
+                    <td>Монтаж армирующей стеклопластиковой сетки</td>
+                    <td class="col-unit">м²+м.п.</td>
+                    <td class="col-price">500,00</td>
+                    <td class="col-qty">98,00</td>
+                    <td class="col-sum">49 000,00</td>
+                  </tr>
+                  <tr>
+                    <td class="col-num">2</td>
+                    <td>Формирование углов 90 градусов</td>
+                    <td class="col-unit">ед.</td>
+                    <td class="col-price">2 916,00</td>
+                    <td class="col-qty">18,00</td>
+                    <td class="col-sum">52 488,00</td>
+                  </tr>
+                  <tr class="row-total">
+                    <td colspan="5" class="col-name">Итого по разделу 3: «Стены»</td>
+                    <td class="col-sum">101 488,00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Итоговые суммы -->
+          <div class="totals-block">
+            <span class="item"><strong>Итого по всем разделам:</strong> 101 488,00 ₽</span>
+            <span class="item"><strong>Накладные расходы 5%:</strong> 5 074,40 ₽</span>
+            <span class="grand"><small>₽</small> 106 562,40</span>
+          </div>
+
+          <!-- Текст: стоимость, срок и этапы -->
+          <div class="text-block">
+            <p>
+              <strong>2.</strong> Стоимость выполняемых работ по настоящему Дополнительному
+              соглашению составляет: <strong>106 562,40</strong> (сто шесть тысяч пятьсот шестьдесят
+              два рубля 40 копеек).
+            </p>
+            <p>
+              <strong>3.</strong> Настоящее Дополнительное соглашение составлено в 2-х экземплярах
+              по одному для каждой из Сторон. Настоящее Дополнительное соглашение является
+              неотъемлемой частью договора №6124 от 26.12.2025 и вступает в силу с момента его
+              подписания.
+            </p>
+            <p>
+              <strong>4.</strong> Срок выполнения ремонтно-отделочных работ увеличивается на
+              <strong>20 рабочих дней</strong>.
+            </p>
+            <p>
+              <strong>5.</strong> Стоимость и сроки работ по данному дополнительному соглашению
+              состоят из следующих этапов:
+            </p>
+            <p>
+              <strong>5.1.</strong> Штукатурка — оштукатуривание стен, потолков, армирование
+              поверхностей. Предварительный срок и стоимость данного этапа составляют:
+              <strong>20 рабочих дней</strong> и <strong>106 562,40 рубля</strong>.
+            </p>
+          </div>
+
+          <!-- Ссылка на исходный PDF -->
+          <div class="doc-sources">
+            <svg class="picon" aria-hidden="true">
+              <use href="../icon-sprite.svg#link"></use>
+            </svg>
+            <span class="doc-sources-label">Исходный документ (PDF):</span>
+            <a
+              href="/projects/renovation/pdf/_соглашение 07-08-2026.pdf"
+              target="_blank"
+              rel="noopener"
+              >_соглашение 07-08-2026.pdf</a
+            >
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>Проект «Ремонт» — отчётность</span>
+        <span>
+          <a href="/#/">Главная</a>
+          <a href="/#/news">Новости</a>
+          <a href="/#/projects">Проекты</a>
+        </span>
+      </footer>
+    </div>
+
+    <script src="../theme.js" defer></script>
+  </body>
+</html>
