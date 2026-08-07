@@ -1,4 +1,5 @@
 import type { ServiceStatus } from '../types/service';
+import IconButton from './IconButton';
 import { RefreshIcon } from './icons';
 
 interface ServiceStatsProps {
@@ -74,19 +75,20 @@ function ServiceStats({
                 <span className="stat-item__value-row">
                   <span className="stat-item__value">{service.value}</span>
                   {onRefresh && (
-                    <button
-                      type="button"
-                      className={`stat-refresh${refreshing ? ' stat-refresh--spinning' : ''}`}
+                    <IconButton
+                      size="xs"
+                      plain
+                      label="Обновить"
+                      tooltip="Обновить"
+                      spinning={refreshing}
+                      disabled={refreshing}
                       onClick={(event) => {
                         event.stopPropagation();
                         onRefresh();
                       }}
-                      aria-label="Обновить"
-                      title="Обновить"
-                      disabled={refreshing}
                     >
                       <RefreshIcon />
-                    </button>
+                    </IconButton>
                   )}
                 </span>
                 <span className="stat-item__label">

@@ -42,6 +42,34 @@
   --accent-hover: #2a2a2a;
   --toggle-active-bg: #ffffff;
   --toggle-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  /* ── Дизайн-система: семантические цвета статусов (одинаковы для обеих тем) ── */
+  --color-success: #22c55e;
+  --color-success-strong: #16a34a;
+  --color-success-bg: rgba(34, 197, 94, 0.1);
+  --color-success-halo: rgba(34, 197, 94, 0.15);
+  --color-success-border: rgba(34, 197, 94, 0.25);
+
+  --color-warning: #f59e0b;
+  --color-warning-strong: #d97706;
+  --color-warning-bg: rgba(245, 158, 11, 0.15);
+  --color-warning-halo: rgba(245, 158, 11, 0.15);
+
+  --color-critical: #f97316;
+  --color-critical-strong: #ea580c;
+  --color-critical-bg: rgba(249, 115, 22, 0.15);
+  --color-critical-halo: rgba(249, 115, 22, 0.15);
+
+  --color-danger: #ef4444;
+  --color-danger-strong: #dc2626;
+  --color-danger-bg: rgba(239, 68, 68, 0.1);
+  --color-danger-bg-strong: rgba(239, 68, 68, 0.12);
+  --color-danger-halo: rgba(239, 68, 68, 0.15);
+  --color-danger-border: rgba(239, 68, 68, 0.25);
+
+  /* Акценты разделов/страниц */
+  --color-accent-teal: #14b8a6;
+  --color-accent-sky: #0ea5e9;
 }
 
 [data-theme='dark'] {
@@ -222,54 +250,6 @@ body {
   border-radius: 20px;
   padding: 2px 8px;
 }
-.user__logout {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 8px;
-  background: var(--surface-muted);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-}
-.user__logout svg {
-  width: 16px;
-  height: 16px;
-}
-.user__logout:hover {
-  color: var(--text);
-  background: var(--surface-hover);
-}
-.user__logout::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  white-space: nowrap;
-  background: var(--text-strong);
-  color: var(--surface);
-  font-size: 0.7rem;
-  font-weight: 500;
-  line-height: 1;
-  padding: 5px 8px;
-  border-radius: 6px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  z-index: 20;
-  box-shadow: var(--shadow-card);
-}
-.user__logout:hover::after,
-.user__logout:focus-visible::after {
-  opacity: 1;
-}
 
 /* Hero */
 .hero {
@@ -318,20 +298,20 @@ body {
   flex-shrink: 0;
 }
 .stat-item__dot--ok {
-  background: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px var(--color-success-halo);
 }
 .stat-item__dot--warning {
-  background: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  background: var(--color-critical);
+  box-shadow: 0 0 0 3px var(--color-critical-halo);
 }
 .stat-item__dot--error {
-  background: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  background: var(--color-danger);
+  box-shadow: 0 0 0 3px var(--color-danger-halo);
 }
 .stat-item__dot--checking {
-  background: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  background: var(--color-warning);
+  box-shadow: 0 0 0 3px var(--color-warning-halo);
 }
 .stat-item__dot--unknown {
   background: var(--dot-neutral);
@@ -403,40 +383,8 @@ body {
   gap: 6px;
 }
 
-/* Кнопка обновления рядом со значением доступности */
-.stat-refresh {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: none;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--text-faint);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-}
-.stat-refresh svg {
-  width: 14px;
-  height: 14px;
-}
-.stat-refresh:hover:not(:disabled) {
-  color: var(--link-hover);
-  background: var(--surface-muted);
-}
-.stat-refresh:disabled {
-  cursor: default;
-  opacity: 0.7;
-}
-
 /* Вращение иконки при обновлении */
-.stat-refresh--spinning svg,
-.modal__refresh--spinning svg {
+.icon-btn--spinning svg {
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin {
@@ -488,32 +436,14 @@ body {
   color: var(--text-strong);
   letter-spacing: -0.01em;
 }
-.modal__close {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  background: var(--surface-muted);
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  line-height: 1;
-  cursor: pointer;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-}
-.modal__close:hover {
-  color: var(--text);
-  background: var(--surface-hover);
-}
 .modal__head-actions {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
-.modal__refresh,
-.modal__add {
+/* ── Примитив: кнопка-иконка (выход, закрытие, обновление, «+», импорт, копирование, удаление) ── */
+.icon-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -525,24 +455,84 @@ body {
   background: var(--surface-muted);
   color: var(--text-muted);
   cursor: pointer;
+  flex-shrink: 0;
+  text-decoration: none;
   transition:
     color 0.15s ease,
     background 0.15s ease;
 }
-.modal__refresh svg,
-.modal__add svg {
+.icon-btn--sm {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+.icon-btn--xs {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  background: transparent;
+}
+.icon-btn--plain {
+  background: transparent;
+}
+.icon-btn svg {
   width: 16px;
   height: 16px;
 }
-.modal__refresh:hover:not(:disabled),
-.modal__add:hover:not(:disabled) {
+.icon-btn--sm svg {
+  width: 14px;
+  height: 14px;
+}
+.icon-btn--xs svg {
+  width: 12px;
+  height: 12px;
+}
+.icon-btn__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.icon-btn:hover:not(:disabled) {
   color: var(--text);
   background: var(--surface-hover);
 }
-.modal__refresh:disabled,
-.modal__add:disabled {
+.icon-btn:disabled {
   cursor: default;
   opacity: 0.7;
+}
+.icon-btn--danger:hover:not(:disabled) {
+  color: var(--color-danger-strong);
+  background: var(--surface-muted);
+}
+.icon-btn--active,
+.icon-btn--active:hover:not(:disabled) {
+  color: var(--color-success-strong);
+}
+/* Всплывающая подсказка к кнопке-иконке (data-tooltip) */
+.icon-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--text-strong);
+  color: var(--surface);
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1;
+  padding: 5px 8px;
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+  box-shadow: var(--shadow-card);
+}
+.icon-btn[data-tooltip]:hover::after,
+.icon-btn[data-tooltip]:focus-visible::after {
+  opacity: 1;
 }
 .modal__summary {
   font-size: 0.9rem;
@@ -564,14 +554,14 @@ body {
   margin-bottom: 16px;
 }
 .modal__import-note--ok {
-  color: #16a34a;
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.25);
+  color: var(--color-success-strong);
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
 }
 .modal__import-note--error {
-  color: #dc2626;
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.25);
+  color: var(--color-danger-strong);
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
 }
 .modal__import-errors {
   list-style: none;
@@ -652,27 +642,6 @@ body {
   gap: 6px;
   min-width: 0;
 }
-.modal__vps-panel {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  text-decoration: none;
-  padding: 5px;
-  border-radius: 8px;
-  background: var(--surface-muted);
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-}
-.modal__vps-panel svg {
-  width: 14px;
-  height: 14px;
-}
-.modal__vps-panel:hover {
-  color: var(--link-hover);
-  background: var(--surface-hover);
-}
 .modal__vps-percent {
   margin-left: auto;
   margin-right: 8px;
@@ -684,120 +653,27 @@ body {
   border-radius: 999px;
 }
 .modal__vps-percent--ok {
-  color: #16a34a;
-  background: rgba(34, 197, 94, 0.15);
+  color: var(--color-success-strong);
+  background: var(--color-success-halo);
 }
 .modal__vps-percent--warning {
-  color: #ea580c;
-  background: rgba(249, 115, 22, 0.15);
+  color: var(--color-critical-strong);
+  background: var(--color-critical-bg);
 }
 .modal__vps-percent--error {
-  color: #dc2626;
-  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-danger-strong);
+  background: var(--color-danger-halo);
 }
 .modal__vps-percent--checking,
 .modal__vps-percent--unknown {
-  color: #d97706;
-  background: rgba(245, 158, 11, 0.15);
+  color: var(--color-warning-strong);
+  background: var(--color-warning-bg);
 }
 .modal__vps-head-actions {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
-}
-/* Кнопка удаления VPS */
-.modal__vps-delete {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-faint);
-  cursor: pointer;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-}
-.modal__vps-delete svg {
-  width: 13px;
-  height: 13px;
-}
-.modal__vps-delete:hover:not(:disabled) {
-  color: #dc2626;
-  background: var(--surface-muted);
-}
-.modal__vps-delete:disabled {
-  cursor: default;
-  opacity: 0.7;
-}
-.modal__vps-copy {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-faint);
-  cursor: pointer;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-}
-
-/* Всплывающие подсказки к иконкам (копирование, панель, удаление) */
-.modal__vps-copy,
-.modal__vps-panel,
-.modal__vps-delete {
-  position: relative;
-}
-.modal__vps-copy::after,
-.modal__vps-panel::after,
-.modal__vps-delete::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  background: var(--text-strong);
-  color: var(--surface);
-  font-size: 0.7rem;
-  font-weight: 500;
-  line-height: 1;
-  padding: 5px 8px;
-  border-radius: 6px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  z-index: 20;
-  box-shadow: var(--shadow-card);
-}
-.modal__vps-copy:hover::after,
-.modal__vps-copy:focus-visible::after,
-.modal__vps-panel:hover::after,
-.modal__vps-panel:focus-visible::after,
-.modal__vps-delete:hover::after,
-.modal__vps-delete:focus-visible::after {
-  opacity: 1;
-}
-.modal__vps-copy svg {
-  width: 13px;
-  height: 13px;
-}
-.modal__vps-copy:hover {
-  color: var(--link-hover);
-  background: var(--surface-muted);
-}
-.modal__vps-copy--copied {
-  color: #16a34a;
 }
 .modal__services {
   grid-area: srv;
@@ -823,12 +699,12 @@ body {
   flex-shrink: 0;
 }
 .modal__service-dot--ok {
-  background: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px var(--color-success-halo);
 }
 .modal__service-dot--error {
-  background: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  background: var(--color-danger);
+  box-shadow: 0 0 0 3px var(--color-danger-halo);
 }
 .modal__service--muted {
   color: var(--text-faint);
@@ -905,9 +781,9 @@ select.vps-form__control {
 }
 .vps-form__error {
   font-size: 0.85rem;
-  color: #dc2626;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--color-danger-strong);
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
   padding: 8px 12px;
   border-radius: 10px;
 }
@@ -917,7 +793,8 @@ select.vps-form__control {
   gap: 10px;
   margin-top: 4px;
 }
-.vps-form__button {
+/* ── Примитив: кнопка (btn) — единый паттерн кнопок форм/действий ── */
+.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -936,22 +813,26 @@ select.vps-form__control {
     background 0.15s ease,
     border-color 0.15s ease;
 }
-.vps-form__button:hover:not(:disabled) {
+.btn:hover:not(:disabled) {
   background: var(--surface-hover);
 }
-.vps-form__button--primary {
+.btn--primary {
   color: var(--accent-text);
   background: var(--accent);
   border-color: transparent;
 }
-.vps-form__button--primary:hover:not(:disabled) {
+.btn--primary:hover:not(:disabled) {
   background: var(--accent-hover);
 }
-.vps-form__button:disabled {
+.btn:disabled {
   opacity: 0.7;
   cursor: default;
 }
-.vps-form__button svg {
+.btn__icon {
+  display: inline-flex;
+  align-items: center;
+}
+.btn__icon svg {
   width: 15px;
   height: 15px;
 }
@@ -1014,29 +895,8 @@ select.vps-form__control {
 }
 .vps-services__edit {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 8px;
   background: var(--surface);
   border: 1px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-}
-.vps-services__edit:hover {
-  color: var(--text);
-  background: var(--surface-hover);
-}
-.vps-services__edit svg {
-  width: 16px;
-  height: 16px;
 }
 
 /* Редактор сервисов (поверх формы) */
@@ -1121,28 +981,6 @@ select.vps-form__control {
 .services-editor__remove {
   grid-area: trash;
   align-self: center;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 8px;
-  background: var(--surface-muted);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-}
-.services-editor__remove:hover {
-  color: #dc2626;
-  background: rgba(239, 68, 68, 0.12);
-}
-.services-editor__remove svg {
-  width: 15px;
-  height: 15px;
 }
 .services-editor__add {
   align-self: flex-start;
@@ -1244,8 +1082,8 @@ select.vps-form__control {
   height: 54px;
   border-radius: 16px;
   flex-shrink: 0;
-  background: color-mix(in srgb, #14b8a6 14%, transparent);
-  color: #14b8a6;
+  background: color-mix(in srgb, var(--color-accent-teal) 14%, transparent);
+  color: var(--color-accent-teal);
 }
 .page__icon svg {
   width: 27px;
@@ -1253,8 +1091,8 @@ select.vps-form__control {
 }
 /* Акцент иконки заголовка страницы «Проекты» */
 .page__icon--projects {
-  background: color-mix(in srgb, #0ea5e9 14%, transparent);
-  color: #0ea5e9;
+  background: color-mix(in srgb, var(--color-accent-sky) 14%, transparent);
+  color: var(--color-accent-sky);
 }
 /* Действия в шапке страницы (например кнопка «Загрузить PDF») — прижимаем к правому краю */
 .page__head-actions {
@@ -1290,7 +1128,7 @@ select.vps-form__control {
     background 0.15s ease;
 }
 .news-item:hover {
-  border-color: color-mix(in srgb, #14b8a6 40%, var(--border-soft));
+  border-color: color-mix(in srgb, var(--color-accent-teal) 40%, var(--border-soft));
   background: var(--card-hover-bg);
 }
 .news-item__meta {
@@ -1304,7 +1142,7 @@ select.vps-form__control {
   color: var(--text-fainter);
 }
 .news-item__badge {
-  color: #14b8a6;
+  color: var(--color-accent-teal);
 }
 .news-item h3 {
   font-size: 1.05rem;
@@ -1375,16 +1213,16 @@ select.vps-form__control {
   flex-shrink: 0;
 }
 .status-card--ok::before {
-  background: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px var(--color-success-halo);
 }
 .status-card--error::before {
-  background: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  background: var(--color-danger);
+  box-shadow: 0 0 0 3px var(--color-danger-halo);
 }
 .status-card--muted::before {
-  background: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  background: var(--color-warning);
+  box-shadow: 0 0 0 3px var(--color-warning-halo);
 }
 .status-card__label {
   text-transform: uppercase;
@@ -1602,9 +1440,9 @@ select.vps-form__control {
 }
 .login__error {
   font-size: 0.85rem;
-  color: #dc2626;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--color-danger-strong);
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
   padding: 8px 12px;
   border-radius: 10px;
   text-align: left;

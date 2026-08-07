@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { fetchProjectDirs, uploadProjectPdf } from '../api/client';
+import Modal from './Modal';
+import Button from './Button';
 import { UploadIcon } from './icons';
 
 interface PdfUploadModalProps {
@@ -46,14 +48,7 @@ function PdfUploadModal({ onClose }: PdfUploadModalProps) {
     };
   }, []);
 
-  // Escape закрывает модалку.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  // Escape закрывает базовый Modal.
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -98,108 +93,85 @@ function PdfUploadModal({ onClose }: PdfUploadModalProps) {
         : '';
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Загрузка PDF"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="modal__head">
-          <h3>Загрузка PDF</h3>
-          <button type="button" className="modal__close" onClick={onClose} aria-label="Закрыть">
-            ✕
-          </button>
+    <Modal title="Загрузка PDF" onClose={onClose}>
+      {dirsError ? (
+        <div className="modal__import-note modal__import-note--error" role="alert">
+          {dirsError}
         </div>
+      ) : dirs.length === 0 ? (
+        <div className="modal__import-note" role="status">
+          На сервере пока нет папок для загрузки.
+        </div>
+      ) : (
+        <form className="vps-form" onSubmit={handleSubmit}>
+          <label className="vps-form__field">
+            <span className="vps-form__label">Папка на сервере</span>
+            <select
+              className="vps-form__control"
+              value={folder}
+              onChange={(event) => setFolder(event.target.value)}
+              required
+            >
+              {[...grouped.entries()].map(([project, list]) => (
+                <optgroup key={project} label={project}>
+                  {list.map((dir) => (
+                    <option key={dir} value={dir}>
+                      {dir}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
 
-        {dirsError ? (
-          <div className="modal__import-note modal__import-note--error" role="alert">
-            {dirsError}
-          </div>
-        ) : dirs.length === 0 ? (
-          <div className="modal__import-note" role="status">
-            На сервере пока нет папок для загрузки.
-          </div>
-        ) : (
-          <form className="vps-form" onSubmit={handleSubmit}>
-            <label className="vps-form__field">
-              <span className="vps-form__label">Папка на сервере</span>
-              <select
-                className="vps-form__control"
-                value={folder}
-                onChange={(event) => setFolder(event.target.value)}
-                required
-              >
-                {[...grouped.entries()].map(([project, list]) => (
-                  <optgroup key={project} label={project}>
-                    {list.map((dir) => (
-                      <option key={dir} value={dir}>
-                        {dir}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </label>
-
-            <div className="vps-form__field">
-              <span className="vps-form__label">Файл PDF</span>
-              <div className="pdf-upload__file-row">
-                <button
-                  type="button"
-                  className="vps-form__button"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Выбрать файл…
-                </button>
-                <span className="pdf-upload__file-name">{fileName || 'файл не выбран'}</span>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,application/pdf"
-                hidden
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  setFileName(file ? file.name : '');
-                  setUpload({ status: 'idle', message: '', url: null });
-                }}
-              />
+          <div className="vps-form__field">
+            <span className="vps-form__label">Файл PDF</span>
+            <div className="pdf-upload__file-row">
+              <Button onClick={() => fileInputRef.current?.click()}>Выбрать файл…</Button>
+              <span className="pdf-upload__file-name">{fileName || 'файл не выбран'}</span>
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,application/pdf"
+              hidden
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                setFileName(file ? file.name : '');
+                setUpload({ status: 'idle', message: '', url: null });
+              }}
+            />
+          </div>
 
-            {upload.status !== 'idle' && (
-              <div className={`modal__import-note${noteClass}`} role="status">
-                {upload.status === 'uploading' && 'Загрузка…'}
-                {upload.status === 'done' && (
-                  <>
-                    Файл загружен:{' '}
-                    <a href={upload.url ?? '#'} target="_blank" rel="noopener">
-                      {upload.url}
-                    </a>
-                  </>
-                )}
-                {upload.status === 'error' && upload.message}
-              </div>
-            )}
-
-            <div className="vps-form__actions">
-              <button type="button" className="vps-form__button" onClick={onClose}>
-                Закрыть
-              </button>
-              <button
-                type="submit"
-                className="vps-form__button vps-form__button--primary"
-                disabled={upload.status === 'uploading'}
-              >
-                <UploadIcon />
-                Загрузить
-              </button>
+          {upload.status !== 'idle' && (
+            <div className={`modal__import-note${noteClass}`} role="status">
+              {upload.status === 'uploading' && 'Загрузка…'}
+              {upload.status === 'done' && (
+                <>
+                  Файл загружен:{' '}
+                  <a href={upload.url ?? '#'} target="_blank" rel="noopener">
+                    {upload.url}
+                  </a>
+                </>
+              )}
+              {upload.status === 'error' && upload.message}
             </div>
-          </form>
-        )}
-      </div>
-    </div>
+          )}
+
+          <div className="vps-form__actions">
+            <Button onClick={onClose}>Закрыть</Button>
+            <Button
+              type="submit"
+              variant="primary"
+              icon={<UploadIcon />}
+              disabled={upload.status === 'uploading'}
+            >
+              Загрузить
+            </Button>
+          </div>
+        </form>
+      )}
+    </Modal>
   );
 }
 

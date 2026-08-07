@@ -2,6 +2,7 @@ import { useState, type ComponentType } from 'react';
 import PageLayout from '../components/PageLayout';
 import PdfUploadModal from '../components/PdfUploadModal';
 import SectionCard from '../components/SectionCard';
+import Button from '../components/Button';
 import { FolderIcon, ProjectsIcon, RenovationIcon, UploadIcon } from '../components/icons';
 import type { IconProps } from '../components/icons';
 import { useProjects } from '../hooks/useProjects';
@@ -38,14 +39,9 @@ function ProjectsPage() {
           </div>
           {isAdmin && (
             <div className="page__head-actions">
-              <button
-                type="button"
-                className="vps-form__button vps-form__button--primary"
-                onClick={() => setUploadOpen(true)}
-              >
-                <UploadIcon />
+              <Button variant="primary" icon={<UploadIcon />} onClick={() => setUploadOpen(true)}>
                 Загрузить PDF
-              </button>
+              </Button>
             </div>
           )}
         </div>

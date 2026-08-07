@@ -1,7 +1,11 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import type { VpsServiceConfig } from '../api/client';
 import { createVps } from '../api/client';
 import { COUNTRIES } from '../utils/countries';
+import { useEscapeClose } from '../hooks/useEscapeClose';
+import Modal from './Modal';
+import Button from './Button';
+import IconButton from './IconButton';
 import { EllipsisIcon, PlusIcon, TrashIcon } from './icons';
 
 /** Типы сервисов, поддерживаемые проверкой доступности на бэкенде. */
@@ -36,19 +40,11 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Escape: сначала закрыть редактор сервисов, затем форму.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      if (servicesOpen) {
-        setServicesOpen(false);
-      } else {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [servicesOpen, onClose]);
+  // Escape: сначала закрыть редактор сервисов, затем форму (Modal сам Escape не слушает).
+  useEscapeClose(() => {
+    if (servicesOpen) setServicesOpen(false);
+    else onClose();
+  });
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -93,135 +89,110 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Добавить VPS"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="modal__head">
-          <h3>Добавить VPS</h3>
-          <button type="button" className="modal__close" onClick={onClose} aria-label="Закрыть">
-            ✕
-          </button>
+    <Modal title="Добавить VPS" onClose={onClose} closeOnEscape={false}>
+      <form className="vps-form" onSubmit={handleSubmit}>
+        <label className="vps-form__field">
+          <span className="vps-form__label">Расположение</span>
+          <select
+            className="vps-form__control"
+            value={country}
+            onChange={(event) => setCountry(event.target.value)}
+            required
+          >
+            <option value="" disabled>
+              Выберите страну…
+            </option>
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="vps-form__field">
+          <span className="vps-form__label">Имя</span>
+          <input
+            className="vps-form__control"
+            type="text"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="напр. my-vps-01"
+            required
+          />
+        </label>
+
+        <label className="vps-form__field">
+          <span className="vps-form__label">IP</span>
+          <input
+            className="vps-form__control"
+            type="text"
+            value={ip}
+            onChange={(event) => setIp(event.target.value)}
+            placeholder="напр. 150.251.139.253"
+            required
+          />
+        </label>
+
+        <label className="vps-form__field">
+          <span className="vps-form__label">Панель управления</span>
+          <input
+            className="vps-form__control"
+            type="text"
+            value={panel}
+            onChange={(event) => setPanel(event.target.value)}
+            placeholder="напр. https://my.justhost.asia/"
+          />
+        </label>
+
+        <div className="vps-form__field">
+          <span className="vps-form__label">Сервисы</span>
+          <div className="vps-services">
+            {services.length > 0 ? (
+              <ul className="vps-services__list">
+                {services.map((service, index) => (
+                  <li className="vps-services__chip" key={index}>
+                    <span className="vps-services__chip-name">
+                      {service.name.trim() !== '' ? service.name : 'Без имени'}
+                    </span>
+                    <span className="vps-services__chip-meta">{service.type}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span className="vps-services__empty">Сервисы не добавлены</span>
+            )}
+            <IconButton
+              className="vps-services__edit"
+              label="Редактировать сервисы"
+              tooltip="Редактировать сервисы"
+              onClick={() => setServicesOpen(true)}
+            >
+              <EllipsisIcon />
+            </IconButton>
+          </div>
         </div>
 
-        <form className="vps-form" onSubmit={handleSubmit}>
-          <label className="vps-form__field">
-            <span className="vps-form__label">Расположение</span>
-            <select
-              className="vps-form__control"
-              value={country}
-              onChange={(event) => setCountry(event.target.value)}
-              required
-            >
-              <option value="" disabled>
-                Выберите страну…
-              </option>
-              {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-          </label>
+        {error && <div className="vps-form__error">{error}</div>}
 
-          <label className="vps-form__field">
-            <span className="vps-form__label">Имя</span>
-            <input
-              className="vps-form__control"
-              type="text"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="напр. my-vps-01"
-              required
-            />
-          </label>
+        <div className="vps-form__actions">
+          <Button onClick={onClose} disabled={submitting}>
+            Отмена
+          </Button>
+          <Button type="submit" variant="primary" disabled={submitting}>
+            {submitting ? 'Добавление…' : 'Добавить'}
+          </Button>
+        </div>
+      </form>
 
-          <label className="vps-form__field">
-            <span className="vps-form__label">IP</span>
-            <input
-              className="vps-form__control"
-              type="text"
-              value={ip}
-              onChange={(event) => setIp(event.target.value)}
-              placeholder="напр. 150.251.139.253"
-              required
-            />
-          </label>
-
-          <label className="vps-form__field">
-            <span className="vps-form__label">Панель управления</span>
-            <input
-              className="vps-form__control"
-              type="text"
-              value={panel}
-              onChange={(event) => setPanel(event.target.value)}
-              placeholder="напр. https://my.justhost.asia/"
-            />
-          </label>
-
-          <div className="vps-form__field">
-            <span className="vps-form__label">Сервисы</span>
-            <div className="vps-services">
-              {services.length > 0 ? (
-                <ul className="vps-services__list">
-                  {services.map((service, index) => (
-                    <li className="vps-services__chip" key={index}>
-                      <span className="vps-services__chip-name">
-                        {service.name.trim() !== '' ? service.name : 'Без имени'}
-                      </span>
-                      <span className="vps-services__chip-meta">{service.type}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <span className="vps-services__empty">Сервисы не добавлены</span>
-              )}
-              <button
-                type="button"
-                className="vps-services__edit"
-                onClick={() => setServicesOpen(true)}
-                aria-label="Редактировать сервисы"
-                title="Редактировать сервисы"
-              >
-                <EllipsisIcon />
-              </button>
-            </div>
-          </div>
-
-          {error && <div className="vps-form__error">{error}</div>}
-
-          <div className="vps-form__actions">
-            <button
-              type="button"
-              className="vps-form__button"
-              onClick={onClose}
-              disabled={submitting}
-            >
-              Отмена
-            </button>
-            <button
-              type="submit"
-              className="vps-form__button vps-form__button--primary"
-              disabled={submitting}
-            >
-              {submitting ? 'Добавление…' : 'Добавить'}
-            </button>
-          </div>
-        </form>
-
-        {servicesOpen && (
-          <ServicesEditor
-            services={services}
-            onChange={setServices}
-            onClose={() => setServicesOpen(false)}
-          />
-        )}
-      </div>
-    </div>
+      {servicesOpen && (
+        <ServicesEditor
+          services={services}
+          onChange={setServices}
+          onClose={() => setServicesOpen(false)}
+        />
+      )}
+    </Modal>
   );
 }
 
@@ -249,9 +220,9 @@ function ServicesEditor({ services, onChange, onClose }: ServicesEditorProps) {
       >
         <div className="services-editor__head">
           <h4>Сервисы</h4>
-          <button type="button" className="modal__close" onClick={onClose} aria-label="Готово">
+          <IconButton label="Готово" onClick={onClose}>
             ✕
-          </button>
+          </IconButton>
         </div>
 
         {services.length === 0 && (
@@ -290,36 +261,32 @@ function ServicesEditor({ services, onChange, onClose }: ServicesEditorProps) {
                   placeholder="Адрес (URL или host)"
                 />
               </div>
-              <button
-                type="button"
+              <IconButton
                 className="services-editor__remove"
+                danger
+                label="Удалить сервис"
+                tooltip="Удалить сервис"
                 onClick={() => removeService(index)}
-                aria-label="Удалить сервис"
-                title="Удалить сервис"
               >
                 <TrashIcon />
-              </button>
+              </IconButton>
             </li>
           ))}
         </ul>
 
-        <button
-          type="button"
-          className="vps-form__button vps-form__button--primary services-editor__add"
+        <Button
+          variant="primary"
+          icon={<PlusIcon />}
+          className="services-editor__add"
           onClick={addService}
         >
-          <PlusIcon />
           Добавить сервис
-        </button>
+        </Button>
 
         <div className="vps-form__actions">
-          <button
-            type="button"
-            className="vps-form__button vps-form__button--primary"
-            onClick={onClose}
-          >
+          <Button variant="primary" onClick={onClose}>
             Готово
-          </button>
+          </Button>
         </div>
       </div>
     </div>

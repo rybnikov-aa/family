@@ -12,6 +12,8 @@ import {
   UploadIcon,
 } from './icons';
 import VpsAddModal from './VpsAddModal';
+import Modal from './Modal';
+import IconButton from './IconButton';
 import { availabilityState, overallAvailability, vpsAvailability } from '../utils/availability';
 import { useAuth } from '../hooks/useAuth';
 
@@ -126,14 +128,8 @@ function VpsDetailsModal({
     }, 6000);
   };
 
-  // Закрытие по Escape. Когда открыта форма добавления — Escape обрабатывает сама форма.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !adding) onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [adding, onClose]);
+  // Закрытие по Escape обрабатывает базовый Modal (при открытой форме добавления
+  // вместо этой модалки рендерится VpsAddModal со своим обработчиком).
 
   // VPS добавлен — вернуться к списку и принудительно перепроверить (обход кэша).
   const handleAdded = () => {
@@ -146,212 +142,193 @@ function VpsDetailsModal({
     return <VpsAddModal onClose={() => setAdding(false)} onAdded={handleAdded} />;
   }
 
+  // Кнопки-иконки в шапке модалки: «+» (добавить), импорт из JSON, «Обновить».
+  const modalActions = (
+    <>
+      {isAdmin && (
+        <IconButton label="Добавить VPS" tooltip="Добавить VPS" onClick={() => setAdding(true)}>
+          <PlusIcon />
+        </IconButton>
+      )}
+      {isAdmin && (
+        <IconButton
+          label="Импорт из JSON"
+          tooltip="Импорт VPS из JSON-файла"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={importState.status === 'reading' || importState.status === 'importing'}
+        >
+          <UploadIcon />
+        </IconButton>
+      )}
+      {onRefresh && (
+        <IconButton
+          label="Обновить"
+          tooltip="Обновить"
+          spinning={refreshing}
+          disabled={refreshing}
+          onClick={onRefresh}
+        >
+          <RefreshIcon />
+        </IconButton>
+      )}
+    </>
+  );
+
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div
-        className="modal modal--wide"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Доступность VPS"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="modal__head">
-          <h3>Доступность VPS</h3>
-          <div className="modal__head-actions">
-            {isAdmin && (
-              <button
-                type="button"
-                className="modal__add"
-                onClick={() => setAdding(true)}
-                aria-label="Добавить VPS"
-                title="Добавить VPS"
-              >
-                <PlusIcon />
-              </button>
-            )}
-            {isAdmin && (
-              <button
-                type="button"
-                className="modal__add"
-                onClick={() => fileInputRef.current?.click()}
-                aria-label="Импорт из JSON"
-                title="Импорт VPS из JSON-файла"
-                disabled={importState.status === 'reading' || importState.status === 'importing'}
-              >
-                <UploadIcon />
-              </button>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json,application/json"
-              hidden
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void handleImportFile(file);
-              }}
-            />
-            {onRefresh && (
-              <button
-                type="button"
-                className={`modal__refresh${refreshing ? ' modal__refresh--spinning' : ''}`}
-                onClick={onRefresh}
-                aria-label="Обновить"
-                title="Обновить"
-                disabled={refreshing}
-              >
-                <RefreshIcon />
-              </button>
-            )}
-            <button type="button" className="modal__close" onClick={onClose} aria-label="Закрыть">
-              ✕
-            </button>
-          </div>
-        </div>
+    <Modal title="Доступность VPS" wide onClose={onClose} actions={modalActions}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        hidden
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void handleImportFile(file);
+        }}
+      />
 
-        <div className="modal__summary">
-          Общая доступность: <strong>{Math.round(overall * 100)}%</strong>
-        </div>
-
-        {importState.status !== 'idle' && (
-          <div
-            className={`modal__import-note${
-              importState.status === 'done'
-                ? ' modal__import-note--ok'
-                : importState.status === 'error'
-                  ? ' modal__import-note--error'
-                  : ''
-            }`}
-            role="status"
-          >
-            {importState.status === 'reading' && 'Чтение файла…'}
-            {importState.status === 'importing' && 'Импорт…'}
-            {importState.status === 'done' && (
-              <>
-                Импортировано: <strong>{importState.imported}</strong>
-                {importState.skipped > 0 && (
-                  <>
-                    {'; '}пропущено: <strong>{importState.skipped}</strong>
-                  </>
-                )}
-                {importState.errors.length > 0 && (
-                  <ul className="modal__import-errors">
-                    {importState.errors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            )}
-            {importState.status === 'error' && importState.message}
-          </div>
-        )}
-
-        {deleteError && (
-          <div className="modal__import-note modal__import-note--error" role="alert">
-            {deleteError}
-          </div>
-        )}
-
-        <div className="modal__list">
-          {statuses.map((vps) => {
-            const availability = vpsAvailability(vps);
-            const state = availabilityState(Math.round(availability.total * 100));
-            return (
-              <div className="modal__vps" key={vps.name}>
-                <img
-                  className="modal__vps-flag"
-                  src={`https://flagcdn.com/${vps.country.toLowerCase()}.svg`}
-                  alt={`Флаг: ${vps.country}`}
-                  width={24}
-                  height={16}
-                />
-                <div className="modal__vps-head">
-                  <span className="modal__vps-name">{vps.name}</span>
-                  <span className={`modal__vps-percent modal__vps-percent--${state}`}>
-                    {Math.round(availability.total * 100)}%
-                  </span>
-                  <span className="modal__vps-head-actions">
-                    {vps.panel && (
-                      <a
-                        className="modal__vps-panel"
-                        href={vps.panel}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        data-tooltip="Панель управления хостера"
-                        aria-label="Панель управления хостера"
-                      >
-                        <SettingsIcon />
-                      </a>
-                    )}
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        className="modal__vps-delete"
-                        onClick={() => handleDelete(vps.name)}
-                        aria-label="Удалить VPS"
-                        data-tooltip="Удалить VPS"
-                        disabled={deleting === vps.name}
-                      >
-                        <TrashIcon />
-                      </button>
-                    )}
-                  </span>
-                </div>
-                <div className="modal__vps-ip-row">
-                  <span className="modal__vps-ip">{vps.ip}</span>
-                  <button
-                    type="button"
-                    className={`modal__vps-copy${
-                      copiedIp === vps.ip ? ' modal__vps-copy--copied' : ''
-                    }`}
-                    onClick={() => copyIp(vps.ip)}
-                    aria-label="Скопировать IP"
-                    data-tooltip={copiedIp === vps.ip ? 'Скопировано' : 'Скопировать IP'}
-                  >
-                    {copiedIp === vps.ip ? <CheckIcon /> : <CopyIcon />}
-                  </button>
-                </div>
-                <ul className="modal__services">
-                  {vps.services.length > 0 ? (
-                    vps.services.map((service) => (
-                      <li key={service.name} className="modal__service">
-                        <span
-                          className={`modal__service-dot modal__service-dot--${
-                            service.online ? 'ok' : 'error'
-                          }`}
-                          title={service.online ? 'доступен' : 'недоступен'}
-                        />
-                        {service.type === 'http' ? (
-                          <a
-                            className="modal__service-name"
-                            href={service.address}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title={service.address}
-                          >
-                            {service.name}
-                          </a>
-                        ) : (
-                          <span className="modal__service-name" title={service.address}>
-                            {service.name}
-                          </span>
-                        )}
-                        <span className="modal__service-latency">
-                          {service.latencyMs != null ? `${Math.round(service.latencyMs)} мс` : '—'}
-                        </span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="modal__service modal__service--muted">Сервисы не настроены</li>
-                  )}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
+      <div className="modal__summary">
+        Общая доступность: <strong>{Math.round(overall * 100)}%</strong>
       </div>
-    </div>
+
+      {importState.status !== 'idle' && (
+        <div
+          className={`modal__import-note${
+            importState.status === 'done'
+              ? ' modal__import-note--ok'
+              : importState.status === 'error'
+                ? ' modal__import-note--error'
+                : ''
+          }`}
+          role="status"
+        >
+          {importState.status === 'reading' && 'Чтение файла…'}
+          {importState.status === 'importing' && 'Импорт…'}
+          {importState.status === 'done' && (
+            <>
+              Импортировано: <strong>{importState.imported}</strong>
+              {importState.skipped > 0 && (
+                <>
+                  {'; '}пропущено: <strong>{importState.skipped}</strong>
+                </>
+              )}
+              {importState.errors.length > 0 && (
+                <ul className="modal__import-errors">
+                  {importState.errors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+          {importState.status === 'error' && importState.message}
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="modal__import-note modal__import-note--error" role="alert">
+          {deleteError}
+        </div>
+      )}
+
+      <div className="modal__list">
+        {statuses.map((vps) => {
+          const availability = vpsAvailability(vps);
+          const state = availabilityState(Math.round(availability.total * 100));
+          return (
+            <div className="modal__vps" key={vps.name}>
+              <img
+                className="modal__vps-flag"
+                src={`https://flagcdn.com/${vps.country.toLowerCase()}.svg`}
+                alt={`Флаг: ${vps.country}`}
+                width={24}
+                height={16}
+              />
+              <div className="modal__vps-head">
+                <span className="modal__vps-name">{vps.name}</span>
+                <span className={`modal__vps-percent modal__vps-percent--${state}`}>
+                  {Math.round(availability.total * 100)}%
+                </span>
+                <span className="modal__vps-head-actions">
+                  {vps.panel && (
+                    <a
+                      className="icon-btn icon-btn--sm icon-btn--plain"
+                      href={vps.panel}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-tooltip="Панель управления хостера"
+                      aria-label="Панель управления хостера"
+                    >
+                      <SettingsIcon />
+                    </a>
+                  )}
+                  {isAdmin && (
+                    <IconButton
+                      size="sm"
+                      plain
+                      danger
+                      label="Удалить VPS"
+                      tooltip="Удалить VPS"
+                      onClick={() => handleDelete(vps.name)}
+                      disabled={deleting === vps.name}
+                    >
+                      <TrashIcon />
+                    </IconButton>
+                  )}
+                </span>
+              </div>
+              <div className="modal__vps-ip-row">
+                <span className="modal__vps-ip">{vps.ip}</span>
+                <IconButton
+                  size="sm"
+                  plain
+                  active={copiedIp === vps.ip}
+                  label="Скопировать IP"
+                  tooltip={copiedIp === vps.ip ? 'Скопировано' : 'Скопировать IP'}
+                  onClick={() => copyIp(vps.ip)}
+                >
+                  {copiedIp === vps.ip ? <CheckIcon /> : <CopyIcon />}
+                </IconButton>
+              </div>
+              <ul className="modal__services">
+                {vps.services.length > 0 ? (
+                  vps.services.map((service) => (
+                    <li key={service.name} className="modal__service">
+                      <span
+                        className={`modal__service-dot modal__service-dot--${
+                          service.online ? 'ok' : 'error'
+                        }`}
+                        title={service.online ? 'доступен' : 'недоступен'}
+                      />
+                      {service.type === 'http' ? (
+                        <a
+                          className="modal__service-name"
+                          href={service.address}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={service.address}
+                        >
+                          {service.name}
+                        </a>
+                      ) : (
+                        <span className="modal__service-name" title={service.address}>
+                          {service.name}
+                        </span>
+                      )}
+                      <span className="modal__service-latency">
+                        {service.latencyMs != null ? `${Math.round(service.latencyMs)} мс` : '—'}
+                      </span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="modal__service modal__service--muted">Сервисы не настроены</li>
+                )}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+    </Modal>
   );
 }
 
