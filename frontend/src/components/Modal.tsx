@@ -1,9 +1,9 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import IconButton from './IconButton';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 
 interface ModalProps {
-  /** Заголовок модалки (также aria-label). */
+  /** Заголовок модалки (aria-labelledby). */
   title: string;
   /** Закрыть модалку (крестик/подложка/Escape). */
   onClose: () => void;
@@ -20,8 +20,10 @@ interface ModalProps {
 
 /**
  * Базовая модалка портала: подложка + карточка с заголовком и закрытием.
- * Закрытие — крестик, клик по подложке, Escape; пока открыта, страница
- * не прокручивается. Контент — `children`; кнопки-иконки — через `actions`.
+ * Закрытие — крестик, клик по подложке, Escape; пока открыта, страница не
+ * прокручивается, фокус ловится внутри модалки (Tab/Shift+Tab) и при закрытии
+ * возвращается элементу, который её открыл. Контент — `children`;
+ * кнопки-иконки в шапке — через `actions`.
  */
 function Modal({
   title,
@@ -32,28 +34,77 @@ function Modal({
   closeOnEscape = true,
   closeOnBackdrop = true,
 }: ModalProps) {
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+
   useEscapeClose(onClose, closeOnEscape);
 
-  // Блокируем прокрутку страницы под модалкой.
+  // Фокус на модалку при открытии, блокировка прокрутки; возврат фокуса при закрытии.
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+
+    const dialog = dialogRef.current;
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialog?.focus();
+
     return () => {
       document.body.style.overflow = prev;
+      previouslyFocused?.focus();
     };
+  }, []);
+
+  // Ловушка фокуса: Tab/Shift+Tab не уходят за пределы модалки.
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const getFocusable = () =>
+      Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null);
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const items = getFocusable();
+      if (items.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey) {
+        if (active === first || !dialog.contains(active)) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (active === last || !dialog.contains(active)) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
 
   return (
     <div className="modal-backdrop" onClick={closeOnBackdrop ? onClose : undefined}>
       <div
+        ref={dialogRef}
         className={`modal${wide ? ' modal--wide' : ''}`}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby={titleId}
+        tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="modal__head">
-          <h3>{title}</h3>
+          <h3 id={titleId}>{title}</h3>
           <div className="modal__head-actions">
             {actions}
             <IconButton label="Закрыть" onClick={onClose}>

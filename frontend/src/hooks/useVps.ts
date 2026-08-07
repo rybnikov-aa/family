@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { fetchVps, type VpsStatus } from '../api/client';
+import { useApiData } from './useApiData';
 
 /** Результат запроса статусов VPS: список, ошибка, загрузка и перезагрузка. */
 interface UseVpsResult {
@@ -11,37 +12,11 @@ interface UseVpsResult {
 }
 
 export function useVps(): UseVpsResult {
-  const [statuses, setStatuses] = useState<VpsStatus[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-
-    fetchVps()
-      .then((result) => {
-        if (active) setStatuses(result);
-      })
-      .catch((err: unknown) => {
-        if (active) setError(err instanceof Error ? err.message : 'Unknown error');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data, error, loading, reload } = useApiData<VpsStatus[]>(() => fetchVps());
 
   const refresh = useCallback(() => {
-    setLoading(true);
-    setError(null);
-    fetchVps(true)
-      .then((result) => setStatuses(result))
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Unknown error'))
-      .finally(() => setLoading(false));
-  }, []);
+    reload(() => fetchVps(true));
+  }, [reload]);
 
-  return { statuses, error, loading, refresh };
+  return { statuses: data ?? [], error, loading, refresh };
 }

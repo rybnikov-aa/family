@@ -19,13 +19,11 @@ function SectionCard({
   title,
   description,
   tag,
-  href = '#',
+  href,
   highlight = false,
 }: SectionCardProps) {
   const style = { '--accent': color } as CSSProperties;
   const className = `card${highlight ? ' card-renov' : ''}`;
-  // Внутренние маршруты приложения рендерим через Link (hash-форма), остальное — обычные ссылки.
-  const internal = href !== '#' && (Object.values(ROUTES) as string[]).includes(href);
 
   const body = (
     <>
@@ -37,6 +35,18 @@ function SectionCard({
       <div className="tag">{tag}</div>
     </>
   );
+
+  // Разделы-заглушки без ссылки (например, «Дневник», «Планы») — не ссылки.
+  if (!href) {
+    return (
+      <div className={className} style={style}>
+        {body}
+      </div>
+    );
+  }
+
+  // Внутренние маршруты приложения рендерим через Link (hash-форма), остальное — обычные ссылки.
+  const internal = (Object.values(ROUTES) as string[]).includes(href);
 
   if (internal) {
     return (

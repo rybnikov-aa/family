@@ -14,8 +14,19 @@ const SERVICE_TYPES = [
   { value: 'ocserv', label: 'OpenConnect (ocserv)' },
 ];
 
+/** Черновик сервиса: VpsServiceConfig + локальный id для стабильных React-ключей. */
+type ServiceDraft = VpsServiceConfig & { uid: number };
+
+/** Монотонный счётчик локальных id сервисов (только для ключей списка). */
+let nextServiceUid = 1;
+
 /** Пустой черновик сервиса. */
-const emptyService = (): VpsServiceConfig => ({ name: '', type: 'http', address: '' });
+const emptyService = (): ServiceDraft => ({
+  uid: nextServiceUid++,
+  name: '',
+  type: 'http',
+  address: '',
+});
 
 interface VpsAddModalProps {
   /** Закрыть форму без сохранения */
@@ -35,7 +46,7 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
   const [name, setName] = useState('');
   const [ip, setIp] = useState('');
   const [panel, setPanel] = useState('');
-  const [services, setServices] = useState<VpsServiceConfig[]>([]);
+  const [services, setServices] = useState<ServiceDraft[]>([]);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -197,8 +208,8 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
 }
 
 interface ServicesEditorProps {
-  services: VpsServiceConfig[];
-  onChange: (services: VpsServiceConfig[]) => void;
+  services: ServiceDraft[];
+  onChange: (services: ServiceDraft[]) => void;
   onClose: () => void;
 }
 
@@ -231,7 +242,7 @@ function ServicesEditor({ services, onChange, onClose }: ServicesEditorProps) {
 
         <ul className="services-editor__list">
           {services.map((service, index) => (
-            <li className="services-editor__item" key={index}>
+            <li className="services-editor__item" key={service.uid}>
               <div className="services-editor__fields">
                 <input
                   className="vps-form__control services-editor__name"

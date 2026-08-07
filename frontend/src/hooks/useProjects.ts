@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { fetchProjects, type Project } from '../api/client';
+import { useApiData } from './useApiData';
 
 /** Результат запроса списка проектов: данные, ошибка и флаг загрузки. */
 interface UseProjectsResult {
@@ -9,28 +9,6 @@ interface UseProjectsResult {
 }
 
 export function useProjects(): UseProjectsResult {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-
-    fetchProjects()
-      .then((result) => {
-        if (active) setProjects(result);
-      })
-      .catch((err: unknown) => {
-        if (active) setError(err instanceof Error ? err.message : 'Unknown error');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  return { projects, error, loading };
+  const { data, error, loading } = useApiData<Project[]>(() => fetchProjects());
+  return { projects: data ?? [], error, loading };
 }

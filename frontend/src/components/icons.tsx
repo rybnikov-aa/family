@@ -130,7 +130,7 @@ export function ServerIcon(props: IconProps) {
 /** Солнце — светлая тема */
 export function SunIcon(props: IconProps) {
   return (
-    <svg {...base} stroke="#f59e0b" {...props}>
+    <svg {...base} {...props}>
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2" />
       <path d="M12 20v2" />
@@ -147,7 +147,7 @@ export function SunIcon(props: IconProps) {
 /** Луна — тёмная тема */
 export function MoonIcon(props: IconProps) {
   return (
-    <svg {...base} stroke="#6366f1" {...props}>
+    <svg {...base} {...props}>
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
     </svg>
   );
@@ -156,7 +156,7 @@ export function MoonIcon(props: IconProps) {
 /** Монитор — системная тема */
 export function MonitorIcon(props: IconProps) {
   return (
-    <svg {...base} stroke="#6b7280" {...props}>
+    <svg {...base} {...props}>
       <rect width="20" height="14" x="2" y="3" rx="2" ry="2" />
       <line x1="8" x2="16" y1="21" y2="21" />
       <line x1="12" x2="12" y1="17" y2="21" />

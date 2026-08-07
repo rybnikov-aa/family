@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { fetchHealth, type HealthResponse } from '../api/client';
+import { useApiData } from './useApiData';
 
 interface UseHealthResult {
   data: HealthResponse | null;
@@ -8,28 +8,5 @@ interface UseHealthResult {
 }
 
 export function useHealth(): UseHealthResult {
-  const [data, setData] = useState<HealthResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-
-    fetchHealth()
-      .then((result) => {
-        if (active) setData(result);
-      })
-      .catch((err: unknown) => {
-        if (active) setError(err instanceof Error ? err.message : 'Unknown error');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  return { data, error, loading };
+  return useApiData<HealthResponse>(() => fetchHealth());
 }
