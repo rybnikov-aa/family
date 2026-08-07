@@ -574,6 +574,8 @@ body {
   padding: 10px 12px;
   border-radius: 10px;
   margin-bottom: 16px;
+  /* Длинные URL в уведомлениях не должны выходить за край на узких экранах */
+  overflow-wrap: anywhere;
 }
 .modal__import-note--ok {
   color: var(--color-success-strong);
@@ -594,6 +596,7 @@ body {
   gap: 2px;
   color: var(--text-muted);
   font-size: 0.78rem;
+  overflow-wrap: anywhere;
 }
 .modal__list {
   display: grid;
@@ -866,6 +869,8 @@ select.vps-form__control {
   gap: 12px;
 }
 .pdf-upload__file-name {
+  flex: 1;
+  min-width: 0;
   font-size: 0.85rem;
   color: var(--text-muted);
   overflow: hidden;
@@ -1373,6 +1378,31 @@ select.vps-form__control {
     gap: 8px;
     text-align: center;
   }
+  /* Формы и модалки на мобильных: компактнее, шапка и кнопки переносятся */
+  .page__head {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .page__head-actions {
+    margin-left: 0;
+  }
+  .vps-form__actions {
+    flex-direction: column;
+  }
+  .vps-form__actions .btn {
+    width: 100%;
+  }
+  .services-editor__fields {
+    grid-template-columns: 1fr;
+  }
+  .modal-backdrop {
+    padding: 12px;
+  }
+  .modal {
+    padding: 20px 16px;
+    border-radius: var(--radius-xl);
+    max-height: 90vh;
+  }
 }
 
 /* Экран входа */
@@ -1511,5 +1541,48 @@ select.vps-form__control {
   }
   .login__card {
     padding: 32px 24px 28px;
+  }
+}
+
+/* ── Мобильная адаптация форм (не влияет на десктоп — шире 767px) ── */
+
+/* П1: iOS-зум — поля форм >= 16px, иначе Safari увеличивает масштаб при фокусе */
+@media (max-width: 767px) {
+  .login__input,
+  .vps-form__control {
+    font-size: 16px;
+  }
+  /* П5: оверлей редактора сервисов фиксируем относительно вьюпорта,
+     чтобы он не «уезжал» при прокрутке самой модалки */
+  .services-editor-backdrop {
+    position: fixed;
+    z-index: 200;
+    border-radius: 0;
+    padding: 16px;
+  }
+}
+
+/* П7: переключатель темы на очень узких экранах — только иконки */
+@media (max-width: 360px) {
+  .theme-toggle__label {
+    display: none;
+  }
+}
+
+/* П9: короткие вьюпорты (альбомная ориентация, клавиатура iOS) —
+   не обрезаем верх центрируемого контента */
+@media (max-height: 640px) {
+  body {
+    align-items: flex-start;
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+}
+
+/* П11: сенсорные экраны — крупнее зона нажатия основных кнопок-иконок */
+@media (hover: none) {
+  .icon-btn:not(.icon-btn--sm):not(.icon-btn--xs) {
+    width: 40px;
+    height: 40px;
   }
 }
