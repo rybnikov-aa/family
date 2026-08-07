@@ -54,7 +54,7 @@ CREATE INDEX IF NOT EXISTS idx_vps_services_vps_id ON vps_services(vps_id);
 - Валидация — `normalizeEntry()`: trim полей, обязательны `country`/`name`/`ip`; сервисы фильтруются по непустым `name`/`type`/`address`.
 - 409 — `isConstraintError(err)`: `(err.errcode & 0xff) === 19` (SQLITE_CONSTRAINT; фактический errcode 2067 = SQLITE_CONSTRAINT_UNIQUE). НЕ полагаться на `err.code` (`ERR_SQLITE_ERROR`).
 - После любой мутации (create/import/delete) — `reloadVpsEntries()`.
-- Прочие непредвиденные ошибки контроллеры пробрасывают → `errorHandler` (500 `{message:'Internal Server Error'}`).
+- Прочие непредвиденные ошибки контроллеры пробрасывают → `errorHandler` (500 `{message:'Внутренняя ошибка сервера'}`).
 
 ## Чекер (`backend/src/services/vpsChecker.ts`)
 

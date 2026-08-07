@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { env } from '../config/env';
+import { isConstraintError } from '../db/errors';
 import { getSessionToken } from '../middlewares/auth';
 import {
   createSession,
@@ -15,12 +16,6 @@ import {
   updateUserProfile,
   verifyPassword,
 } from '../services/authService';
-
-/** Признак ошибки нарушения ограничения SQLite (UNIQUE и т.п.). */
-function isConstraintError(err: unknown): boolean {
-  const sqliteErr = err as { errcode?: number } | undefined;
-  return ((sqliteErr?.errcode ?? 0) & 0xff) === 19; // SQLITE_CONSTRAINT
-}
 
 /** Очищает cookie сессии в ответе. */
 function clearSessionCookie(res: Response): void {

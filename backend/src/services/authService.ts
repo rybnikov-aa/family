@@ -38,11 +38,6 @@ interface UserRow {
   role: string;
 }
 
-interface SessionRow {
-  user_id: number;
-  expires_at: string;
-}
-
 // Формат хэша пароля: scrypt$N$r$p$<saltHex>$<hashHex>.
 const SCRYPT_N = 16384;
 const SCRYPT_R = 8;
@@ -193,20 +188,28 @@ export function createSession(userId: number): string {
   return token;
 }
 
-/** Ищет действующую сессию по токену; просроченные удаляет и возвращает undefined. */
-export function findSession(token: string): { userId: number } | undefined {
+/**
+ * Возвращает пользователя по действующей сессии — один JOIN-запрос вместо
+ * двух (sessions + users). Просроченную сессию удаляет и возвращает undefined.
+ */
+export function getSessionUser(token: string): AuthUser | undefined {
   const db = getDb();
   const tokenHash = sha256(token);
   const row = db
-    .prepare('SELECT user_id, expires_at FROM sessions WHERE token_hash = ?')
-    .get(tokenHash);
+    .prepare(
+      `SELECT u.id, u.username, u.name, u.role, s.expires_at
+       FROM sessions s
+       JOIN users u ON u.id = s.user_id
+       WHERE s.token_hash = ?`,
+    )
+    .get(tokenHash) as unknown as
+    { id: number; username: string; name: string; role: string; expires_at: string } | undefined;
   if (!row) return undefined;
-  const session = row as unknown as SessionRow;
-  if (new Date(session.expires_at).getTime() <= Date.now()) {
+  if (new Date(row.expires_at).getTime() <= Date.now()) {
     db.prepare('DELETE FROM sessions WHERE token_hash = ?').run(tokenHash);
     return undefined;
   }
-  return { userId: session.user_id };
+  return { id: row.id, username: row.username, name: row.name, role: row.role as UserRole };
 }
 
 /** Удаляет сессию (выход). */

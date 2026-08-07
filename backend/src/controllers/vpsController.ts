@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { getVpsStatuses } from '../services/vpsChecker';
 import { deleteVpsEntry, insertVpsEntry } from '../db/vpsRepository';
+import { isConstraintError } from '../db/errors';
 import { reloadVpsEntries, type VpsEntry, type VpsServiceConfig } from '../config/vps';
 
 export async function vpsController(req: Request, res: Response): Promise<void> {
@@ -32,12 +33,6 @@ function normalizeEntry(body: Record<string, unknown>): VpsEntry | null {
     : [];
 
   return { country, name, ip, panel, services };
-}
-
-/** Признак ошибки нарушения ограничения SQLite (UNIQUE и т.п.). */
-function isConstraintError(err: unknown): boolean {
-  const sqliteErr = err as { errcode?: number } | undefined;
-  return ((sqliteErr?.errcode ?? 0) & 0xff) === 19; // SQLITE_CONSTRAINT
 }
 
 /**

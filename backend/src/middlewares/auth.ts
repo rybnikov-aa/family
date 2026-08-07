@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { env } from '../config/env';
-import { findSession, getUserById, toAuthUser, type AuthUser } from '../services/authService';
+import { getSessionUser, type AuthUser } from '../services/authService';
 
 declare global {
   namespace Express {
@@ -43,27 +43,31 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     res.status(401).json({ message: 'Требуется авторизация' });
     return;
   }
-  const session = findSession(token);
-  if (!session) {
+  const user = getSessionUser(token);
+  if (!user) {
     res.status(401).json({ message: 'Сессия истекла или недействительна' });
     return;
   }
-  const row = getUserById(session.userId);
-  if (!row) {
-    res.status(401).json({ message: 'Пользователь не найден' });
-    return;
-  }
-  req.user = toAuthUser(row);
+  req.user = user;
   next();
 }
 
-/** Требует роль `admin` (поверх `requireAuth`); иначе — 403. */
+/**
+ * Требует роль `admin` (поверх `requireAuth`); иначе — 403.
+ * Если `requireAuth` уже отработал на уровне роутера (req.user заполнен),
+ * не переаутентифицируемся повторно — чтобы не дублировать запросы к БД.
+ */
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
-  requireAuth(req, res, () => {
+  const checkRole = (): void => {
     if (req.user?.role !== 'admin') {
       res.status(403).json({ message: 'Недостаточно прав' });
       return;
     }
     next();
-  });
+  };
+  if (req.user) {
+    checkRole();
+  } else {
+    requireAuth(req, res, checkRole);
+  }
 }

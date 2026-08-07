@@ -1,17 +1,13 @@
 import 'dotenv/config';
 
-const parsePort = (value: string | undefined, fallback: number): number => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-};
-
-const parseHours = (value: string | undefined, fallback: number): number => {
+/** Разбор положительного целого из env (порт, часы и т.п.); при невалидном — fallback. */
+const parsePositiveInt = (value: string | undefined, fallback: number): number => {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
 export const env = {
-  PORT: parsePort(process.env.PORT, 3000),
+  PORT: parsePositiveInt(process.env.PORT, 3000),
   NODE_ENV: process.env.NODE_ENV ?? 'development',
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
   /** Путь к файлу SQLite. По умолчанию — `data/vps.sqlite` рядом с backend. */
@@ -30,7 +26,7 @@ export const env = {
   /** Имя cookie сессии (httpOnly, SameSite=Lax). */
   AUTH_COOKIE_NAME: process.env.AUTH_COOKIE_NAME ?? 'sid',
   /** Срок жизни сессии в часах (по умолчанию 7 суток). */
-  SESSION_TTL_HOURS: parseHours(process.env.SESSION_TTL_HOURS, 168),
+  SESSION_TTL_HOURS: parsePositiveInt(process.env.SESSION_TTL_HOURS, 168),
   /**
    * Bootstrap администратора: если в БД ещё нет ни одного пользователя,
    * при старте создаётся учётка с ролью `admin`. Пароль берётся из этой

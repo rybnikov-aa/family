@@ -87,19 +87,19 @@ async function checkIp(entry: VpsEntry): Promise<{
 }> {
   const started = performance.now();
   const probes: Promise<boolean>[] = [];
-  const probed: string[] = [];
+  const probed = new Set<string>();
 
   const addTcp = (port: number) => {
     const key = `tcp:${port}`;
-    if (!probed.includes(key)) {
-      probed.push(key);
+    if (!probed.has(key)) {
+      probed.add(key);
       probes.push(tcpReachable(entry.ip, port, IP_TIMEOUT_MS));
     }
   };
   const addUdpDtls = (port: number) => {
     const key = `udp:${port}`;
-    if (!probed.includes(key)) {
-      probed.push(key);
+    if (!probed.has(key)) {
+      probed.add(key);
       probes.push(udpDtlsReachable(entry.ip, port, IP_TIMEOUT_MS));
     }
   };
@@ -125,7 +125,7 @@ async function checkIp(entry: VpsEntry): Promise<{
   return {
     online,
     latencyMs: online ? Math.round(performance.now() - started) : null,
-    error: online ? null : `IP ${entry.ip} недоступен (пробы: ${probed.join(', ')})`,
+    error: online ? null : `IP ${entry.ip} недоступен (пробы: ${[...probed].join(', ')})`,
   };
 }
 

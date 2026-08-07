@@ -26,6 +26,8 @@ function openDatabase(): DatabaseSync {
   const db = new DatabaseSync(dbPath);
   db.exec('PRAGMA journal_mode = WAL');
   db.exec('PRAGMA foreign_keys = ON');
+  // Таймаут ожидания блокировки — конкурентные записи не падают с SQLITE_BUSY.
+  db.exec('PRAGMA busy_timeout = 5000');
 
   // Схема: VPS (1) — (N) services.
   // `name` у VPS уникален — естественный ключ для идентификации записей.
