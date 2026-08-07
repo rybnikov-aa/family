@@ -146,7 +146,6 @@ CSS: `.modal-backdrop`, `.modal`, `.modal--wide`, `.modal__head`, `.modal__head-
 | `max-width: 640px`  | `.modal__list` — одна колонка (карточки VPS)                                                                                                                           |
 | `max-width: 480px`  | компактнее `.container`; шапка «Проекты» переносится (`.page__head { flex-wrap: wrap }`); кнопки форм — в столбик; `.modal` — `padding: 20px 16px`, `max-height: 90vh` |
 | `max-width: 767px`  | поля форм `font-size: 16px` (анти-зум iOS); оверлей редактора сервисов — `position: fixed` поверх вьюпорта                                                             |
-| `max-width: 360px`  | подписи переключателя темы скрываются (`.theme-toggle__label { display: none }`)                                                                                       |
 | `max-height: 640px` | `body { align-items: flex-start }` — верх не обрезается на коротких вьюпортах (альбомная ориентация, клавиатура iOS)                                                   |
 | `hover: none`       | `.icon-btn` (размер `md`) увеличивается до 40px — зона нажатия на сенсорных экранах                                                                                    |
 
@@ -170,6 +169,7 @@ CSS: `.modal-backdrop`, `.modal`, `.modal--wide`, `.modal__head`, `.modal__head-
   дедупликация кнопок-иконок и модалок.
 - ✅ **Фаза 2.** `useApiData<T>` — единый хук данных; `useVps`/`useProjects`/`useHealth` на нём.
 - ✅ **Фаза 3.** Шкалы радиусов/отступов/типографики; консолидация «лестниц» текста (5→3 уровня) и границ
-  (4→2 уровня) с подъёмом контраста; иконки темы (`SunIcon`/`MoonIcon`/`MonitorIcon`) — `currentColor`.
+  (4→2 уровня) с подъёмом контраста; иконки темы (`SunIcon`/`MoonIcon`/`MonitorIcon`) — `currentColor`
+  с сохранением цветов исходных эмодзи через токены `--toggle-icon-sun/moon/system` (light/dark-варианты).
 - ✅ **Фаза 4.** `Modal` — focus-trap, `aria-labelledby`, возврат фокуса; `SectionCard` без «мёртвых ссылок»;
   контраст мелких бейджей (через токены `--text-faint`/`--text-fainter`); стабильные uid-ключи в `ServicesEditor`.

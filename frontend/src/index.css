@@ -38,6 +38,10 @@
   --accent-hover: #2a2a2a;
   --toggle-active-bg: #ffffff;
   --toggle-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  /* Цвета иконок переключателя темы (сохранение цветов исходных эмодзи) */
+  --toggle-icon-sun: #f59e0b;
+  --toggle-icon-moon: #6366f1;
+  --toggle-icon-system: #6b7280;
 
   /* ── Дизайн-система: семантические цвета статусов (одинаковы для обеих тем) ── */
   --color-success: #22c55e;
@@ -125,6 +129,10 @@
   --accent-hover: #d0d0d0;
   --toggle-active-bg: #2e2e36;
   --toggle-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  /* Цвета иконок переключателя темы (ярче на тёмном фоне) */
+  --toggle-icon-sun: #fbbf24;
+  --toggle-icon-moon: #818cf8;
+  --toggle-icon-system: #9ca3af;
 }
 
 * {
@@ -251,6 +259,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  margin: 0 var(--space-4);
 }
 .user__name {
   font-size: 0.85rem;
@@ -260,6 +269,17 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.user__name:hover {
+  color: var(--link-hover);
+}
+.user__icon {
+  color: var(--text-faint);
+  flex-shrink: 0;
+  display: block;
 }
 .user__role {
   font-size: 0.68rem;
@@ -271,6 +291,151 @@ body {
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 2px 8px;
+}
+
+/* Профиль пользователя */
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 560px;
+}
+.profile__title {
+  font-size: var(--font-size-2xl);
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.profile__card {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-1xl);
+  padding: 24px;
+}
+.profile__card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.profile__card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text);
+}
+.profile__card-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.profile__card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.profile__card-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.profile__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.profile__role {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2px 8px;
+}
+.profile__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.profile__label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.profile__input {
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.profile__input:focus {
+  outline: none;
+  border-color: var(--link-hover);
+  background: var(--surface-hover);
+}
+.profile__input::placeholder {
+  color: var(--text-faint);
+}
+.profile__message {
+  font-size: 0.85rem;
+  color: var(--color-success-strong);
+  background: var(--color-success-bg);
+  border: 1px solid var(--color-success-border);
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+.profile__error {
+  font-size: 0.85rem;
+  color: var(--color-danger-strong);
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+.profile__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--accent-text);
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.profile__submit:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.profile__submit:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.profile__hint {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  margin-top: 12px;
 }
 
 /* Hero */
@@ -1091,6 +1256,11 @@ select.vps-form__control {
   border-top-color: var(--card-renov-border);
 }
 
+/* Широкая карточка: занимает две колонки сетки (карточки проектов). */
+.card--wide {
+  grid-column: span 2;
+}
+
 /* News page */
 .page {
   padding-bottom: 8px;
@@ -1309,8 +1479,14 @@ select.vps-form__control {
   width: 16px;
   height: 16px;
 }
-.theme-toggle__label {
-  white-space: nowrap;
+.theme-toggle__icon--light {
+  color: var(--toggle-icon-sun);
+}
+.theme-toggle__icon--dark {
+  color: var(--toggle-icon-moon);
+}
+.theme-toggle__icon--system {
+  color: var(--toggle-icon-system);
 }
 
 /* Responsive */
@@ -1549,7 +1725,8 @@ select.vps-form__control {
 /* П1: iOS-зум — поля форм >= 16px, иначе Safari увеличивает масштаб при фокусе */
 @media (max-width: 767px) {
   .login__input,
-  .vps-form__control {
+  .vps-form__control,
+  .profile__input {
     font-size: 16px;
   }
   /* П5: оверлей редактора сервисов фиксируем относительно вьюпорта,
@@ -1559,13 +1736,6 @@ select.vps-form__control {
     z-index: 200;
     border-radius: 0;
     padding: 16px;
-  }
-}
-
-/* П7: переключатель темы на очень узких экранах — только иконки */
-@media (max-width: 360px) {
-  .theme-toggle__label {
-    display: none;
   }
 }
 

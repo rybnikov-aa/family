@@ -83,6 +83,35 @@ export function toAuthUser(row: UserRow): AuthUser {
   return { id: row.id, username: row.username, name: row.name, role: row.role as UserRole };
 }
 
+/**
+ * Обновляет профиль пользователя: отображаемое имя и/или хэш пароля.
+ * Возвращает обновлённого пользователя (без хэша).
+ */
+export function updateUserProfile(
+  userId: number,
+  updates: { name?: string; passwordHash?: string },
+): AuthUser {
+  const db = getDb();
+  const fields: string[] = [];
+  const values: Array<string | number> = [];
+  if (updates.name !== undefined) {
+    fields.push('name = ?');
+    values.push(updates.name);
+  }
+  if (updates.passwordHash !== undefined) {
+    fields.push('password_hash = ?');
+    values.push(updates.passwordHash);
+  }
+  if (fields.length === 0) {
+    throw new Error('Нет изменений для сохранения');
+  }
+  values.push(userId);
+  db.prepare(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+  const updated = getUserById(userId);
+  if (!updated) throw new Error('Пользователь не найден');
+  return toAuthUser(updated);
+}
+
 /** Создаёт новую сессию, возвращает токен (в БД — только его SHA-256). */
 export function createSession(userId: number): string {
   const token = randomBytes(32).toString('hex');

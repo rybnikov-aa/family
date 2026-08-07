@@ -24,6 +24,16 @@ export function UsersIcon(props: IconProps) {
   );
 }
 
+/** Профиль — один человек */
+export function UserIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
 /** Ремонт — гаечный ключ */
 export function RenovationIcon(props: IconProps) {
   return (

@@ -3,6 +3,7 @@ import { Navigate, Outlet, RouterProvider, createHashRouter, useLocation } from 
 import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
 import ProjectsPage from './pages/ProjectsPage';
+import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import { ROUTES } from './routes';
 import { useAuth } from './hooks/useAuth';
@@ -17,7 +18,9 @@ function RouteLayout() {
         ? 'Новости • family.rybnikov.su'
         : location.pathname === ROUTES.projects
           ? 'Проекты • family.rybnikov.su'
-          : 'Семейное пространство • family.rybnikov.su';
+          : location.pathname === ROUTES.profile
+            ? 'Профиль • family.rybnikov.su'
+            : 'Семейное пространство • family.rybnikov.su';
   }, [location.pathname]);
 
   return <Outlet />;
@@ -48,6 +51,7 @@ const router = createHashRouter([
           { path: ROUTES.home, element: <HomePage /> },
           { path: ROUTES.news, element: <NewsPage /> },
           { path: ROUTES.projects, element: <ProjectsPage /> },
+          { path: ROUTES.profile, element: <ProfilePage /> },
           // Неизвестные пути (например, старый якорь #sections) — на главную.
           { path: '*', element: <Navigate to={ROUTES.home} replace /> },
         ],

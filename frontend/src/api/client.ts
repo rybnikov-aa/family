@@ -74,6 +74,27 @@ export async function fetchMe(): Promise<{ user: AuthUser }> {
   return res.json() as Promise<{ user: AuthUser }>;
 }
 
+/** Входные данные для обновления профиля (имя и/или пароль). */
+export interface ProfileUpdateInput {
+  /** Новое отображаемое имя (если меняем имя). */
+  name?: string;
+  /** Текущий пароль — обязателен при смене пароля. */
+  currentPassword?: string;
+  /** Новый пароль (не короче 6 символов), если задаём/меняем пароль. */
+  password?: string;
+}
+
+/** Обновляет профиль текущего пользователя: `PATCH /api/auth/profile`. */
+export async function updateProfile(input: ProfileUpdateInput): Promise<{ user: AuthUser }> {
+  const res = await apiFetch('/auth/profile', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ user: AuthUser }>;
+}
+
 /**
  * Метаданные проекта (раздел «Проекты»).
  * Проект — подпапка на сервере с `index.html`; метаданные бэкенд читает

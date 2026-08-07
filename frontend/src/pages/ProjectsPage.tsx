@@ -65,6 +65,7 @@ function ProjectsPage() {
                   description={project.description}
                   tag="→ открыть"
                   href={project.url}
+                  wide
                 />
               );
             })}

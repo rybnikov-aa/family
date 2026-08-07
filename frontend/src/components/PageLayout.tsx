@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import StatusCard from './StatusCard';
 import ThemeToggle from './ThemeToggle';
 import IconButton from './IconButton';
-import { LogoutIcon, UsersIcon } from './icons';
+import { LogoutIcon, UserIcon, UsersIcon } from './icons';
 import { ROUTES } from '../routes';
 import { useHealth } from '../hooks/useHealth';
 import { useAuth } from '../hooks/useAuth';
@@ -79,9 +79,10 @@ function PageLayout({ children }: PageLayoutProps) {
           </nav>
           {user && (
             <div className="user">
-              <span className="user__name" title={user.name}>
-                {user.username}
-              </span>
+              <UserIcon className="user__icon" width="1rem" height="1rem" />
+              <Link to={ROUTES.profile} className="user__name" title="Профиль">
+                {user.name}
+              </Link>
               {user.role === 'admin' && <span className="user__role">админ</span>}
               <IconButton label="Выйти" tooltip="Выйти" onClick={() => void logout()}>
                 <LogoutIcon />

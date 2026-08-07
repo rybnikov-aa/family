@@ -7,7 +7,14 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { fetchMe, login as apiLogin, logout as apiLogout, type AuthUser } from '../api/client';
+import {
+  fetchMe,
+  login as apiLogin,
+  logout as apiLogout,
+  updateProfile as apiUpdateProfile,
+  type AuthUser,
+  type ProfileUpdateInput,
+} from '../api/client';
 
 interface AuthContextValue {
   /** Текущий пользователь; `null` — не авторизован. */
@@ -16,6 +23,8 @@ interface AuthContextValue {
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  /** Обновляет профиль (имя/пароль) и обновляет пользователя в контексте. */
+  updateProfile: (input: ProfileUpdateInput) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -64,7 +73,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout]);
+  const updateProfile = useCallback(async (input: ProfileUpdateInput) => {
+    const me = await apiUpdateProfile(input);
+    setUser(me.user);
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, loading, login, logout, updateProfile }),
+    [user, loading, login, logout, updateProfile],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

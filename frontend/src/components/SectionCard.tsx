@@ -11,6 +11,8 @@ interface SectionCardProps {
   tag: string;
   href?: string;
   highlight?: boolean;
+  /** Широкая карточка: занимает две колонки сетки (используется на странице «Проекты»). */
+  wide?: boolean;
 }
 
 function SectionCard({
@@ -21,9 +23,10 @@ function SectionCard({
   tag,
   href,
   highlight = false,
+  wide = false,
 }: SectionCardProps) {
   const style = { '--accent': color } as CSSProperties;
-  const className = `card${highlight ? ' card-renov' : ''}`;
+  const className = `card${highlight ? ' card-renov' : ''}${wide ? ' card--wide' : ''}`;
 
   const body = (
     <>

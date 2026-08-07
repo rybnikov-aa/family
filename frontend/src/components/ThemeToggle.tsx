@@ -20,14 +20,17 @@ function ThemeToggle() {
             type="button"
             role="radio"
             aria-checked={active}
+            aria-label={option.label}
             title={option.label}
             className={`theme-toggle__option${active ? ' theme-toggle__option--active' : ''}`}
             onClick={() => setTheme(option.mode)}
           >
-            <span className="theme-toggle__icon" aria-hidden="true">
+            <span
+              className={`theme-toggle__icon theme-toggle__icon--${option.mode}`}
+              aria-hidden="true"
+            >
               <option.Icon />
             </span>
-            <span className="theme-toggle__label">{option.label}</span>
           </button>
         );
       })}
