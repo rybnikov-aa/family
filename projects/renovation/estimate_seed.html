@@ -30,400 +30,8 @@
 
     <!-- Общие стили страниц проектов (дизайн + тема приложения) -->
     <link rel="stylesheet" href="../styles.css" />
-
-    <!-- Акцентный цвет проекта (оранжевый — как карточка «Ремонт») -->
-    <style>
-      :root {
-        --project-accent: #e8872e;
-        --project-accent-soft: rgba(232, 135, 46, 0.14);
-      }
-    </style>
-    <style>
-      /* Документ сметы: таблицы и блоки. Каркас и тема — общие (/projects/styles.css). */
-      .doc {
-        max-width: 1550px;
-        width: 100%;
-        background: #ffffff;
-        border-radius: 24px;
-        box-shadow: 0 16px 48px rgba(0, 20, 40, 0.1);
-        padding: 30px 24px 40px;
-        overflow-x: auto;
-      }
-      .doc-head {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        column-gap: 16px;
-        row-gap: 14px;
-        align-items: start;
-        margin-bottom: 18px;
-        border-bottom: 2px solid #e4ebf5;
-        padding-bottom: 18px;
-      }
-      .doc-head-title {
-        grid-column: 1 / -1;
-        font-size: 26px;
-        font-weight: 700;
-        color: #0b1a33;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .doc-head-left {
-        min-width: 0;
-      }
-      .doc-head-left .meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 14px;
-        font-size: 13px;
-        color: #3f5672;
-        line-height: 1.5;
-      }
-      .doc-head-left .meta-item {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 6px;
-        background: #f3f7fc;
-        border: 1px solid #e2eaf4;
-        border-radius: 30px;
-        padding: 5px 12px;
-      }
-      .doc-head-left .meta-item strong {
-        color: #0b1a33;
-        font-weight: 600;
-      }
-      .doc-head-total {
-        text-align: right;
-        font-size: 14px;
-        color: #3f5672;
-        background: #f5f8fe;
-        padding: 14px 22px;
-        border-radius: 14px;
-        border: 1px solid #e0e8f2;
-      }
-      .doc-head-total .head-total-label {
-        margin-bottom: 4px;
-        font-size: 12px;
-        color: #4a6482;
-      }
-      .doc-head-total .total-big {
-        font-size: 24px;
-        font-weight: 700;
-        color: #0b1a33;
-        white-space: nowrap;
-      }
-      .doc-head-total .head-total-badges {
-        margin-top: 8px;
-        font-size: 12px;
-      }
-      .section {
-        margin-top: 2.2rem;
-      }
-      .section-title {
-        font-weight: 600;
-        font-size: 1.5rem;
-        color: #0b1a2b;
-        background: #f0f5fb;
-        padding: 0.5rem 1.5rem;
-        border-radius: 60px;
-        display: inline-block;
-        margin-bottom: 1.2rem;
-        letter-spacing: -0.2px;
-      }
-      .table-wrap {
-        overflow-x: auto;
-        border-radius: 18px;
-        border: 1px solid #e2e9f0;
-        background: white;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.9rem;
-      }
-      th {
-        background: #f7fafd;
-        font-weight: 600;
-        color: #1a2d3f;
-        padding: 14px 12px;
-        text-align: left;
-        border-bottom: 1px solid #d8e1ea;
-        white-space: nowrap;
-      }
-      td {
-        padding: 12px 12px;
-        border-bottom: 1px solid #e7edf4;
-        vertical-align: middle;
-      }
-      tr:last-child td {
-        border-bottom: none;
-      }
-      .col-num {
-        width: 44px;
-        text-align: center;
-        color: #4b6379;
-        font-weight: 450;
-      }
-      .col-name {
-        min-width: 220px;
-      }
-      .col-unit {
-        text-align: center;
-        white-space: nowrap;
-        color: #2f4a62;
-      }
-      .col-price,
-      .col-qty,
-      .col-sum {
-        text-align: right;
-        white-space: nowrap;
-        font-feature-settings: 'tnum';
-      }
-      .col-sum {
-        font-weight: 500;
-        color: #0b1a2b;
-      }
-      .row-total {
-        background: #f6faff;
-        font-weight: 600;
-        border-top: 1px solid #cbd7e3;
-      }
-      .row-total td {
-        padding: 16px 12px;
-        background: #f6faff;
-      }
-      .row-total .col-name {
-        font-weight: 600;
-      }
-      .row-total .col-sum {
-        font-size: 1.05rem;
-      }
-      .grand-total-block {
-        margin-top: 2.5rem;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        background: #f6faff;
-        border-radius: 40px;
-        padding: 1.2rem 2rem;
-        border: 1px solid #dce4ed;
-      }
-      .grand-total-label {
-        font-size: 1.2rem;
-        font-weight: 500;
-        color: #0b1a2b;
-      }
-      .grand-total-number {
-        font-size: 1.8rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        color: #0b1a2b;
-      }
-      .grand-total-number small {
-        font-weight: 400;
-        font-size: 1rem;
-        color: #3f5a72;
-        margin-right: 6px;
-      }
-      .text-muted {
-        color: #4f6b82;
-      }
-      .badge-light {
-        background: #eef3f8;
-        padding: 0 10px;
-        border-radius: 30px;
-      }
-      /* Адаптив: скрываем второстепенные колонки, не удаляя их из сетки */
-      @media (max-width: 1100px) {
-        th.col-unit,
-        td.col-unit,
-        th.col-price,
-        td.col-price {
-          width: 0;
-          max-width: 0;
-          padding: 0;
-          border: 0;
-          font-size: 0;
-          line-height: 0;
-          visibility: hidden;
-          overflow: hidden;
-        }
-      }
-      @media (max-width: 700px) {
-        .doc {
-          padding: 16px 12px;
-        }
-        .doc-head {
-          grid-template-columns: 1fr;
-        }
-        .doc-head-total {
-          text-align: left;
-        }
-        .grand-total-block {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 10px;
-        }
-      }
-
-      /* Блок «Итого по всем разделам» и примечание (классы вместо inline-стилей) */
-      .doc-summary {
-        margin-top: 2.2rem;
-        background: #f5f9fe;
-        border-radius: 24px;
-        padding: 1.5rem 2rem;
-        border: 1px solid #dce4ed;
-      }
-      .doc-summary__row {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 12px 20px;
-        font-size: 1.05rem;
-      }
-      .doc-summary__total {
-        font-weight: 600;
-        font-size: 1.2rem;
-        color: #0b1a2b;
-      }
-      .doc-note {
-        margin-top: 1rem;
-        font-size: 0.8rem;
-        color: #6f889e;
-        text-align: right;
-        border-top: 1px solid #e4ebf2;
-        padding-top: 1.2rem;
-      }
-      .doc-back {
-        display: inline-block;
-        margin-bottom: 16px;
-        font-size: 14px;
-        color: var(--project-accent);
-        text-decoration: none;
-        font-weight: 600;
-      }
-      .doc-back:hover {
-        text-decoration: underline;
-      }
-
-      /* Тёмная тема: документ подстраивается под каркас проекта */
-      [data-theme='dark'] .doc {
-        background: var(--surface);
-        color: var(--text);
-      }
-      [data-theme='dark'] .doc th {
-        background: #252a35;
-        color: #cbd6e6;
-        border-color: #343b47;
-      }
-      [data-theme='dark'] .doc td {
-        border-color: #343b47;
-        color: #c9d2de;
-      }
-      [data-theme='dark'] .doc-head-title {
-        color: #eef2f7;
-      }
-      [data-theme='dark'] .doc-head-left .meta-item {
-        background: #1c222b;
-        border-color: #343b47;
-        color: #a8b2c2;
-      }
-      [data-theme='dark'] .doc-head-left .meta strong {
-        color: #eef2f7;
-      }
-      [data-theme='dark'] .doc-head-total {
-        background: #1c222b;
-        border-color: #343b47;
-        color: #a8b2c2;
-      }
-      [data-theme='dark'] .doc-head-total .total-big {
-        color: #eef2f7;
-      }
-      [data-theme='dark'] .head-total-label {
-        color: #a8b2c2;
-      }
-      [data-theme='dark'] .doc .section-title {
-        background: #232a38;
-        color: #eef2f7;
-      }
-      [data-theme='dark'] .doc .table-wrap {
-        background: var(--surface);
-        border-color: #343b47;
-      }
-      [data-theme='dark'] .doc .col-num {
-        color: #8b95a5;
-      }
-      [data-theme='dark'] .doc .col-unit {
-        color: #a8b2c2;
-      }
-      [data-theme='dark'] .doc .col-sum {
-        color: #eef2f7;
-      }
-      [data-theme='dark'] .doc .row-total {
-        background: #212730;
-      }
-      [data-theme='dark'] .doc .row-total td {
-        background: #212730;
-      }
-      [data-theme='dark'] .doc .grand-total-block {
-        background: #1d242e;
-        border-color: #343b47;
-      }
-      [data-theme='dark'] .doc .grand-total-label,
-      [data-theme='dark'] .doc .grand-total-number {
-        color: #eef2f7;
-      }
-      [data-theme='dark'] .doc .grand-total-number small {
-        color: #8b95a5;
-      }
-      [data-theme='dark'] .doc-summary {
-        background: #1d242e;
-        border-color: #343b47;
-      }
-      [data-theme='dark'] .doc-summary__total {
-        color: #eef2f7;
-      }
-      [data-theme='dark'] .doc-note {
-        color: #8b95a5;
-        border-color: #343b47;
-      }
-      [data-theme='dark'] .doc .text-muted {
-        color: #8b95a5;
-      }
-
-      .doc-sources {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 16px;
-        padding: 12px 16px;
-        border-radius: 12px;
-        background: #f3f7fc;
-        border: 1px solid #e2eaf4;
-        font-size: 14px;
-        color: #3f5672;
-      }
-      .doc-sources .picon {
-        color: var(--project-accent);
-      }
-      .doc-sources a {
-        color: var(--project-accent);
-        font-weight: 600;
-        text-decoration: none;
-      }
-      .doc-sources a:hover {
-        text-decoration: underline;
-      }
-      [data-theme='dark'] .doc-sources {
-        background: #16233a;
-        border-color: #23344f;
-        color: #9fb0c6;
-      }
-    </style>
+    <!-- Стили документов и отчётов (дизайн-система report.css) -->
+    <link rel="stylesheet" href="report.css" />
   </head>
   <body>
     <div class="container">
@@ -488,10 +96,10 @@
                   <tr>
                     <th>№</th>
                     <th>Наименование работ</th>
-                    <th>Ед.</th>
-                    <th>Цена за ед.</th>
-                    <th>Объём</th>
-                    <th>Сумма</th>
+                    <th class="col-unit">Ед.</th>
+                    <th class="col-price">Цена за ед.</th>
+                    <th class="col-qty">Объём</th>
+                    <th class="col-sum">Сумма</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -630,10 +238,10 @@
                   <tr>
                     <th>№</th>
                     <th>Наименование работ</th>
-                    <th>Ед.</th>
-                    <th>Цена за ед.</th>
-                    <th>Объём</th>
-                    <th>Сумма</th>
+                    <th class="col-unit">Ед.</th>
+                    <th class="col-price">Цена за ед.</th>
+                    <th class="col-qty">Объём</th>
+                    <th class="col-sum">Сумма</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -872,10 +480,10 @@
                   <tr>
                     <th>№</th>
                     <th>Наименование работ</th>
-                    <th>Ед.</th>
-                    <th>Цена за ед.</th>
-                    <th>Объём</th>
-                    <th>Сумма</th>
+                    <th class="col-unit">Ед.</th>
+                    <th class="col-price">Цена за ед.</th>
+                    <th class="col-qty">Объём</th>
+                    <th class="col-sum">Сумма</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -958,10 +566,10 @@
                   <tr>
                     <th>№</th>
                     <th>Наименование работ</th>
-                    <th>Ед.</th>
-                    <th>Цена за ед.</th>
-                    <th>Объём</th>
-                    <th>Сумма</th>
+                    <th class="col-unit">Ед.</th>
+                    <th class="col-price">Цена за ед.</th>
+                    <th class="col-qty">Объём</th>
+                    <th class="col-sum">Сумма</th>
                   </tr>
                 </thead>
                 <tbody>

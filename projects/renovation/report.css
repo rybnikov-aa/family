@@ -1,0 +1,1540 @@
+/* ==========================================================================
+   Дизайн-система документов и отчётов проекта «Ремонт» (projects/renovation).
+
+   Подключается на страницах-документах ПОСЛЕ /projects/styles.css:
+     <link rel="stylesheet" href="report.css">    — в корне renovation/
+     <link rel="stylesheet" href="../report.css"> — в Materials/, Works/, Reports/
+
+   Содержит: акцентный цвет проекта, токены светлой/тёмной темы, каркас
+   документа (.doc*), таблицы и колонки, итоговые блоки, легенду, источники,
+   блоки/карточки, компоненты отчётов (ход работ / материалы / итоговый) и
+   единые медиазапросы (адаптив). Уникальных inline-стилей на страницах больше
+   нет — всё здесь, в одном месте.
+
+   Акцентный цвет проекта переопределяет дефолт из /projects/styles.css
+   (#3b82f6) на оранжевый #e8872e — как карточка «Ремонт».
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Акцент проекта
+   -------------------------------------------------------------------------- */
+:root {
+  --project-accent: #e8872e;
+  --project-accent-soft: rgba(232, 135, 46, 0.14);
+}
+
+/* --------------------------------------------------------------------------
+   2. Токены документа (светлая тема). Тёмная тема — переопределение токенов.
+   -------------------------------------------------------------------------- */
+:root {
+  /* Поверхность и текст */
+  --doc-bg: #ffffff;
+  --doc-text: #0b1a33;
+  --doc-text-strong: #0b1a2b;
+  --doc-muted: #3f5672;
+  --doc-faint: #4a6482;
+  --doc-dim: #6f889e;
+
+  /* Границы */
+  --doc-border: #e2e9f0;
+  --doc-border-soft: #e6edf5;
+  --doc-head-border: #e4ebf5;
+
+  /* Таблицы */
+  --doc-th-bg: #f7fafd;
+  --doc-th-text: #1a2d3f;
+  --doc-th-border: #d8e1ea;
+  --doc-td-border: #e7edf4;
+
+  /* Итоговые блоки */
+  --doc-total-bg: #f6faff;
+  --doc-total-border: #cbd7e3;
+  --doc-grand-bg: #f5f9fe;
+  --doc-grand-border: #dce4ed;
+  --doc-card-bg: #f5f8fe;
+  --doc-card-border: #e0e8f2;
+  --doc-chip-bg: #f3f7fc;
+  --doc-chip-border: #e2eaf4;
+  --doc-sub-bg: #fafcfe;
+
+  /* Секции и блоки */
+  --doc-section-bg: #f0f5fb;
+  --doc-section-text: #0b1a2b;
+  --doc-block-border: #e2e9f1;
+  --doc-block-title-bg: #eaf0fa;
+  --doc-block-title-text: #0b1a33;
+  --doc-block-body-bg: #fbfdff;
+  --doc-links-bg: #f7faff;
+  --doc-links-border: #e4ecf8;
+
+  /* Числа */
+  --doc-num-green: #0b6b3a;
+  --doc-num-red: #b1422a;
+  --doc-num-blue: #2563eb;
+
+  /* Адаптив таблиц: минимальная ширина столбцов наименований */
+  --doc-col-name-min: 200px;
+  --doc-col-desc-min: 150px;
+}
+
+[data-theme='dark'] {
+  --doc-bg: var(--surface);
+  --doc-text: #eef2f7;
+  --doc-text-strong: #eef2f7;
+  --doc-muted: #a8b2c2;
+  --doc-faint: #8b95a5;
+  --doc-dim: #8b95a5;
+
+  --doc-border: #343b47;
+  --doc-border-soft: #343b47;
+  --doc-head-border: #343b47;
+
+  --doc-th-bg: #252a35;
+  --doc-th-text: #cbd6e6;
+  --doc-th-border: #343b47;
+  --doc-td-border: #343b47;
+
+  --doc-total-bg: #212730;
+  --doc-total-border: #343b47;
+  --doc-grand-bg: #1d242e;
+  --doc-grand-border: #343b47;
+  --doc-card-bg: #1c222b;
+  --doc-card-border: #343b47;
+  --doc-chip-bg: #1c222b;
+  --doc-chip-border: #343b47;
+  --doc-sub-bg: #1f2730;
+
+  --doc-section-bg: #232a38;
+  --doc-section-text: #eef2f7;
+  --doc-block-border: #343b47;
+  --doc-block-title-bg: #232a38;
+  --doc-block-title-text: #eef2f7;
+  --doc-block-body-bg: #1a212b;
+  --doc-links-bg: #1d242e;
+  --doc-links-border: #343b47;
+
+  --doc-num-green: #58c887;
+  --doc-num-red: #ef7d70;
+  --doc-num-blue: #9fc0f0;
+}
+
+/* --------------------------------------------------------------------------
+   3. Каркас документа
+   -------------------------------------------------------------------------- */
+.doc {
+  max-width: 1550px;
+  width: 100%;
+  background: var(--doc-bg);
+  border-radius: 24px;
+  box-shadow: 0 16px 48px rgba(0, 20, 40, 0.1);
+  padding: 30px 24px 40px;
+  overflow-x: auto;
+}
+
+.doc-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 16px;
+  row-gap: 14px;
+  align-items: start;
+  margin-bottom: 18px;
+  border-bottom: 2px solid var(--doc-head-border);
+  padding-bottom: 18px;
+}
+
+.doc-head-title {
+  grid-column: 1 / -1;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--doc-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.doc-head-title .picon {
+  color: var(--project-accent);
+}
+
+.doc-head-left {
+  min-width: 0;
+}
+.doc-head-left .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--doc-muted);
+  line-height: 1.5;
+}
+.doc-head-left .meta-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  background: var(--doc-chip-bg);
+  border: 1px solid var(--doc-chip-border);
+  border-radius: 30px;
+  padding: 5px 12px;
+}
+.doc-head-left .meta-item strong {
+  color: var(--doc-text);
+  font-weight: 600;
+}
+
+/* Блок итога в шапке (справа); в отчёте о ходе работ — это ссылка на сметы */
+.doc-head-total {
+  text-align: right;
+  font-size: 14px;
+  color: var(--doc-muted);
+  background: var(--doc-card-bg);
+  padding: 14px 22px;
+  border-radius: 14px;
+  border: 1px solid var(--doc-card-border);
+}
+a.doc-head-total {
+  display: block;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+a.doc-head-total:hover {
+  border-color: var(--project-accent);
+  box-shadow: 0 8px 20px rgba(232, 135, 46, 0.12);
+}
+.doc-head-total .head-total-label {
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--doc-faint);
+}
+.doc-head-total .total-big {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--doc-text);
+  white-space: nowrap;
+}
+.doc-head-total .head-total-badges {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+/* Секции (в сметах: «Раздел N. …») */
+.section {
+  margin-top: 2.2rem;
+}
+.section-title {
+  font-weight: 600;
+  font-size: 1.4rem;
+  color: var(--doc-section-text);
+  background: var(--doc-section-bg);
+  padding: 0.4rem 1.5rem;
+  border-radius: 60px;
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  letter-spacing: -0.2px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Таблицы (стандартный стиль документов: подчёркивание строк)
+   -------------------------------------------------------------------------- */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 18px;
+  border: 1px solid var(--doc-border);
+  background: var(--doc-bg);
+  margin: 0 0 1.8rem;
+}
+.section .table-wrap {
+  margin-bottom: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th {
+  background: var(--doc-th-bg);
+  font-weight: 600;
+  color: var(--doc-th-text);
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--doc-th-border);
+  white-space: nowrap;
+}
+td {
+  padding: 12px;
+  border-bottom: 1px solid var(--doc-td-border);
+  vertical-align: middle;
+}
+tr:last-child td {
+  border-bottom: none;
+}
+
+/* Колонки */
+.col-num {
+  width: 44px;
+  text-align: center;
+  color: var(--doc-muted);
+  font-weight: 450;
+}
+.col-name {
+  min-width: var(--doc-col-name-min);
+}
+.col-date {
+  white-space: nowrap;
+  text-align: center;
+}
+.col-desc {
+  min-width: var(--doc-col-desc-min);
+}
+.col-unit {
+  text-align: center;
+  white-space: nowrap;
+  color: var(--doc-muted);
+}
+.col-price,
+.col-qty,
+.col-sum {
+  text-align: right;
+  white-space: nowrap;
+  font-feature-settings: 'tnum';
+}
+.col-sum {
+  font-weight: 500;
+  color: var(--doc-text);
+}
+.col-amount,
+.col-used,
+.col-balance {
+  text-align: right;
+  white-space: nowrap;
+  font-feature-settings: 'tnum';
+}
+.col-amount {
+  font-weight: 500;
+  color: var(--doc-num-green);
+}
+.col-used {
+  color: var(--doc-num-red);
+}
+.col-balance {
+  font-weight: 600;
+  color: var(--doc-text);
+}
+
+/* Строки */
+.row-total {
+  background: var(--doc-total-bg);
+  font-weight: 600;
+  border-top: 1px solid var(--doc-total-border);
+}
+.row-total td {
+  padding: 16px 12px;
+  background: var(--doc-total-bg);
+}
+.row-total .col-name {
+  font-weight: 600;
+}
+.row-total .col-sum,
+.row-total .col-balance {
+  font-size: 1.05rem;
+}
+.row-subtotal {
+  background: var(--doc-sub-bg);
+  border-top: 1px dashed var(--doc-total-border);
+}
+.row-subtotal td {
+  padding: 10px 12px;
+}
+
+/* Строки сметы, изменённые по доп. соглашению */
+.row-changed td {
+  color: #1a63d6;
+  background: rgba(26, 99, 214, 0.06);
+}
+.row-new td {
+  color: #8a6d00;
+  background: rgba(240, 196, 25, 0.12);
+}
+.row-removed td {
+  color: #b12a2a;
+  background: rgba(177, 42, 42, 0.08);
+  text-decoration: line-through;
+}
+
+/* --------------------------------------------------------------------------
+   5. Итоговые блоки
+   -------------------------------------------------------------------------- */
+.grand-total-block {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--doc-grand-bg);
+  border-radius: 40px;
+  padding: 1.2rem 2rem;
+  border: 1px solid var(--doc-grand-border);
+  gap: 10px 24px;
+}
+.grand-total-label {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--doc-text-strong);
+}
+.grand-total-number {
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--doc-text-strong);
+}
+.grand-total-number small {
+  font-weight: 400;
+  font-size: 1rem;
+  color: var(--doc-muted);
+  margin-right: 6px;
+}
+
+/* Итог заказа материалов (справа) */
+.total-box {
+  display: flex;
+  justify-content: flex-end;
+  background: var(--doc-grand-bg);
+  border-radius: 40px;
+  padding: 0.9rem 2rem;
+  border: 1px solid var(--doc-grand-border);
+  margin: 0.2rem 0 1.8rem;
+}
+.total-box .label {
+  font-weight: 500;
+  margin-right: 1rem;
+  color: var(--doc-text-strong);
+}
+.total-box .value {
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: var(--doc-text-strong);
+  letter-spacing: 0.3px;
+}
+.total-box .value small {
+  font-weight: 400;
+  font-size: 0.9rem;
+  color: var(--doc-muted);
+  margin-right: 4px;
+}
+
+/* Блок итогов акта/ведомости */
+.totals-block {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--doc-grand-bg);
+  border-radius: 40px;
+  padding: 1.1rem 2rem;
+  border: 1px solid var(--doc-grand-border);
+  gap: 10px 24px;
+  margin: 1.2rem 0 1.8rem;
+}
+.totals-block .item {
+  font-size: 1rem;
+  color: var(--doc-text-strong);
+}
+.totals-block .item strong {
+  font-weight: 600;
+}
+.totals-block .item .val {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.totals-block .item .val.green {
+  color: var(--doc-num-green);
+}
+.totals-block .item .val.red {
+  color: var(--doc-num-red);
+}
+.totals-block .item .val.blue {
+  color: var(--doc-text-strong);
+}
+.totals-block .grand {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--doc-text-strong);
+  letter-spacing: 0.3px;
+}
+.totals-block .grand small {
+  font-weight: 400;
+  font-size: 0.9rem;
+  color: var(--doc-muted);
+  margin-right: 4px;
+}
+
+/* Примечание ведомости */
+.notice {
+  background: var(--doc-sub-bg);
+  border-radius: 16px;
+  padding: 0.8rem 1.5rem;
+  border: 1px solid var(--doc-border-soft);
+  margin-top: 1.2rem;
+  font-size: 0.92rem;
+  color: var(--doc-text-strong);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 20px;
+}
+.notice .label {
+  font-weight: 500;
+}
+
+/* Блок «Итого по всем разделам» (смета) */
+.doc-summary {
+  margin-top: 2.2rem;
+  background: var(--doc-grand-bg);
+  border-radius: 24px;
+  padding: 1.5rem 2rem;
+  border: 1px solid var(--doc-grand-border);
+}
+.doc-summary__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 20px;
+  font-size: 1.05rem;
+}
+.doc-summary__total {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--doc-text-strong);
+}
+
+/* --------------------------------------------------------------------------
+   6. Стороны (Заказчик/Подрядчик) и текстовые блоки
+   -------------------------------------------------------------------------- */
+.parties {
+  background: var(--doc-sub-bg);
+  border-radius: 20px;
+  padding: 1.2rem 1.8rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--doc-border);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px 30px;
+  font-size: 0.98rem;
+}
+.party {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.party .role {
+  font-weight: 600;
+  color: var(--doc-text-strong);
+  letter-spacing: 0.3px;
+}
+.party .name {
+  color: var(--doc-muted);
+}
+.party .detail {
+  color: var(--doc-faint);
+  font-size: 0.9rem;
+}
+
+.intro-text {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--doc-text-strong);
+  margin-bottom: 1.8rem;
+  padding: 0.2rem 0;
+}
+
+.text-block {
+  background: var(--doc-sub-bg);
+  padding: 1.5rem 1.8rem;
+  border-radius: 20px;
+  border: 1px solid var(--doc-border-soft);
+  margin: 1.8rem 0 2.5rem;
+  line-height: 1.7;
+  color: var(--doc-text-strong);
+}
+.text-block p {
+  margin-bottom: 0.6rem;
+}
+.text-block p:last-child {
+  margin-bottom: 0;
+}
+
+.text-muted {
+  color: var(--doc-muted);
+}
+
+/* --------------------------------------------------------------------------
+   7. Легенда
+   -------------------------------------------------------------------------- */
+.legend {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 10px 0 15px 0;
+  font-size: 13px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+.lc-changed {
+  background: rgba(26, 99, 214, 0.06);
+  border-color: #1a63d6;
+}
+.lc-new {
+  background: rgba(240, 196, 25, 0.12);
+  border-color: #c9a100;
+}
+.lc-done {
+  background: #e8f5e9;
+}
+.lc-partial {
+  background: #fff8e1;
+}
+.lc-notdone {
+  background: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   8. Навигация, примечание и источники
+   -------------------------------------------------------------------------- */
+.doc-back {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--project-accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+.doc-back:hover {
+  text-decoration: underline;
+}
+
+.doc-note {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--doc-dim);
+  text-align: right;
+  border-top: 1px solid var(--doc-head-border);
+  padding-top: 1.2rem;
+}
+
+.doc-sources {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--doc-chip-bg);
+  border: 1px solid var(--doc-chip-border);
+  font-size: 14px;
+  color: var(--doc-muted);
+}
+.doc-sources .picon {
+  color: var(--project-accent);
+}
+.doc-sources a {
+  color: var(--project-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+.doc-sources a:hover {
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   9. Блоки и карточки
+   -------------------------------------------------------------------------- */
+.block {
+  border: 1px solid var(--doc-block-border);
+  border-radius: 16px;
+  margin: 16px 0;
+  overflow: hidden;
+}
+.block-title {
+  background: var(--doc-block-title-bg);
+  padding: 12px 18px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--doc-block-title-text);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+}
+.block-title .bt-meta {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--doc-muted);
+}
+.block-title.block-title-lg {
+  font-size: 20px;
+}
+.block-body {
+  padding: 16px 18px;
+  overflow-x: auto;
+}
+.block-summary {
+  margin-bottom: 32px;
+}
+.block-note {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--doc-faint);
+}
+
+/* Таблицы внутри блоков (сводные и отчёты) */
+.block-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.block-body th {
+  background: var(--doc-th-bg);
+  color: var(--doc-th-text);
+  font-weight: 600;
+  padding: 10px 12px;
+  border: 1px solid var(--doc-th-border);
+  text-align: left;
+  white-space: nowrap;
+}
+.block-body td {
+  padding: 9px 12px;
+  border: 1px solid var(--doc-th-border);
+  vertical-align: middle;
+}
+.block-body td.num {
+  text-align: right;
+  white-space: nowrap;
+}
+.block-body td.num.blue {
+  color: var(--doc-num-blue);
+  font-weight: 600;
+}
+.block-body td.num.amount-pos {
+  color: var(--doc-num-green);
+  font-weight: 600;
+}
+.block-body td.num.amount-neg {
+  color: var(--doc-num-red);
+  font-weight: 600;
+}
+.block-body .row-total {
+  background: #dce6f2;
+  font-weight: 700;
+  border-top: 2px solid #8aa0c0;
+}
+.block-body .row-total td {
+  padding: 12px;
+}
+.block-body .row-sub {
+  background: var(--doc-sub-bg);
+  color: var(--doc-faint);
+}
+.block-body .grand {
+  color: var(--doc-text-strong);
+  font-weight: 700;
+}
+
+/* Карточки-сводки */
+.totals-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 12px;
+}
+.summary-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 6px 0 20px;
+}
+.doc-card {
+  background: var(--doc-card-bg);
+  border: 1px solid var(--doc-card-border);
+  border-radius: 14px;
+  padding: 12px 18px;
+  flex: 1 1 180px;
+  min-width: 180px;
+}
+.doc-card .label {
+  font-size: 12px;
+  color: var(--doc-faint);
+}
+.doc-card .value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--doc-text-strong);
+}
+.doc-card .value.amount-pos {
+  color: var(--doc-num-green);
+}
+.doc-card .value.amount-neg {
+  color: var(--doc-num-red);
+}
+.doc-card .value.amount-blue {
+  color: var(--doc-num-blue);
+}
+.doc-card.green {
+  background: #eef7ef;
+  border-color: #cfead2;
+}
+.doc-card.green .value {
+  color: #155724;
+}
+.doc-card.red {
+  background: #fdf0f0;
+  border-color: #f2d3d3;
+}
+.doc-card.red .value {
+  color: #721c24;
+}
+.doc-card.blue {
+  background: #eef4fd;
+  border-color: #cfe0f7;
+}
+.doc-card.blue .value {
+  color: var(--doc-num-blue);
+}
+
+/* Блоки ссылок и примечания */
+.links-block {
+  margin-top: 16px;
+  background: var(--doc-links-bg);
+  border: 1px solid var(--doc-links-border);
+  border-radius: 16px;
+  padding: 16px 20px;
+  font-size: 14px;
+}
+.links-block h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: var(--doc-text-strong);
+}
+.links-block ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--doc-muted);
+}
+.links-block a {
+  color: var(--doc-text);
+}
+.note {
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--doc-faint);
+  line-height: 1.5;
+  border-top: 1px solid var(--doc-head-border);
+  padding-top: 12px;
+}
+
+/* Бейджи */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge-green {
+  background: #d4edda;
+  color: #155724;
+}
+.badge-red {
+  background: #f8d7da;
+  color: #721c24;
+}
+.badge-accent {
+  background: var(--project-accent-soft);
+  color: var(--project-accent);
+}
+
+/* --------------------------------------------------------------------------
+   10. Ссылки-карточки на сметы (estimates.html)
+   -------------------------------------------------------------------------- */
+.est-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  border: 1px solid var(--doc-block-border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  background: var(--doc-block-body-bg);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.est-link + .est-link {
+  margin-top: 10px;
+}
+.est-link:hover {
+  border-color: var(--project-accent);
+  box-shadow: 0 8px 20px rgba(232, 135, 46, 0.12);
+}
+.est-link .est-icon {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--project-accent-soft);
+  color: var(--project-accent);
+  font-size: 22px;
+}
+.est-link .est-body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.est-link .est-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--doc-text);
+}
+.est-link .est-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--doc-faint);
+}
+.est-link .est-meta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--doc-muted);
+  white-space: nowrap;
+}
+.est-link .est-arrow {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--project-accent);
+}
+
+/* --------------------------------------------------------------------------
+   11. Отчёт о ходе работ (Reports/report_work.html)
+   -------------------------------------------------------------------------- */
+.doc-progress {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.doc-progress .plan-progress {
+  background: var(--doc-card-bg);
+  border: 1px solid var(--doc-card-border);
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+.plan-progress {
+  font-size: 13px;
+  color: var(--doc-muted);
+}
+.plan-progress-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.plan-progress-top strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--doc-text);
+}
+.plan-progress-top strong.amount-pos {
+  color: var(--doc-num-green);
+}
+.plan-progress-top strong.amount-neg {
+  color: var(--doc-num-red);
+}
+.plan-progress-top strong.amount-blue {
+  color: var(--doc-num-blue);
+}
+.plan-progress-track {
+  height: 8px;
+  background: #e8eef7;
+  border-radius: 30px;
+  overflow: hidden;
+}
+.plan-progress-fill {
+  height: 100%;
+  border-radius: 30px;
+  background: var(--project-accent);
+}
+.plan-progress-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--doc-faint);
+}
+.plan-progress-divider {
+  height: 1px;
+  background: var(--doc-card-border);
+  margin: 2px 0 8px;
+}
+.plan-progress .plan-progress-top:last-child {
+  margin-bottom: 0;
+}
+
+/* Таблица отчёта о ходе работ (сетка) */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.report-table th {
+  background: #e8eef7;
+  color: #1f2a44;
+  font-weight: 600;
+  padding: 11px 10px;
+  border: 1px solid #d5dfec;
+  text-align: center;
+  white-space: nowrap;
+}
+.report-table td {
+  padding: 9px 10px;
+  border: 1px solid #d5dfec;
+  vertical-align: middle;
+  text-align: center;
+}
+.report-table td.left {
+  text-align: left;
+  padding-left: 16px;
+  font-weight: 500;
+  color: #14273e;
+}
+.report-table td.col-unit,
+.report-table td.col-price,
+.report-table td.col-qty,
+.report-table td.col-sum,
+.report-table td.col-diff,
+.report-table th.col-unit,
+.report-table th.col-price,
+.report-table th.col-qty,
+.report-table th.col-sum,
+.report-table th.col-diff {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Строки отчёта о ходе работ */
+.section-row {
+  background: #eaf0fa;
+  font-weight: 700;
+  color: #0b1a33;
+  text-align: left;
+  padding-left: 16px;
+}
+.section-row td {
+  padding: 12px 10px;
+}
+.subtotal-row {
+  background: #f2f6fd;
+  font-weight: 700;
+  border-top: 2px solid #c8d6e8;
+}
+.subtotal-row td {
+  padding: 12px 10px;
+}
+.grand-total {
+  background: #dce6f2;
+  font-weight: 700;
+  font-size: 15px;
+  border-top: 3px solid #8aa0c0;
+}
+.grand-total td {
+  padding: 14px 10px;
+}
+.overhead-row {
+  background: #f5f8ff;
+  font-weight: 600;
+}
+
+/* Статусы и отклонения */
+.status-done {
+  background: #e8f5e9;
+}
+.status-done td.left {
+  color: #1e5a2a;
+}
+.status-partial {
+  background: #fff8e1;
+}
+.status-partial td.left {
+  color: #7a5d00;
+}
+.status-notdone {
+  background: #fefefe;
+}
+.diff-over {
+  color: #b12a2a;
+  font-weight: 600;
+}
+.diff-under {
+  color: #0b7b3e;
+  font-weight: 600;
+}
+.diff-zero {
+  color: #6b7d96;
+}
+.diff-na {
+  color: #999999;
+}
+
+/* Итоговая строка отчёта */
+.doc-foot {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--doc-text-strong);
+  background: var(--doc-grand-bg);
+  padding: 18px 22px;
+  border-radius: 16px;
+  border: 1px solid var(--doc-links-border);
+}
+.doc-foot .total-final {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--doc-text);
+}
+
+/* --------------------------------------------------------------------------
+   12. Сводный отчёт по закупленным материалам (Reports/report_materials.html)
+   -------------------------------------------------------------------------- */
+.report-block {
+  margin: 18px 0;
+  background: var(--doc-block-body-bg);
+  border: 1px solid var(--doc-block-border);
+  border-radius: 16px;
+  padding: 14px 16px 6px;
+  overflow-x: auto;
+}
+.report-title {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 16px;
+  margin-bottom: 10px;
+}
+.report-title .rt-name {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--doc-text);
+}
+.report-title .rt-meta {
+  font-size: 13px;
+  color: var(--doc-muted);
+}
+.report-title .rt-meta a {
+  color: var(--doc-text);
+}
+
+.report-block table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.report-block th {
+  background: #e8eef7;
+  color: #1f2a44;
+  font-weight: 600;
+  padding: 10px;
+  border: 1px solid #d5dfec;
+  text-align: center;
+  white-space: nowrap;
+}
+.report-block td {
+  padding: 8px 10px;
+  border: 1px solid #d5dfec;
+  vertical-align: middle;
+  text-align: center;
+}
+.report-block td.left {
+  text-align: left;
+  padding-left: 14px;
+}
+.report-block td.col-num {
+  width: 40px;
+  color: var(--doc-muted);
+}
+.report-block td.col-unit,
+.report-block td.col-price,
+.report-block td.col-qty,
+.report-block td.col-sum {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.report-block td.col-price,
+.report-block td.col-qty,
+.report-block td.col-sum {
+  text-align: right;
+}
+.report-block .row-subtotal {
+  background: var(--doc-th-bg);
+  font-weight: 600;
+  border-top: 2px solid #c8d6e8;
+}
+.report-block .row-total {
+  background: #dce6f2;
+  font-weight: 700;
+  border-top: 2px solid #8aa0c0;
+}
+.report-block .row-total td {
+  padding: 12px 10px;
+}
+.report-block .row-special {
+  background: var(--doc-sub-bg);
+  color: var(--doc-faint);
+  font-style: italic;
+}
+
+/* --------------------------------------------------------------------------
+   13. Адаптив
+   -------------------------------------------------------------------------- */
+/* Скрываем второстепенные колонки, не удаляя их из сетки
+   (colspan в итоговых строках остаётся корректным) */
+@media (max-width: 1100px) {
+  th.col-unit,
+  td.col-unit,
+  th.col-price,
+  td.col-price {
+    width: 0;
+    max-width: 0;
+    padding: 0;
+    border: 0;
+    font-size: 0;
+    line-height: 0;
+    visibility: hidden;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 820px) {
+  th.col-diff,
+  td.col-diff {
+    width: 0;
+    max-width: 0;
+    padding: 0;
+    border: 0;
+    font-size: 0;
+    line-height: 0;
+    visibility: hidden;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 700px) {
+  .doc {
+    padding: 16px 12px;
+  }
+  .doc-head {
+    grid-template-columns: 1fr;
+  }
+  .doc-head-total {
+    text-align: left;
+  }
+  .doc-progress {
+    grid-template-columns: 1fr;
+  }
+  .grand-total-block,
+  .totals-block {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .total-box {
+    justify-content: center;
+    flex-wrap: wrap;
+    text-align: center;
+  }
+  .parties {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .notice {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  .doc-summary__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .est-link {
+    flex-wrap: wrap;
+  }
+  .est-meta {
+    margin-left: auto;
+  }
+  .block-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  /* Таблицы на телефоне: даём заголовкам и наименованиям переноситься,
+     сжимаем отступы и шрифт, скрываем «Объём» — чтобы «Сумма» была видна
+     без горизонтальной прокрутки */
+  table {
+    font-size: 0.85rem;
+  }
+  .doc th {
+    white-space: normal;
+    padding: 10px 8px;
+  }
+  .doc td {
+    padding: 9px 8px;
+  }
+  .col-name,
+  .col-desc {
+    min-width: 0;
+  }
+  th.col-qty,
+  td.col-qty {
+    width: 0;
+    max-width: 0;
+    padding: 0;
+    border: 0;
+    font-size: 0;
+    line-height: 0;
+    visibility: hidden;
+    overflow: hidden;
+  }
+  .report-table th,
+  .report-block th,
+  .block-body th {
+    white-space: normal;
+  }
+  .report-table,
+  .report-block table,
+  .block-body table {
+    font-size: 12.5px;
+  }
+  .total-big {
+    white-space: normal;
+    font-size: 20px;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   14. Тёмная тема: специальные переопределения (не покрываются токенами)
+   -------------------------------------------------------------------------- */
+[data-theme='dark'] .doc {
+  background: var(--surface);
+  color: var(--text);
+}
+[data-theme='dark'] .row-changed td {
+  color: #7ab0ff;
+  background: rgba(122, 176, 255, 0.12);
+}
+[data-theme='dark'] .row-new td {
+  color: #f0c419;
+  background: rgba(240, 196, 25, 0.16);
+}
+[data-theme='dark'] .row-removed td {
+  color: #ef7d70;
+  background: rgba(177, 42, 42, 0.18);
+}
+[data-theme='dark'] .legend-color {
+  border-color: #4a5568;
+}
+[data-theme='dark'] .lc-changed {
+  background: rgba(122, 176, 255, 0.12);
+  border-color: #7ab0ff;
+}
+[data-theme='dark'] .lc-new {
+  background: rgba(240, 196, 25, 0.16);
+  border-color: #f0c419;
+}
+[data-theme='dark'] .lc-done {
+  background: #14301c;
+}
+[data-theme='dark'] .lc-partial {
+  background: #3a3208;
+}
+[data-theme='dark'] .lc-notdone {
+  background: transparent;
+}
+[data-theme='dark'] .doc-sources {
+  background: #16233a;
+  border-color: #23344f;
+  color: #9fb0c6;
+}
+[data-theme='dark'] .intro-text {
+  color: #c3ccd8;
+}
+[data-theme='dark'] .text-block {
+  color: #c3ccd8;
+}
+
+/* Отчёт о ходе работ */
+[data-theme='dark'] .plan-progress-track {
+  background: #2a3342;
+}
+[data-theme='dark'] .report-table th {
+  background: #252a35;
+  color: #cbd6e6;
+  border-color: #343b47;
+}
+[data-theme='dark'] .report-table td {
+  border-color: #343b47;
+  color: #c9d2de;
+}
+[data-theme='dark'] .report-table td.left {
+  color: #dde4ee;
+}
+[data-theme='dark'] .section-row {
+  background: #232a38;
+  color: #eef2f7;
+}
+[data-theme='dark'] .subtotal-row {
+  background: #212730;
+}
+[data-theme='dark'] .grand-total {
+  background: #2a3342;
+}
+[data-theme='dark'] .overhead-row {
+  background: #1f2730;
+}
+[data-theme='dark'] .status-done {
+  background: #14301c;
+}
+[data-theme='dark'] .status-done td.left {
+  color: #7fd89a;
+}
+[data-theme='dark'] .status-partial {
+  background: #3a3208;
+}
+[data-theme='dark'] .status-partial td.left {
+  color: #e6c65a;
+}
+[data-theme='dark'] .status-notdone {
+  background: transparent;
+}
+[data-theme='dark'] .diff-over {
+  color: #ef7d70;
+}
+[data-theme='dark'] .diff-under {
+  color: #58c887;
+}
+[data-theme='dark'] .diff-zero {
+  color: #8b95a5;
+}
+[data-theme='dark'] .badge-green {
+  background: #14301c;
+  color: #7fd89a;
+}
+[data-theme='dark'] .badge-red {
+  background: #3a1414;
+  color: #f0a0a0;
+}
+[data-theme='dark'] .badge-accent {
+  background: rgba(232, 135, 46, 0.16);
+  color: #f0a45a;
+}
+
+/* Сводный отчёт по материалам */
+[data-theme='dark'] .report-block {
+  background: transparent;
+  border-color: #343b47;
+}
+[data-theme='dark'] .report-block th {
+  background: #252a35;
+  color: #cbd6e6;
+  border-color: #343b47;
+}
+[data-theme='dark'] .report-block td {
+  border-color: #343b47;
+  color: #c9d2de;
+}
+[data-theme='dark'] .report-block td.left {
+  color: #dde4ee;
+}
+[data-theme='dark'] .report-block .row-subtotal {
+  background: #212730;
+}
+[data-theme='dark'] .report-block .row-total {
+  background: #2a3342;
+}
+[data-theme='dark'] .report-block .row-special {
+  background: #1f2730;
+  color: #8b95a5;
+}
+
+/* Итоговый отчёт / сметы (блоки и сводные таблицы) */
+[data-theme='dark'] .block-body table th {
+  background: #252a35;
+  color: #cbd6e6;
+  border-color: #343b47;
+}
+[data-theme='dark'] .block-body table td {
+  border-color: #343b47;
+  color: #c9d2de;
+}
+[data-theme='dark'] .block-body .row-total {
+  background: #2a3342;
+}
+[data-theme='dark'] .block-body .row-sub {
+  background: #1f2730;
+  color: #8b95a5;
+}
+[data-theme='dark'] .doc-card.green {
+  background: #14301c;
+  border-color: #2c4a38;
+}
+[data-theme='dark'] .doc-card.green .value {
+  color: #7fd89a;
+}
+[data-theme='dark'] .doc-card.red {
+  background: #3a1414;
+  border-color: #5a2626;
+}
+[data-theme='dark'] .doc-card.red .value {
+  color: #f0a0a0;
+}
+[data-theme='dark'] .doc-card.blue {
+  background: #14263f;
+  border-color: #2c4a6e;
+}
+[data-theme='dark'] .doc-card.blue .value {
+  color: #9fc0f0;
+}
+
+/* Ссылки-карточки на сметы */
+[data-theme='dark'] .est-link {
+  background: #1c222b;
+  border-color: #343b47;
+}
+[data-theme='dark'] .est-link .est-title {
+  color: #eef2f7;
+}
+[data-theme='dark'] .est-link .est-desc,
+[data-theme='dark'] .est-link .est-meta {
+  color: #a8b2c2;
+}

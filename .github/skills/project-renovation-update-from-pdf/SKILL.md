@@ -150,9 +150,10 @@ argument-hint: 'Путь к PDF-файлу(ам) или папке с PDF (на 
 ### 4. Сгенерируй HTML
 
 Единый макет документа проекта «Ремонт» (см. «Конвенции оформления»): каркас проекта
-(`/projects/styles.css` + тема + акцент `#e8872e`), контейнер `.doc`, шапка `.doc-head`
-(заголовок `h1` + чипы `.meta-item` + карточка итога `.doc-head-total`), таблицы с локальными
-стилями, тёмная тема, ссылка возврата `<a class="doc-back" href="/projects/renovation/">`.
+(`/projects/styles.css` + тема + дизайн-система `report.css` с акцентом `#e8872e`), контейнер
+`.doc`, шапка `.doc-head` (заголовок `h1` + чипы `.meta-item` + карточка итога
+`.doc-head-total`), таблицы из `report.css`, тёмная тема из токенов, ссылка возврата
+`<a class="doc-back" href="/projects/renovation/">`.
 
 Структура по типам (образцы — существующие файлы `projects/renovation/`):
 
@@ -368,8 +369,9 @@ argument-hint: 'Путь к PDF-файлу(ам) или папке с PDF (на 
 Документы — подстраницы проекта «Ремонт», поэтому:
 
 - `<!doctype html>`, `<html lang="ru" data-theme="light">`, inline-скрипт применения темы в
-  `<head>` (без «мигания»), шрифт Inter, `<link href="/projects/styles.css">`, акцент:
-  `:root { --project-accent: #e8872e; --project-accent-soft: rgba(232,135,46,.14); }`.
+  `<head>` (без «мигания»), шрифт Inter, `<link href="/projects/styles.css">`, затем
+  дизайн-система `<link href="/projects/renovation/report.css">` (в подпапках `Materials/`,
+  `Works/` — `../report.css`); она задаёт акцент `#e8872e`, токены тем, таблицы и адаптив.
 - Разметка: `<div class="container">` → `<header class="header">` (бренд + навигация +
   `<div class="theme-toggle" data-theme-toggle></div>`) → `<main class="page">` →
   `<footer class="footer">`; в конце body — `<script src="/projects/theme.js" defer></script>`.
@@ -383,18 +385,20 @@ argument-hint: 'Путь к PDF-файлу(ам) или папке с PDF (на 
 - Иконки — только SVG из спрайта `/projects/icon-sprite.svg` (цвет сохранён), без эмодзи:
   `#package` (заказ материалов), `#clipboard` (акт работ / доп. соглашение), `#money`
   (взаиморасчёты), `#link` (ссылка на исходный PDF).
-- Таблицы — локальные `<style>` в `<head>` (гибридный подход); классы общего каркаса
+- Таблицы — из `report.css`, оборачивать в `<div class="table-wrap">`. Классы колонок ставить
+  **и на `<td>`, и на `<th>`** (`col-unit`, `col-price`, `col-qty`, `col-sum`, `col-desc` и т.п.)
+  — скрытие колонок на узких экранах работает по классам. Классы общего каркаса
   (`.container`, `.header`, `.footer`, `.card`, `.stats`, `.stat`) внутри документа не
   использовать. Классы: `col-num`, `col-name`, `col-unit`, `col-price`, `col-qty`, `col-sum`,
   `row-total`, `row-changed`, `totals-block`, `total-box`.
-- Таблицы без жёсткого `min-width` (100% ширины, без горизонтальной прокрутки); на `≤1100px`
-  скрывать второстепенные колонки («Ед.», «Цена») через `visibility: hidden` + `width: 0`
-  (колонки не удалять из сетки — `colspan` в итогах остаётся корректным).
+- Таблицы без жёсткого `min-width` (100% ширины); на `≤1100px` скрываются «Ед.» и «Цена», на
+  `≤700px` — «Объём» через `visibility: hidden` + `width: 0` (колонки не удалять из сетки —
+  `colspan` в итогах корректный). На телефоне широкая таблица прокручивается внутри
+  `.table-wrap` — страница не уезжает.
 - Числа — как в проекте: неразрывный пробел и запятая как десятичный разделитель
   (`141 127,88 ₽`); в PDF может быть точка (`134 407.50`) — приводить к запятой.
-- **Обязательно** тёмная тема: переопределения `[data-theme='dark']` для `.doc-head-title`,
-  `.meta-item`, `.doc-head-total`, таблиц, `.doc-sources` (образцы — во всех файлах
-  `projects/renovation/`).
+- Тёмная тема — автоматически из `report.css` (токены); отдельные переопределения не нужны.
+  Проверить светлую и тёмную темы.
 - Комментарии в коде и строки UI — на русском.
 
 ## Сохранение результатов
