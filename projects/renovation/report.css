@@ -823,6 +823,21 @@ tr:last-child td {
 .doc-card.card-stack.accent .card-value {
   color: var(--project-accent);
 }
+.doc-card.card-stack.plan-progress {
+  flex: 1 1 360px;
+  min-width: 340px;
+}
+.vz-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 20px;
+  align-items: start;
+}
+.vz-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
 .card-line {
   display: flex;
   justify-content: space-between;
@@ -1039,6 +1054,14 @@ tr:last-child td {
 }
 .plan-progress .plan-progress-top:last-child {
   margin-bottom: 0;
+}
+.plan-progress-link {
+  color: var(--project-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+.plan-progress-link:hover {
+  text-decoration: underline;
 }
 
 /* Таблица отчёта о ходе работ (сетка) */
