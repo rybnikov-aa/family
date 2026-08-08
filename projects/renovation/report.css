@@ -1104,6 +1104,49 @@ tr:last-child td {
   white-space: nowrap;
 }
 
+/* Пиллы-ссылки на детальные отчёты (в комментариях таблиц, например Блок 2
+   итогового отчёта): набор через flex-flow, внутри каждого — название и сумма
+   (сумма мельче и приглушённым цветом) */
+.report-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.report-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: var(--doc-chip-bg);
+  border: 1px solid var(--doc-chip-border);
+  color: var(--project-accent);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+.report-pill-amount {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--doc-muted);
+}
+.report-pill-text {
+  align-self: center;
+  color: var(--doc-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.report-pill:hover {
+  border-color: var(--project-accent);
+  background: var(--project-accent-soft);
+}
+
 /* Строки отчёта о ходе работ */
 .section-row {
   background: #eaf0fa;
