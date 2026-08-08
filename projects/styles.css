@@ -55,6 +55,9 @@
   --accent-hover: #2a2a2a;
   --toggle-active-bg: #ffffff;
   --toggle-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  --toggle-icon-sun: #f59e0b;
+  --toggle-icon-moon: #6366f1;
+  --toggle-icon-system: #6b7280;
 
   /* Акцентный цвет проекта (переопределяется в index.html проекта) */
   --project-accent: #3b82f6;
@@ -89,6 +92,9 @@
   --accent-hover: #d0d0d0;
   --toggle-active-bg: #2e2e36;
   --toggle-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --toggle-icon-sun: #fbbf24;
+  --toggle-icon-moon: #818cf8;
+  --toggle-icon-system: #9ca3af;
 
   --project-accent: #6ea8ff;
   --project-accent-soft: rgba(110, 168, 255, 0.16);
@@ -241,6 +247,19 @@ a {
   align-items: center;
   font-size: 1rem;
   line-height: 1;
+}
+.theme-toggle__icon svg {
+  width: 16px;
+  height: 16px;
+}
+.theme-toggle__icon--light {
+  color: var(--toggle-icon-sun);
+}
+.theme-toggle__icon--dark {
+  color: var(--toggle-icon-moon);
+}
+.theme-toggle__icon--system {
+  color: var(--toggle-icon-system);
 }
 
 /* Контент страницы */
