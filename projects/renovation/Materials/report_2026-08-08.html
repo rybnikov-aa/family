@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Применяем сохранённую тему до отрисовки, чтобы не было «мигания». -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+
+    <title>Заказ материалов №4 от 08-08-2026</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Общие стили страниц проектов (дизайн + тема приложения) -->
+    <link rel="stylesheet" href="../../styles.css" />
+    <!-- Стили документов и отчётов (дизайн-система report.css) -->
+    <link rel="stylesheet" href="../report.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <a href="/#/" class="brand">
+          <h1>
+            <span class="brand-mark"
+              ><svg class="picon" aria-hidden="true">
+                <use href="../../icon-sprite.svg#users"></use></svg></span
+            >Семейное пространство
+          </h1>
+        </a>
+        <div class="header-actions">
+          <nav class="nav">
+            <a href="/#/">Главная</a>
+            <a href="/#/news">Новости</a>
+            <a href="/#/projects">Проекты</a>
+          </nav>
+          <div class="theme-toggle" data-theme-toggle></div>
+        </div>
+      </header>
+
+      <main class="page">
+        <a class="doc-back" href="../index.html">← К отчётам проекта</a>
+        <div class="doc">
+          <div class="doc-head">
+            <h1 class="doc-head-title">
+              <svg class="picon" aria-hidden="true">
+                <use href="../../icon-sprite.svg#package"></use>
+              </svg>
+              Заказ материалов №4
+            </h1>
+            <div class="doc-head-left">
+              <div class="meta">
+                <span class="meta-item"
+                  ><strong>Объект:</strong> г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв.
+                  548, этаж 7</span
+                >
+                <span class="meta-item"><strong>Подрядчик:</strong> ООО «А-сервис»</span>
+                <span class="meta-item"><strong>Дата старта:</strong> 30.06.2026</span>
+              </div>
+            </div>
+            <div class="doc-head-total">
+              <div class="head-total-label">Итого по заказу</div>
+              <div class="total-big">60 892,00 ₽</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>№</th>
+                  <th>Наименование</th>
+                  <th class="col-unit">Ед. изм.</th>
+                  <th class="col-price">Цена за ед.</th>
+                  <th class="col-qty">Количество</th>
+                  <th class="col-sum">Сумма</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="col-num">1</td>
+                  <td>Трасса для сплит-системы (7/9/12)</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">2 340,00</td>
+                  <td class="col-qty">7,50</td>
+                  <td class="col-sum">17 550,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">2</td>
+                  <td>Штроба в пеноблоке</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">780,00</td>
+                  <td class="col-qty">1,70</td>
+                  <td class="col-sum">1 326,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">3</td>
+                  <td>Штроба в бетоне</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">1 560,00</td>
+                  <td class="col-qty">3,00</td>
+                  <td class="col-sum">4 680,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">4</td>
+                  <td>Трасса для сплит-системы (7/9/12)</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">2 340,00</td>
+                  <td class="col-qty">6,50</td>
+                  <td class="col-sum">15 210,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">5</td>
+                  <td>Штроба в пеноблоке</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">780,00</td>
+                  <td class="col-qty">3,70</td>
+                  <td class="col-sum">2 886,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">6</td>
+                  <td>Трасса для сплит-системы (7/9/12)</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">2 340,00</td>
+                  <td class="col-qty">7,50</td>
+                  <td class="col-sum">17 550,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">7</td>
+                  <td>Штроба в пеноблоке</td>
+                  <td class="col-unit">м.п.</td>
+                  <td class="col-price">780,00</td>
+                  <td class="col-qty">0,50</td>
+                  <td class="col-sum">390,00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">8</td>
+                  <td>Отверстие</td>
+                  <td class="col-unit">шт.</td>
+                  <td class="col-price">1 300,00</td>
+                  <td class="col-qty">1,00</td>
+                  <td class="col-sum">1 300,00</td>
+                </tr>
+                <tr class="row-total">
+                  <td colspan="5" class="col-name">Итого, с учетом накладных расходов</td>
+                  <td class="col-sum">60 892,00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Ссылка на исходный PDF -->
+          <div class="doc-sources">
+            <svg class="picon" aria-hidden="true">
+              <use href="../../icon-sprite.svg#link"></use>
+            </svg>
+            <span class="doc-sources-label">Исходный документ (PDF):</span>
+            <a
+              href="/projects/renovation/pdf/01%20Стены/Заказ_материалов%20N4%2008-08-2026.pdf"
+              target="_blank"
+              rel="noopener"
+              >Заказ_материалов N4 08-08-2026.pdf</a
+            >
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>Проект «Ремонт» — отчётность</span>
+        <span>
+          <a href="/#/">Главная</a>
+          <a href="/#/news">Новости</a>
+          <a href="/#/projects">Проекты</a>
+        </span>
+      </footer>
+    </div>
+
+    <script src="../../theme.js" defer></script>
+  </body>
+</html>
