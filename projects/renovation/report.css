@@ -693,9 +693,6 @@ tr:last-child td {
   padding: 16px 18px;
   overflow-x: auto;
 }
-.block-summary {
-  margin-bottom: 32px;
-}
 .block-note {
   margin-top: 12px;
   font-size: 13px;
