@@ -125,9 +125,9 @@ family (монорепозиторий, npm workspaces)
 │   ├── theme.js                     — тема (light/dark/system) для страниц проектов
 │   ├── _template/index.html         — шаблон новой страницы проекта
 │   └── renovation/                  — проект «Ремонт» (отчётность, в стиле приложения)
-│       ├── index.html               — главная страница проекта
+│       ├── index.html               — главная страница проекта (итоговая сводка Работы/Материалы + Примечания)
 │       ├── estimate.html            — смета на ремонт
-│       ├── Reports/                 — отчёты (report_work, report_materials, report_final)
+│       ├── Reports/                 — отчёты (report_work, report_materials)
 │       ├── Materials/               — заказы материалов (report_*.html) + взаиморасчёты по материалам
 │       └── Works/                   — акты работ (act_*.html) + взаиморасчёты по работам
 └── docs/specification.md            — общая спецификация + модульные (specification-{vps,projects,auth}.md)

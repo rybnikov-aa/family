@@ -47,6 +47,8 @@
 
     <!-- Общие стили страниц проектов (дизайн + тема приложения) -->
     <link rel="stylesheet" href="../styles.css" />
+    <!-- Дизайн-система документов и отчётов «Ремонта» (блоки Работы/Материалы, примечания) -->
+    <link rel="stylesheet" href="report.css" />
 
     <!-- Акцентный цвет проекта (оранжевый — как карточка «Ремонт» на главной) -->
     <style>
@@ -119,25 +121,6 @@
           <strong>ООО «А-сервис»</strong>
         </p>
 
-        <div class="stats">
-          <div class="stat">
-            <div class="label">Смета (план)</div>
-            <div class="value">2 040 010,48 ₽</div>
-          </div>
-          <div class="stat accent">
-            <div class="label">Внесено средств</div>
-            <div class="value">701 876,00 ₽</div>
-          </div>
-          <div class="stat">
-            <div class="label">Использовано</div>
-            <div class="value">563 960,60 ₽</div>
-          </div>
-          <div class="stat green">
-            <div class="label">Остаток</div>
-            <div class="value">137 915,40 ₽</div>
-          </div>
-        </div>
-
         <div class="cards">
           <div class="card">
             <div class="icon">
@@ -162,53 +145,210 @@
             </div>
           </div>
 
-          <a class="card" href="Reports/report_work.html">
+          <div class="card">
             <div class="icon">
               <svg class="picon" aria-hidden="true">
-                <use href="../icon-sprite.svg#chart"></use>
+                <use href="../icon-sprite.svg#brick"></use>
               </svg>
             </div>
             <div class="body">
-              <div class="title">Отчёт о ходе работ</div>
-              <p class="desc">
-                Смета с отметками о выполнении: план, факт, отклонения и статус по каждой позиции.
-                Выполнено работ на 141 127,88 ₽ (Акт №1).
-              </p>
+              <div class="title">Блок 1. Работы</div>
+              <div class="report-pills">
+                <a class="report-pill" href="estimate.html">смета</a>
+                <a class="report-pill" href="Reports/report_work.html">детализация</a>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Показатель</th>
+                    <th>Комментарий</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Акты выполненных работ</td>
+                    <td>
+                      <div class="report-pills">
+                        <a class="report-pill" href="Works/act_2026-07-26.html"
+                          ><span class="report-pill-name">Акт №1</span
+                          ><span class="report-pill-amount">141 127,88</span></a
+                        >
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="row-sub">
+                    <td>Ведомости взаиморасчетов</td>
+                    <td>
+                      <div class="report-pills">
+                        <a class="report-pill" href="Works/act_2026-07-26_settlement.html"
+                          >Ведомость 26.07</a
+                        >
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="totals-flex">
+                <div class="doc-card card-stack accent">
+                  <div class="card-line">
+                    <span class="card-label">Выполнено по актам</span>
+                    <span class="card-value">141 127,88 ₽</span>
+                  </div>
+                  <div class="card-divider"></div>
+                  <div class="card-line">
+                    <span class="card-label">в т.ч. не учтено в ведомостях</span>
+                    <span class="card-value">0,08 ₽</span>
+                  </div>
+                </div>
+                <div class="doc-card card-stack accent">
+                  <div class="card-line">
+                    <span class="card-label">Учтено в ведомостях</span>
+                    <span class="card-value">141 127,80 ₽</span>
+                  </div>
+                  <div class="card-divider"></div>
+                  <div class="card-line">
+                    <span class="card-label">в т.ч. подотчётные прораба</span>
+                    <span class="card-value">0,00 ₽</span>
+                  </div>
+                </div>
+                <div class="doc-card card-stack">
+                  <div class="card-line">
+                    <span class="card-label">Внесено по ведомости</span>
+                    <span class="card-value amount-blue">301 876,00 ₽</span>
+                  </div>
+                  <div class="card-divider"></div>
+                  <div class="card-line">
+                    <span class="card-label">Остаток</span>
+                    <span class="card-value amount-pos">160 748,20 ₽</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="arrow">→</div>
-          </a>
+          </div>
 
-          <a class="card" href="Reports/report_materials.html">
+          <div class="card">
             <div class="icon">
               <svg class="picon" aria-hidden="true">
                 <use href="../icon-sprite.svg#package"></use>
               </svg>
             </div>
             <div class="body">
-              <div class="title">Отчёт по материалам</div>
-              <p class="desc">
-                Все закупленные материалы по четырём отчётам о закупке. Итого с накладными
-                расходами: 433 724,80 ₽.
-              </p>
+              <div class="title">Блок 2. Материалы</div>
+              <div class="report-pills">
+                <a class="report-pill" href="Reports/report_materials.html">детализация</a>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Показатель</th>
+                    <th>Комментарий</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Заказы материалов</td>
+                    <td>
+                      <div class="report-pills">
+                        <a class="report-pill" href="Materials/report_2026-07-17.html"
+                          ><span class="report-pill-name">Отчёт №1</span
+                          ><span class="report-pill-amount">108 732,04</span></a
+                        >
+                        <a class="report-pill" href="Materials/report_2026-08-01.html"
+                          ><span class="report-pill-name">Отчёт №2</span
+                          ><span class="report-pill-amount">136 462,48</span></a
+                        >
+                        <a class="report-pill" href="Materials/report_2026-08-05.html"
+                          ><span class="report-pill-name">Отчёт №3</span
+                          ><span class="report-pill-amount">127 638,28</span></a
+                        >
+                        <a class="report-pill" href="Materials/report_2026-08-08.html"
+                          ><span class="report-pill-name">Отчёт №4</span
+                          ><span class="report-pill-amount">60 892,00</span></a
+                        >
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="row-sub">
+                    <td>Ведомости взаиморасчетов</td>
+                    <td>
+                      <div class="report-pills">
+                        <a class="report-pill" href="Materials/report_2026-08-06_settlement.html"
+                          >Ведомость 06.08</a
+                        >
+                        <a class="report-pill" href="Materials/report_2026-07-17_settlement.html"
+                          >Ведомость 17.07</a
+                        >
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="totals-flex">
+                <div class="doc-card card-stack accent">
+                  <div class="card-line">
+                    <span class="card-label">Итого заказы материалов</span>
+                    <span class="card-value">433 724,80 ₽</span>
+                  </div>
+                  <div class="card-divider"></div>
+                  <div class="card-line">
+                    <span class="card-label">в т.ч. не учтено в ведомостях</span>
+                    <span class="card-value">60 892,00 ₽</span>
+                  </div>
+                </div>
+                <div class="doc-card card-stack accent">
+                  <div class="card-line">
+                    <span class="card-label">Учтено в ведомостях</span>
+                    <span class="card-value">422 832,80 ₽</span>
+                  </div>
+                  <div class="card-divider"></div>
+                  <div class="card-line">
+                    <span class="card-label">в т.ч. подотчётные прораба</span>
+                    <span class="card-value">50 000,00 ₽</span>
+                  </div>
+                </div>
+                <div class="doc-card card-stack">
+                  <div class="card-line">
+                    <span class="card-label">Внесено по ведомости</span>
+                    <span class="card-value amount-blue">400 000,00 ₽</span>
+                  </div>
+                  <div class="card-divider"></div>
+                  <div class="card-line">
+                    <span class="card-label">Остаток</span>
+                    <span class="card-value amount-neg">−83 724,80 ₽</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="arrow">→</div>
-          </a>
+          </div>
+        </div>
 
-          <a class="card" href="Reports/report_final.html">
-            <div class="icon">
-              <svg class="picon" aria-hidden="true">
-                <use href="../icon-sprite.svg#money"></use>
-              </svg>
-            </div>
-            <div class="body">
-              <div class="title">Итоговый отчёт по объекту</div>
-              <p class="desc">
-                Сводка взаиморасчётов: внесённые средства, использование по работам и материалам,
-                остатки на балансе.
-              </p>
-            </div>
-            <div class="arrow">→</div>
-          </a>
+        <div class="note">
+          Примечания:
+          <ul style="margin: 6px 0 0; padding-left: 20px">
+            <li>
+              Расхождение 0,08 ₽ между итогом Акта №1 (141 127,88 ₽) и суммой «Учтено в ведомостях»
+              по работам (141 127,80 ₽) — сохранено как в исходных документах; оно отражено
+              подстрокой «в т.ч. не учтено в ведомостях» в карточке «Выполнено по актам».
+            </li>
+            <li>
+              По ведомости материалов в сумму использования (422 832,80 ₽) включены подотчётные
+              средства прораба 50 000,00 ₽.
+            </li>
+            <li>
+              Ведомость взаиморасчётов по материалам от 06.08.2026 включает отчёты №1–№3 и
+              подотчётные прораба; «Использовано» и «Остаток» по материалам приведены по ней. Заказ
+              материалов №4 (08.08.2026, 60 892,00 ₽) закуплен после неё и в «Использовано» не
+              входит — будет учтён в следующем акте взаиморасчётов.
+            </li>
+            <li>
+              Накладные расходы: работы — 5% (по смете и акту), материалы — 10% (по отчётам о
+              закупке №1–№3; в Заказе №4 накладные не предусмотрены).
+            </li>
+            <li>
+              Все суммы взяты из исходных HTML-документов без изменений; отчёт сформирован
+              08.08.2026.
+            </li>
+          </ul>
         </div>
       </main>
 
