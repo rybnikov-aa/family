@@ -1023,6 +1023,14 @@ tr:last-child td {
   font-weight: 500;
   color: #14273e;
 }
+/* Внутренняя обёртка колонки наименований: флекс-раскладка, пилл единицы
+   измерения прижат к правому краю через margin-left: auto. Флекс задаётся
+   обёртке, а НЕ самой ячейке — иначе у <td> ломается border-collapse:
+   collapse и в колонке появляются лишние/смещённые границы ячеек. */
+.report-table td.left .name-wrap {
+  display: flex;
+  align-items: center;
+}
 .report-table td.col-unit,
 .report-table td.col-price,
 .report-table td.col-qty,
@@ -1034,6 +1042,22 @@ tr:last-child td {
 .report-table th.col-sum,
 .report-table th.col-diff {
   font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Пилл единиц измерения в столбце наименований (report_work): единица
+   вынесена из отдельной колонки и прижата к правому краю наименования */
+.unit-pill {
+  display: inline-block;
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--doc-chip-bg);
+  border: 1px solid var(--doc-chip-border);
+  color: var(--doc-muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
   white-space: nowrap;
 }
 
@@ -1055,19 +1079,6 @@ tr:last-child td {
 }
 .subtotal-row td {
   padding: 12px 10px;
-}
-.grand-total {
-  background: #dce6f2;
-  font-weight: 700;
-  font-size: 15px;
-  border-top: 3px solid #8aa0c0;
-}
-.grand-total td {
-  padding: 14px 10px;
-}
-.overhead-row {
-  background: #f5f8ff;
-  font-weight: 600;
 }
 
 /* Статусы и отклонения */
@@ -1099,6 +1110,28 @@ tr:last-child td {
 }
 .diff-na {
   color: #999999;
+}
+
+/* План/факт в совмещённых колонках «Объём»/«Сумма» (report_work):
+   план — мельче и тусклее, факт — яркий; оттенок следует статусу строки. */
+.col-qty .plan-val,
+.col-sum .plan-val {
+  display: block;
+  font-size: 0.82em;
+  font-weight: 400;
+  opacity: 0.55;
+}
+.col-qty .fact-val,
+.col-sum .fact-val {
+  display: block;
+}
+.status-done .col-qty,
+.status-done .col-sum {
+  color: #1e5a2a;
+}
+.status-partial .col-qty,
+.status-partial .col-sum {
+  color: #7a5d00;
 }
 
 /* Итоговая строка отчёта */
@@ -1416,12 +1449,6 @@ tr:last-child td {
 [data-theme='dark'] .subtotal-row {
   background: #212730;
 }
-[data-theme='dark'] .grand-total {
-  background: #2a3342;
-}
-[data-theme='dark'] .overhead-row {
-  background: #1f2730;
-}
 [data-theme='dark'] .status-done {
   background: #14301c;
 }
@@ -1437,14 +1464,22 @@ tr:last-child td {
 [data-theme='dark'] .status-notdone {
   background: transparent;
 }
-[data-theme='dark'] .diff-over {
+[data-theme='dark'] .report-table td.diff-over {
   color: #ef7d70;
 }
-[data-theme='dark'] .diff-under {
+[data-theme='dark'] .report-table td.diff-under {
   color: #58c887;
 }
 [data-theme='dark'] .diff-zero {
   color: #8b95a5;
+}
+[data-theme='dark'] .status-done .col-qty,
+[data-theme='dark'] .status-done .col-sum {
+  color: #7fd89a;
+}
+[data-theme='dark'] .status-partial .col-qty,
+[data-theme='dark'] .status-partial .col-sum {
+  color: #e6c65a;
 }
 [data-theme='dark'] .badge-green {
   background: #14301c;
