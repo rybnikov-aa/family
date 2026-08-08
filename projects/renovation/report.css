@@ -816,6 +816,49 @@ tr:last-child td {
   color: var(--doc-num-blue);
 }
 
+/* Составные карточки-сводки (основное значение + строки-подразбивки) */
+.doc-card.card-stack {
+  flex: 1 1 260px;
+  min-width: 250px;
+}
+.card-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.card-line + .card-line {
+  margin-top: 8px;
+}
+.card-label {
+  font-size: 12px;
+  color: var(--doc-faint);
+}
+.card-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--doc-text-strong);
+  white-space: nowrap;
+}
+.doc-card.card-stack .card-line:first-child .card-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+.card-value.amount-pos {
+  color: var(--doc-num-green);
+}
+.card-value.amount-neg {
+  color: var(--doc-num-red);
+}
+.card-value.amount-blue {
+  color: var(--doc-num-blue);
+}
+.card-divider {
+  height: 1px;
+  background: var(--doc-card-border);
+  margin: 9px 0;
+}
+
 /* Блоки ссылок и примечания */
 .links-block {
   margin-top: 16px;
