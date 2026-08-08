@@ -86,68 +86,76 @@
                 </svg>
                 Блок 1. Работы</span
               >
+              <span class="report-pills">
+                <a class="report-pill" href="../estimate.html">смета</a>
+                <a class="report-pill" href="report_work.html">детализация</a>
+              </span>
             </div>
             <div class="block-body">
               <table>
                 <thead>
                   <tr>
                     <th>Показатель</th>
-                    <th style="text-align: right">Сумма</th>
                     <th>Комментарий</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Сметная стоимость работ (план, с накладными 5%)</td>
-                    <td class="num">2 040 010,48 ₽</td>
-                    <td><a class="report-pill" href="../estimate.html">Смета</a></td>
-                  </tr>
-                  <tr>
-                    <td>Выполнено по актам (факт, с накладными)</td>
-                    <td class="num">141 127,88 ₽</td>
+                    <td>Акты выполненных работ</td>
                     <td>
-                      <a class="report-pill" href="../Works/act_2026-07-26.html">Акт №1</a> от
-                      26.07.2026
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Процент выполнения</td>
-                    <td class="num">6,9%</td>
-                    <td>141 127,88 / 2 040 010,48</td>
-                  </tr>
-                  <tr class="row-sub">
-                    <td>Внесено заказчиком (ведомость работ)</td>
-                    <td class="num blue">301 876,00 ₽</td>
-                    <td>26.12.2025 + 17.07.2026</td>
-                  </tr>
-                  <tr class="row-sub">
-                    <td>Использовано по актам (ведомость)</td>
-                    <td class="num">141 127,80 ₽</td>
-                    <td>
-                      <a class="report-pill" href="../Works/act_2026-07-26_settlement.html"
-                        >Акт №1</a
-                      >
+                      <div class="report-pills">
+                        <a class="report-pill" href="../Works/act_2026-07-26.html"
+                          ><span class="report-pill-name">Акт №1</span
+                          ><span class="report-pill-amount">141 127,88</span></a
+                        >
+                      </div>
                     </td>
                   </tr>
                   <tr class="row-sub">
-                    <td>Остаток по работам</td>
-                    <td class="num amount-pos">160 748,20 ₽</td>
-                    <td>301 876,00 − 141 127,80</td>
+                    <td>Ведомости взаиморасчетов</td>
+                    <td>
+                      <div class="report-pills">
+                        <a class="report-pill" href="../Works/act_2026-07-26_settlement.html"
+                          >Ведомость 26.07</a
+                        >
+                      </div>
+                    </td>
                   </tr>
                 </tbody>
               </table>
               <div class="totals-flex">
-                <div class="doc-card blue">
-                  <div class="label">Внесено по работам</div>
-                  <div class="value">301 876,00 ₽</div>
+                <div class="doc-card card-stack accent">
+                  <div class="card-line">
+                    <span class="card-label">Выполнено по актам</span>
+                    <span class="card-value">141 127,88 ₽</span>
+                  </div>
+                  <div class="card-divider"></div>
+                  <div class="card-line">
+                    <span class="card-label">в т.ч. не учтено в ведомостях</span>
+                    <span class="card-value">0,08 ₽</span>
+                  </div>
                 </div>
-                <div class="doc-card">
-                  <div class="label">Использовано по актам</div>
-                  <div class="value">141 127,80 ₽</div>
+                <div class="doc-card card-stack accent">
+                  <div class="card-line">
+                    <span class="card-label">Учтено в ведомостях</span>
+                    <span class="card-value">141 127,80 ₽</span>
+                  </div>
+                  <div class="card-divider"></div>
+                  <div class="card-line">
+                    <span class="card-label">в т.ч. подотчётные прораба</span>
+                    <span class="card-value">0,00 ₽</span>
+                  </div>
                 </div>
-                <div class="doc-card green">
-                  <div class="label">Остаток по работам</div>
-                  <div class="value">160 748,20 ₽</div>
+                <div class="doc-card card-stack">
+                  <div class="card-line">
+                    <span class="card-label">Внесено по ведомости</span>
+                    <span class="card-value amount-blue">301 876,00 ₽</span>
+                  </div>
+                  <div class="card-divider"></div>
+                  <div class="card-line">
+                    <span class="card-label">Остаток</span>
+                    <span class="card-value amount-pos">160 748,20 ₽</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -162,20 +170,21 @@
                 </svg>
                 Блок 2. Материалы</span
               >
+              <span class="report-pills">
+                <a class="report-pill" href="report_materials.html">детализация</a>
+              </span>
             </div>
             <div class="block-body">
               <table>
                 <thead>
                   <tr>
                     <th>Показатель</th>
-                    <th style="text-align: right">Сумма</th>
                     <th>Комментарий</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Закуплено материалов (с накладными 10%)</td>
-                    <td class="num">433 724,80 ₽</td>
+                    <td>Заказы материалов</td>
                     <td>
                       <div class="report-pills">
                         <a class="report-pill" href="../Materials/report_2026-07-17.html"
@@ -198,56 +207,46 @@
                     </td>
                   </tr>
                   <tr class="row-sub">
-                    <td>Использовано по актам</td>
-                    <td class="num">422 832,80 ₽</td>
+                    <td>Ведомости взаиморасчетов</td>
                     <td>
                       <div class="report-pills">
-                        <a class="report-pill" href="../Materials/report_2026-07-17.html"
-                          >Отчёт №1</a
+                        <a class="report-pill" href="../Materials/report_2026-08-06_settlement.html"
+                          >Ведомость 06.08</a
                         >
-                        <a class="report-pill" href="../Materials/report_2026-08-01.html"
-                          >Отчёт №2</a
+                        <a class="report-pill" href="../Materials/report_2026-07-17_settlement.html"
+                          >Ведомость 17.07</a
                         >
-                        <a class="report-pill" href="../Materials/report_2026-08-05.html"
-                          >Отчёт №3</a
-                        >
-                        <span class="report-pill-text">подотчётные прораба 50 000,00</span>
                       </div>
                     </td>
-                  </tr>
-                  <tr class="row-sub">
-                    <td>Остаток по актам</td>
-                    <td class="num amount-neg">−22 832,80 ₽</td>
-                    <td>400 000,00 − 422 832,80</td>
                   </tr>
                 </tbody>
               </table>
               <div class="totals-flex">
-                <div class="doc-card card-stack">
+                <div class="doc-card card-stack accent">
                   <div class="card-line">
-                    <span class="card-label">Использовано по актам</span>
+                    <span class="card-label">Итого заказы материалов</span>
+                    <span class="card-value">433 724,80 ₽</span>
+                  </div>
+                  <div class="card-divider"></div>
+                  <div class="card-line">
+                    <span class="card-label">в т.ч. не учтено в ведомостях</span>
+                    <span class="card-value">60 892,00 ₽</span>
+                  </div>
+                </div>
+                <div class="doc-card card-stack accent">
+                  <div class="card-line">
+                    <span class="card-label">Учтено в ведомостях</span>
                     <span class="card-value">422 832,80 ₽</span>
                   </div>
                   <div class="card-divider"></div>
                   <div class="card-line">
-                    <span class="card-label">в т.ч. подотчётные</span>
+                    <span class="card-label">в т.ч. подотчётные прораба</span>
                     <span class="card-value">50 000,00 ₽</span>
                   </div>
                 </div>
                 <div class="doc-card card-stack">
                   <div class="card-line">
-                    <span class="card-label">Использовано по отчётам</span>
-                    <span class="card-value">433 724,80 ₽</span>
-                  </div>
-                  <div class="card-divider"></div>
-                  <div class="card-line">
-                    <span class="card-label">в т.ч. не учтено в актах</span>
-                    <span class="card-value">60 892,00 ₽</span>
-                  </div>
-                </div>
-                <div class="doc-card card-stack">
-                  <div class="card-line">
-                    <span class="card-label">Внесено по материалам</span>
+                    <span class="card-label">Внесено по ведомости</span>
                     <span class="card-value amount-blue">400 000,00 ₽</span>
                   </div>
                   <div class="card-divider"></div>
@@ -260,141 +259,13 @@
             </div>
           </div>
 
-          <!-- ==================== БЛОК 3. СВОДНАЯ СВЕРКА ==================== -->
-          <div class="block">
-            <div class="block-title">
-              <span
-                ><svg class="picon" aria-hidden="true">
-                  <use href="../../icon-sprite.svg#chart"></use>
-                </svg>
-                Блок 3. Сводная сверка</span
-              >
-            </div>
-            <div class="block-body">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Категория</th>
-                    <th style="text-align: right">Внесено</th>
-                    <th style="text-align: right">Использовано</th>
-                    <th style="text-align: right">Остаток</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Работы</td>
-                    <td class="num blue">301 876,00</td>
-                    <td class="num">141 127,80</td>
-                    <td class="num amount-pos">160 748,20</td>
-                  </tr>
-                  <tr>
-                    <td>Материалы</td>
-                    <td class="num blue">400 000,00</td>
-                    <td class="num">422 832,80</td>
-                    <td class="num amount-neg">−22 832,80</td>
-                  </tr>
-                  <tr class="row-total">
-                    <td class="grand">ИТОГО</td>
-                    <td class="num grand blue">701 876,00</td>
-                    <td class="num grand">563 960,60</td>
-                    <td class="num grand amount-pos">137 915,40</td>
-                  </tr>
-                </tbody>
-              </table>
-              <div class="totals-flex">
-                <div class="doc-card blue">
-                  <div class="label">Всего внесено заказчиком</div>
-                  <div class="value">701 876,00 ₽</div>
-                </div>
-                <div class="doc-card">
-                  <div class="label">Всего использовано</div>
-                  <div class="value">563 960,60 ₽</div>
-                </div>
-                <div class="doc-card green">
-                  <div class="label">Итоговый остаток</div>
-                  <div class="value">137 915,40 ₽</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Ссылки -->
-          <div class="links-block">
-            <h3>
-              <svg class="picon" aria-hidden="true">
-                <use href="../../icon-sprite.svg#link"></use>
-              </svg>
-              Документы по объекту
-            </h3>
-            <ul>
-              <li>Смета: <a href="../estimate.html">estimate.html</a></li>
-              <li>
-                Акты выполненных работ:
-                <a href="../Works/act_2026-07-26.html">Works/act_2026-07-26.html</a> (Акт №1 от
-                26.07.2026)
-              </li>
-              <li>
-                Отчёты о закупке материалов:
-                <a href="../Materials/report_2026-07-17.html">Materials/report_2026-07-17.html</a>,
-                <a href="../Materials/report_2026-08-01.html">Materials/report_2026-08-01.html</a>,
-                <a href="../Materials/report_2026-08-05.html">Materials/report_2026-08-05.html</a>,
-                <a href="../Materials/report_2026-08-08.html">Materials/report_2026-08-08.html</a>
-              </li>
-              <li>
-                Сформированные отчёты: <a href="report_work.html">report_work.html</a> (ход работ),
-                <a href="report_materials.html">report_materials.html</a> (материалы),
-                report_final.html (итоговый)
-              </li>
-            </ul>
-          </div>
-
-          <!-- Акты взаиморасчётов по работам (каждый следующий включает предыдущие; итоги — по последнему) -->
-          <div class="links-block">
-            <h3>
-              <svg class="picon" aria-hidden="true">
-                <use href="../../icon-sprite.svg#money"></use>
-              </svg>
-              Акты взаиморасчётов по работам
-            </h3>
-            <ul>
-              <li>
-                <a href="../Works/act_2026-07-26_settlement.html"
-                  >Works/act_2026-07-26_settlement.html</a
-                >
-              </li>
-            </ul>
-          </div>
-
-          <!-- Акты взаиморасчётов по материалам (каждый следующий включает предыдущие; итоги — по последнему) -->
-          <div class="links-block">
-            <h3>
-              <svg class="picon" aria-hidden="true">
-                <use href="../../icon-sprite.svg#money"></use>
-              </svg>
-              Акты взаиморасчётов по материалам
-            </h3>
-            <ul>
-              <li>
-                <a href="../Materials/report_2026-08-06_settlement.html"
-                  >Materials/report_2026-08-06_settlement.html</a
-                >
-                (актуальный)
-              </li>
-              <li>
-                <a href="../Materials/report_2026-07-17_settlement.html"
-                  >Materials/report_2026-07-17_settlement.html</a
-                >
-                (история)
-              </li>
-            </ul>
-          </div>
-
           <div class="note">
             Примечания:
             <ul style="margin: 6px 0 0; padding-left: 20px">
               <li>
-                Расхождение 0,08 ₽ между итогом Акта №1 (141 127,88 ₽) и суммой «Использовано по
-                актам» в ведомости работ (141 127,80 ₽) — сохранено как в исходных документах.
+                Расхождение 0,08 ₽ между итогом Акта №1 (141 127,88 ₽) и суммой «Учтено в
+                ведомостях» по работам (141 127,80 ₽) — сохранено как в исходных документах; оно
+                отражено подстрокой «в т.ч. не учтено в ведомостях» в карточке «Выполнено по актам».
               </li>
               <li>
                 По ведомости материалов в сумму использования (422 832,80 ₽) включены подотчётные

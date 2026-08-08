@@ -719,6 +719,9 @@ tr:last-child td {
   border: 1px solid var(--doc-th-border);
   vertical-align: middle;
 }
+.block-body tr:last-child td {
+  border-bottom: 1px solid var(--doc-th-border);
+}
 .block-body td.num {
   text-align: right;
   white-space: nowrap;
@@ -744,7 +747,6 @@ tr:last-child td {
   padding: 12px;
 }
 .block-body .row-sub {
-  background: var(--doc-sub-bg);
   color: var(--doc-faint);
 }
 .block-body .grand {
@@ -817,6 +819,9 @@ tr:last-child td {
 .doc-card.card-stack {
   flex: 1 1 260px;
   min-width: 250px;
+}
+.doc-card.card-stack.accent .card-value {
+  color: var(--project-accent);
 }
 .card-line {
   display: flex;
@@ -1323,7 +1328,6 @@ tr:last-child td {
   padding: 12px 10px;
 }
 .report-block .row-special {
-  background: var(--doc-sub-bg);
   color: var(--doc-faint);
   font-style: italic;
 }
@@ -1601,7 +1605,6 @@ tr:last-child td {
   background: #2a3342;
 }
 [data-theme='dark'] .report-block .row-special {
-  background: #1f2730;
   color: #8b95a5;
 }
 
@@ -1619,7 +1622,6 @@ tr:last-child td {
   background: #2a3342;
 }
 [data-theme='dark'] .block-body .row-sub {
-  background: #1f2730;
   color: #8b95a5;
 }
 [data-theme='dark'] .doc-card.green {
