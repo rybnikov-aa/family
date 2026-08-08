@@ -227,7 +227,7 @@ DEPLOY_BACKEND_DIR=/var/www/family.rybnikov.su/server
 DEPLOY_PM2_APP=family-backend    # pm2 app name
 
 # Optional: bin directory with node/npm ON THE SERVER, if the remote script
-# cannot auto-detect them (e.g. /home/rybnikov/.nvm/versions/node/v20.19.0/bin)
+# cannot auto-detect them (e.g. /home/rybnikov/.nvm/versions/node/v24.19.0/bin)
 # DEPLOY_NODE_PATH=
 ```
 

@@ -9,7 +9,7 @@
     "backend"
   ],
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.5.0"
   },
   "scripts": {
     "dev": "concurrently -n FRONTEND,BACKEND -c blue,green \"npm:dev:frontend\" \"npm:dev:backend\"",

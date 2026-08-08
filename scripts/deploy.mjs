@@ -27,7 +27,7 @@
  *   DEPLOY_FRONTEND_DIR  default: /var/www/family.rybnikov.su/public_html
  *   DEPLOY_BACKEND_DIR   default: /var/www/family.rybnikov.su/server
  *   DEPLOY_PM2_APP       default: family-backend
- *   DEPLOY_NODE_PATH     bin dir with node/npm on the SERVER (e.g. /home/rybnikov/.nvm/versions/node/v20.19.0/bin).
+ *   DEPLOY_NODE_PATH     bin dir with node/npm on the SERVER (e.g. /home/rybnikov/.nvm/versions/node/v24.19.0/bin).
  *                        If unset, the remote script auto-detects node/npm (profiles, nvm, common paths).
  *
  * Requires the OpenSSH client (ssh/scp) on PATH — built into Windows 10+.

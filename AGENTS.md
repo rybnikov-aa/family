@@ -1,6 +1,6 @@
 # AGENTS.md — Family
 
-Монорепозиторий веб-приложения: **frontend** (React 19 + TypeScript + Vite, порт 5173) и **backend** (Node + Express 5 + Vite через `vite-plugin-node`, порт 3000). npm workspaces, общие dev-зависимости в корневом `package.json`. Node >= 20.19.0.
+Монорепозиторий веб-приложения: **frontend** (React 19 + TypeScript + Vite, порт 5173) и **backend** (Node + Express 5 + Vite через `vite-plugin-node`, порт 3000). npm workspaces, общие dev-зависимости в корневом `package.json`. **Node ≥ 22.5** — реальное требование бэкенда (`node:sqlite`), `engines` в корневом `package.json` — `>=22.5.0`; на сервере v24.19.0.
 
 > ⚠️ **`renovation_source/` — временная папка, исключена.** Не править, не учитывать в анализе и не деплоить. Рабочий проект ремонта — `projects/renovation/`.
 
@@ -48,6 +48,9 @@ Fullstack Dev — **владелец контракта и координато�
    - Не ждать отдельной команды «обнови/актуализируй документацию»: правки `docs/`, навыков
      (`.github/skills/*/SKILL.md`), `.env.example` и `AGENTS.md` входят в ту же задачу, что и код, — сразу после
      изменений прогонять этот чек-лист и вносить недостающее, не оставляя «на потом».
+   - После правки самих инструкций (`AGENTS.md`, `.github/skills/*/SKILL.md`) проверять, что
+     изменение реально легло в файл: `git diff` или grep по новому маркеру. Если правка не
+     применилась — честно сообщить об этом, а не отчитываться о выполненном.
 2. **Три независимых пространства `.env`** (реальные `.env` в git не попадают и не переопределяют уже заданные переменные окружения): корень — деплой (`DEPLOY_*`, читает `scripts/deploy.mjs`); `backend/.env` — рантайм (`PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `PROJECTS_DIR`); `frontend/.env` — только `VITE_API_BASE_URL`.
 3. **`npm run typecheck` — единственный gate.** `noUnusedLocals`/`noUnusedParameters` включены в обоих воркспейсах → неиспользуемые переменные/параметры — ошибки (TS6133); неиспользуемые параметры называть `_req`/`_next`. ESLint в репо нет.
 4. **node:sqlite — осторожно:**
@@ -56,6 +59,7 @@ Fullstack Dev — **владелец контракта и координато�
    - **Конфликт UNIQUE определять по `(err.errcode & 0xff) === 19`** (`isConstraintError`), НЕ по `err.code` (`ERR_SQLITE_ERROR`).
    - `mkdirSync(dirname(dbPath), {recursive:true})` обязателен до `new DatabaseSync()`.
    - Vite оставляет `node:sqlite` external (не инлайнит).
+   - Требует Node ≥ 22.5 (`engines` в корневом `package.json` — `>=22.5.0`); на сервере v24.19.0.
 5. **`app.listen` гейтится** в `app.ts`: слушать при `NODE_ENV=production` ЛИБО прямом запуске. Под pm2 `process.argv[1]` — враппер pm2 (не скрипт) → argv-проверка даёт `false`; основной сигнал — `NODE_ENV=production` (ставит деплой-скрипт). В dev Vite монтирует `app` сам — слушать нельзя.
 6. **Язык.** Комментарии в коде и строки UI — на русском. Иконки — инлайн SVG-компоненты (`stroke=currentColor`) в `frontend/src/components/icons.tsx`.
 7. **Проект «Ремонт» (`projects/renovation/**`): работа начинается с загрузки навыков**
@@ -83,6 +87,15 @@ Fullstack Dev — **владелец контракта и координато�
       страницу/скриншот), не полагаясь на «примерно так»;
     - применять маленькие обратимые шаги, чтобы не ломать соседние элементы (перед «переделкой»
       показывать, что именно меняется).
+      **Лестница проверки макета** (стандарт для визуальных проверок, работает и без зрения):
+    1. `read_page` — текстовый accessibility-снимок страницы (не требует vision);
+    2. `run_playwright_code` (или CDP-замеры в headless Chromium) — числа: `getComputedStyle`,
+       `getBoundingClientRect`, `querySelectorAll`, счётчики — в обеих темах (light/dark);
+    3. `screenshot_page` + `view_image` — только если модель реально видит изображения
+       (иначе `view_image` вернёт лишь URI без пикселей — см. «Типичные грабли»).
+       Запрещено отвечать «не могу проверить»/перекладывать проверку на пользователя, пока не
+       испробованы пункты 1–2. Числовые замеры надёжнее «глаз» — они ловят реальные дефекты
+       (цвета, специфичность, переполнения).
 11. **Единый источник конвенций — без дублирования инструкций.** Конвенции кода живут **только** в
     `AGENTS.md`; навыки (`.github/skills/*/SKILL.md`) и агенты (`.github/agents/*.agent.md`) — только для
     специализированных процедур и ролей. **Не создавать `.github/instructions/`** — это дублирует
@@ -102,3 +115,11 @@ Fullstack Dev — **владелец контракта и координато�
 - **Backend 502 под pm2:** диагностика `ss -ltnp | grep 3000`, `curl -i http://127.0.0.1:3000/api/health`, `pm2 logs family-backend --lines 50 --nostream`. pm2 не в PATH в неинтерактивной сессии — полный путь `~/.nvm/versions/node/v24.19.0/bin/pm2`.
 - **Второй хост `itg-ru-gw.rybnikov.su` (пользователь `rybnikov`, passwordless sudo):** деплой проходит успешно, но «бэкенд оффлайн» → те же проверки на хосте: `ss -ltnp | grep 3000`, `curl -i http://127.0.0.1:3000/api/health`, `NODE_ENV=production` и полный путь pm2; SSL — letsencrypt (`/etc/letsencrypt/live/itg-ru-gw.rybnikov.su/`).
 - **nginx:** `proxy_pass http://127.0.0.1:3000;` без трейлинг-слэша, иначе срезается `/api` и Express отдаёт 404.
+- **Модель без vision (Vision Proxy):** `view_image`/`screenshot_page` возвращают только URI без
+  пикселей (ошибка «Vision Proxy is unavailable» / «cannot see images»). Это не блокер: проверяй
+  макет по лестнице из правила 10 — `read_page` + числовые замеры через `run_playwright_code`/CDP
+  (computed styles, `getBoundingClientRect`, счётчики, обе темы), а не «на глаз».
+- **Один инструмент «disabled» ≠ браузер недоступен:** отсутствие `open_browser_page`/`read_page`/
+  `screenshot_page` в текущей сессии не значит, что проверку нельзя выполнить. Не перекладывать
+  проверку на пользователя и не заявлять «не могу» — использовать остальные доступные инструменты
+  (CDP-замеры, headless Chromium через Playwright) и `read_page`, если он есть.
