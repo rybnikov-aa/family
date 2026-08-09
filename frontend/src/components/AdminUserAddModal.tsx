@@ -66,10 +66,10 @@ function AdminUserAddModal({ onClose, onAdded }: AdminUserAddModalProps) {
   return (
     <Modal title="Добавить пользователя" onClose={onClose}>
       <form className="vps-form" onSubmit={handleSubmit}>
-        <label className="vps-form__field">
-          <span className="vps-form__label">Имя пользователя (логин)</span>
+        <label className="field">
+          <span className="field__label">Имя пользователя (логин)</span>
           <input
-            className="vps-form__control"
+            className="input"
             type="text"
             autoComplete="off"
             maxLength={50}
@@ -80,10 +80,10 @@ function AdminUserAddModal({ onClose, onAdded }: AdminUserAddModalProps) {
           />
         </label>
 
-        <label className="vps-form__field">
-          <span className="vps-form__label">Отображаемое имя</span>
+        <label className="field">
+          <span className="field__label">Отображаемое имя</span>
           <input
-            className="vps-form__control"
+            className="input"
             type="text"
             autoComplete="off"
             maxLength={100}
@@ -94,10 +94,10 @@ function AdminUserAddModal({ onClose, onAdded }: AdminUserAddModalProps) {
           />
         </label>
 
-        <label className="vps-form__field">
-          <span className="vps-form__label">Роль</span>
+        <label className="field">
+          <span className="field__label">Роль</span>
           <select
-            className="vps-form__control"
+            className="input"
             value={role}
             onChange={(event) => setRole(event.target.value as NewUserRole)}
           >
@@ -106,10 +106,10 @@ function AdminUserAddModal({ onClose, onAdded }: AdminUserAddModalProps) {
           </select>
         </label>
 
-        <label className="vps-form__field">
-          <span className="vps-form__label">Пароль</span>
+        <label className="field">
+          <span className="field__label">Пароль</span>
           <input
-            className="vps-form__control"
+            className="input"
             type="password"
             autoComplete="new-password"
             value={password}
@@ -120,7 +120,7 @@ function AdminUserAddModal({ onClose, onAdded }: AdminUserAddModalProps) {
         </label>
 
         {error && (
-          <div className="vps-form__error" role="alert">
+          <div className="alert alert--error" role="alert">
             {error}
           </div>
         )}

@@ -7,6 +7,7 @@ import { healthRouter } from './routes/health';
 import { authRouter } from './routes/auth';
 import { vpsRouter } from './routes/vps';
 import { projectsRouter } from './routes/projects';
+import { renovationRouter } from './routes/renovation';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler';
 import { requireAuth } from './middlewares/auth';
 import { ensureBootstrapAdmin } from './services/authService';
@@ -27,6 +28,8 @@ app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/vps', requireAuth, vpsRouter);
 app.use('/api/projects', requireAuth, projectsRouter);
+// Модуль «Ремонт» (этап 2 — чтение отчётности из отдельной БД renovation.sqlite).
+app.use('/api/renovation', requireAuth, renovationRouter);
 
 // Создание первого администратора (если в env задан bootstrap-пароль).
 ensureBootstrapAdmin();

@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Outlet, RouterProvider, createHashRouter, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
 import ProjectsPage from './pages/ProjectsPage';
-import ProfilePage from './pages/ProfilePage';
-import AdminUsersPage from './pages/AdminUsersPage';
 import LoginPage from './pages/LoginPage';
+// Тяжёлые страницы (с модалками/отчётами) грузим лениво — отдельные чанки.
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'));
+const RenovationPage = lazy(() => import('./pages/RenovationPage'));
 import { ROUTES } from './routes';
 import { useAuth } from './hooks/useAuth';
 
@@ -19,14 +21,21 @@ function RouteLayout() {
         ? 'Новости • family.rybnikov.su'
         : location.pathname === ROUTES.projects
           ? 'Проекты • family.rybnikov.su'
-          : location.pathname === ROUTES.profile
-            ? 'Профиль • family.rybnikov.su'
-            : location.pathname === ROUTES.adminUsers
-              ? 'Пользователи • family.rybnikov.su'
-              : 'Семейное пространство • family.rybnikov.su';
+          : location.pathname === ROUTES.renovation
+            ? 'Ремонт • family.rybnikov.su'
+            : location.pathname === ROUTES.profile
+              ? 'Профиль • family.rybnikov.su'
+              : location.pathname === ROUTES.adminUsers
+                ? 'Пользователи • family.rybnikov.su'
+                : 'Семейное пространство • family.rybnikov.su';
   }, [location.pathname]);
 
-  return <Outlet />;
+  // Ленивые страницы ждут чанк — показываем заглушку.
+  return (
+    <Suspense fallback={<div className="route-loading">Загрузка…</div>}>
+      <Outlet />
+    </Suspense>
+  );
 }
 
 /** Экран-заглушка на время проверки сессии при старте. */
@@ -61,6 +70,7 @@ const router = createHashRouter([
           { path: ROUTES.home, element: <HomePage /> },
           { path: ROUTES.news, element: <NewsPage /> },
           { path: ROUTES.projects, element: <ProjectsPage /> },
+          { path: ROUTES.renovation, element: <RenovationPage /> },
           { path: ROUTES.profile, element: <ProfilePage /> },
           // Админ-разделы: доступны только роли `admin` (иначе — на главную).
           {

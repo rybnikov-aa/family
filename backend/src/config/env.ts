@@ -22,6 +22,29 @@ export const env = {
    */
   PROJECTS_DIR: process.env.PROJECTS_DIR ?? '../public_html/projects',
 
+  // ── Модуль «Ремонт» (renovation) ───────────────────────────────────────────
+  /**
+   * Путь к отдельной БД отчётности «Ремонта». Это НЕ `DB_PATH` (база VPS) —
+   * у модуля своя БД. По умолчанию `data/renovation.sqlite` рядом с backend.
+   * Наполняется `npm run seed:renovation -w backend`.
+   */
+  RENOVATION_DB_PATH: process.env.RENOVATION_DB_PATH ?? 'data/renovation.sqlite',
+  /**
+   * Папка исходных HTML проекта «Ремонт» (для seed-импорта). По умолчанию
+   * `../projects/renovation` относительно каталога бэкенда.
+   */
+  RENOVATION_PROJECTS_DIR: process.env.RENOVATION_PROJECTS_DIR ?? '../projects/renovation',
+  /**
+   * Интерпретатор Python с pdfplumber (импорт PDF, этап 3). Пусто → по умолчанию
+   * `<repo>/.venv/Scripts/python.exe` (Windows) либо `python`.
+   */
+  RENOVATION_PYTHON: process.env.RENOVATION_PYTHON ?? '',
+  /**
+   * Путь к скрипту `extract_pdf.py` (импорт PDF). Пусто → по умолчанию
+   * `scripts/extract_pdf.py` относительно CWD (папка backend).
+   */
+  RENOVATION_EXTRACT_SCRIPT: process.env.RENOVATION_EXTRACT_SCRIPT ?? '',
+
   // ── Авторизация ────────────────────────────────────────────────────────────
   /** Имя cookie сессии (httpOnly, SameSite=Lax). */
   AUTH_COOKIE_NAME: process.env.AUTH_COOKIE_NAME ?? 'sid',

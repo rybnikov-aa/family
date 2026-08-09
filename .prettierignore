@@ -1,0 +1,8 @@
+# Локальное окружение Python (pdfplumber/PyMuPDF) — не часть репозитория.
+.venv/
+venv/
+
+# Собранные артефакты и служебное.
+dist/
+node_modules/
+temp/

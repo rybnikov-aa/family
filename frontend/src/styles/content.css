@@ -1,0 +1,311 @@
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-5);
+  margin-top: var(--space-2);
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius-2xl);
+  padding: 24px 18px 20px;
+  text-align: left;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid var(--border);
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.card:hover {
+  background: var(--card-hover-bg);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+.card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-13px);
+  margin-bottom: 12px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+.card__icon svg {
+  width: 24px;
+  height: 24px;
+}
+.card h3 {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.card p {
+  font-size: var(--font-size-sm2);
+  color: var(--text-muted);
+  font-weight: 400;
+  line-height: 1.4;
+  margin: 0;
+  flex-grow: 1;
+}
+.card .tag {
+  margin-top: 14px;
+  font-size: var(--font-size-2xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-fainter);
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  width: 100%;
+}
+
+.card-renov {
+  background: var(--card-renov-bg);
+  border-color: var(--card-renov-border);
+}
+.card-renov .tag {
+  color: var(--link-hover);
+  border-top-color: var(--card-renov-border);
+}
+
+/* Широкая карточка: занимает две колонки сетки (карточки проектов). */
+.card--wide {
+  grid-column: span 2;
+}
+
+/* News page */
+.page {
+  padding-bottom: 8px;
+}
+.page__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: var(--space-8);
+}
+.page__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-1xl);
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--color-accent-teal) 14%, transparent);
+  color: var(--color-accent-teal);
+}
+.page__icon svg {
+  width: 27px;
+  height: 27px;
+}
+/* Акцент иконки заголовка страницы «Проекты» */
+.page__icon--projects {
+  background: color-mix(in srgb, var(--color-accent-sky) 14%, transparent);
+  color: var(--color-accent-sky);
+}
+/* Действия в шапке страницы (например кнопка «Создать проект») — прижимаем к правому краю */
+.page__head-actions {
+  margin-left: auto;
+}
+.page__head h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+.page__sub {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.news-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-1xl);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.news-item:hover {
+  border-color: color-mix(in srgb, var(--color-accent-teal) 40%, var(--border));
+  background: var(--card-hover-bg);
+}
+.news-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--font-size-2xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-fainter);
+}
+.news-item__badge {
+  color: var(--color-accent-teal);
+}
+.news-item h3 {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+}
+.news-item p {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.news-empty {
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+  color: var(--text-faint);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-1xl);
+}
+
+/* Footer */
+.footer {
+  margin-top: var(--space-12);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  font-size: var(--font-size-xs);
+  color: var(--text-fainter);
+}
+.footer a {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 500;
+  margin: 0 8px;
+}
+.footer a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+.footer .copy {
+  font-weight: 400;
+}
+
+/* Footer status indicators */
+.footer-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-caption);
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.status-card::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dot-neutral);
+  flex-shrink: 0;
+}
+.status-card--ok::before {
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px var(--color-success-halo);
+}
+.status-card--error::before {
+  background: var(--color-danger);
+  box-shadow: 0 0 0 3px var(--color-danger-halo);
+}
+.status-card--muted::before {
+  background: var(--color-warning);
+  box-shadow: 0 0 0 3px var(--color-warning-halo);
+}
+.status-card__label {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.status-card__value {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Theme toggle */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+}
+.theme-toggle__option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.theme-toggle__option:hover {
+  color: var(--text);
+}
+.theme-toggle__option--active {
+  background: var(--toggle-active-bg);
+  color: var(--text-strong);
+  box-shadow: var(--toggle-shadow);
+}
+.theme-toggle__option:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.theme-toggle__icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-md);
+  line-height: 1;
+}
+.theme-toggle__icon svg {
+  width: 16px;
+  height: 16px;
+}
+.theme-toggle__icon--light {
+  color: var(--toggle-icon-sun);
+}
+.theme-toggle__icon--dark {
+  color: var(--toggle-icon-moon);
+}
+.theme-toggle__icon--system {
+  color: var(--toggle-icon-system);
+}

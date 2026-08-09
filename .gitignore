@@ -3,6 +3,10 @@ node_modules/
 .pnp
 .pnp.js
 
+# Python virtual environments (локальный pdfplumber — только для dev/seed, на сервер не идёт)
+.venv/
+venv/
+
 # Build output
 dist/
 build/

@@ -2,7 +2,24 @@
 description: 'Сквозная разработка фич приложения family (полный стек). Use when: задача затрагивает и бэкенд, и фронтенд (новый API-эндпоинт + UI, фикс «VPS не видна», новый тип проверки с отображением, изменение контракта API), синхронная актуализация документации (docs/specification*.md, README.md), связка backend/src/** + frontend/src/** + projects/**. Для задач строго в одной области — используй агентов Frontend Dev или Backend Dev.'
 name: 'Fullstack Dev'
 argument-hint: 'Сквозная задача (бэкенд + фронтенд)'
-tools: [read, search, edit, execute, todo, web]
+tools:
+  [
+    vscode,
+    execute,
+    read,
+    agent,
+    ms-python.python/getPythonEnvironmentInfo,
+    ms-python.python/getPythonExecutableCommand,
+    ms-python.python/installPythonPackage,
+    ms-python.python/configurePythonEnvironment,
+    edit,
+    search,
+    web,
+    browser,
+    'playwright/*',
+    'pylance-mcp-server/*',
+    todo,
+  ]
 agents: ['Frontend Dev', 'Backend Dev', 'Projects Dev', 'Projects Explorer']
 user-invocable: true
 ---

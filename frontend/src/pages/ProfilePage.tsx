@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import PageLayout from '../components/PageLayout';
+import Button from '../components/Button';
 import { LockIcon, UserIcon } from '../components/icons';
 import { useAuth } from '../hooks/useAuth';
 
@@ -92,16 +93,16 @@ function ProfilePage() {
 
           <div className="profile__meta">
             <span>Логин: {user.username}</span>
-            <span className="profile__role">
+            <span className="badge badge--surface">
               {user.role === 'admin' ? 'админ' : 'пользователь'}
             </span>
           </div>
 
           <form onSubmit={onNameSubmit}>
-            <label className="profile__field">
-              <span className="profile__label">Отображаемое имя</span>
+            <label className="field field--block">
+              <span className="field__label">Отображаемое имя</span>
               <input
-                className="profile__input"
+                className="input input--surface"
                 type="text"
                 autoComplete="name"
                 maxLength={100}
@@ -111,19 +112,19 @@ function ProfilePage() {
             </label>
 
             {nameMessage && (
-              <div className="profile__message" role="status">
+              <div className="alert alert--success alert--block" role="status">
                 {nameMessage}
               </div>
             )}
             {nameError && (
-              <div className="profile__error" role="alert">
+              <div className="alert alert--error alert--block" role="alert">
                 {nameError}
               </div>
             )}
 
-            <button type="submit" className="profile__submit" disabled={nameSaving || !name.trim()}>
+            <Button type="submit" variant="primary" disabled={nameSaving || !name.trim()}>
               {nameSaving ? 'Сохранение…' : 'Сохранить имя'}
-            </button>
+            </Button>
           </form>
         </div>
 
@@ -139,20 +140,20 @@ function ProfilePage() {
           </div>
 
           <form onSubmit={onPasswordSubmit}>
-            <label className="profile__field">
-              <span className="profile__label">Текущий пароль</span>
+            <label className="field field--block">
+              <span className="field__label">Текущий пароль</span>
               <input
-                className="profile__input"
+                className="input input--surface"
                 type="password"
                 autoComplete="current-password"
                 value={currentPassword}
                 onChange={(event) => setCurrentPassword(event.target.value)}
               />
             </label>
-            <label className="profile__field">
-              <span className="profile__label">Новый пароль</span>
+            <label className="field field--block">
+              <span className="field__label">Новый пароль</span>
               <input
-                className="profile__input"
+                className="input input--surface"
                 type="password"
                 autoComplete="new-password"
                 value={password}
@@ -161,23 +162,23 @@ function ProfilePage() {
             </label>
 
             {passwordMessage && (
-              <div className="profile__message" role="status">
+              <div className="alert alert--success alert--block" role="status">
                 {passwordMessage}
               </div>
             )}
             {passwordError && (
-              <div className="profile__error" role="alert">
+              <div className="alert alert--error alert--block" role="alert">
                 {passwordError}
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
-              className="profile__submit"
+              variant="primary"
               disabled={passwordSaving || !currentPassword || password.length < 6}
             >
               {passwordSaving ? 'Сохранение…' : 'Сменить пароль'}
-            </button>
+            </Button>
             <p className="profile__hint">Минимальная длина пароля — 6 символов.</p>
           </form>
         </div>

@@ -1,9 +1,9 @@
 import { useState, type ComponentType } from 'react';
 import PageLayout from '../components/PageLayout';
-import PdfUploadModal from '../components/PdfUploadModal';
+import CreateProjectModal from '../components/CreateProjectModal';
 import SectionCard from '../components/SectionCard';
 import Button from '../components/Button';
-import { FolderIcon, ProjectsIcon, RenovationIcon, UploadIcon } from '../components/icons';
+import { FolderIcon, PlusIcon, ProjectsIcon, RenovationIcon } from '../components/icons';
 import type { IconProps } from '../components/icons';
 import { useProjects } from '../hooks/useProjects';
 import { useAuth } from '../hooks/useAuth';
@@ -16,15 +16,20 @@ const projectIcons: Record<string, ComponentType<IconProps>> = {
 };
 
 /**
- * Раздел «Проекты»: список отдельных подпроектов (подпапок на сервере
- * с `index.html`). Данные динамические — приходят с бэкенда (`GET /api/projects`).
+ * Раздел «Проекты»: список отдельных подпроектов. Данные динамические —
+ * приходят с бэкенда (`GET /api/projects`): статичные проекты (подпапки
+ * `PROJECTS_DIR` с `index.html`) + прикладные (SPA) проекты из реестра
+ * `backend/src/config/appProjects.ts` (`kind: 'app'`, например «Ремонт»).
+ * Для прикладных проектов бэкенд отдаёт внутренний маршрут (`/projects/renovation`),
+ * который SectionCard рендерит как внутренний Link (hash-роутинг); статичные
+ * (`/projects/<slug>/`) — как обычные ссылки.
  */
 function ProjectsPage() {
-  const { projects, error, loading } = useProjects();
-  // Загрузка PDF — только для admin.
+  const { projects, error, loading, refresh } = useProjects();
+  // Создание проекта — только для admin.
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
-  const [uploadOpen, setUploadOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   return (
     <PageLayout>
@@ -39,8 +44,8 @@ function ProjectsPage() {
           </div>
           {isAdmin && (
             <div className="page__head-actions">
-              <Button variant="primary" icon={<UploadIcon />} onClick={() => setUploadOpen(true)}>
-                Загрузить PDF
+              <Button variant="primary" icon={<PlusIcon />} onClick={() => setCreateOpen(true)}>
+                Создать проект
               </Button>
             </div>
           )}
@@ -73,7 +78,9 @@ function ProjectsPage() {
         )}
       </section>
 
-      {uploadOpen && <PdfUploadModal onClose={() => setUploadOpen(false)} />}
+      {createOpen && (
+        <CreateProjectModal onClose={() => setCreateOpen(false)} onCreated={refresh} />
+      )}
     </PageLayout>
   );
 }

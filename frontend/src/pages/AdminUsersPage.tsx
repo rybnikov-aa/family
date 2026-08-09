@@ -28,28 +28,34 @@ function AdminUsersPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [passwordTarget, setPasswordTarget] = useState<AdminUser | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  // Ошибки операций (напр. удаление) — отдельно от успеха: раньше всё сообщение
+  // показывалось зелёным (`alert--success`), и сбой выглядел как успех.
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const handleAdded = () => {
     setAddOpen(false);
     setMessage(null);
+    setActionError(null);
     reload();
   };
 
   const handlePasswordChanged = () => {
     setPasswordTarget(null);
     setMessage(null);
+    setActionError(null);
     reload();
   };
 
   const handleDelete = async (target: AdminUser) => {
     if (!window.confirm(`Удалить пользователя «${target.name}» (${target.username})?`)) return;
     setMessage(null);
+    setActionError(null);
     try {
       await deleteAdminUser(target.id);
       setMessage(`Пользователь «${target.username}» удалён`);
       reload();
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Не удалось удалить пользователя');
+      setActionError(err instanceof Error ? err.message : 'Не удалось удалить пользователя');
     }
   };
 
@@ -67,12 +73,17 @@ function AdminUsersPage() {
         </div>
 
         {error && (
-          <div className="admin__error" role="alert">
+          <div className="alert alert--error" role="alert">
             {error}
           </div>
         )}
+        {actionError && (
+          <div className="alert alert--error" role="alert">
+            {actionError}
+          </div>
+        )}
         {message && (
-          <div className="admin__message" role="status">
+          <div className="alert alert--success" role="status">
             {message}
           </div>
         )}
@@ -99,7 +110,9 @@ function AdminUsersPage() {
                     <td className="admin__username">{entry.username}</td>
                     <td>{entry.name}</td>
                     <td>
-                      <span className={`admin__badge admin__badge--${entry.role}`}>
+                      <span
+                        className={`badge badge--surface${entry.role === 'user' ? ' badge--muted' : ''}`}
+                      >
                         {entry.role === 'admin' ? 'админ' : 'пользователь'}
                       </span>
                     </td>

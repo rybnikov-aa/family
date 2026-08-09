@@ -1,0 +1,349 @@
+/* Modal: детализация доступности VPS */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: rgba(0, 0, 0, 0.5);
+}
+.modal {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-container);
+  width: 100%;
+  max-width: 672px; /* +20% от 560px (форма добавления VPS) */
+  max-height: 82vh;
+  overflow-y: auto;
+  /* Скрываем горизонтальную прокрутку: тултипы у иконок (position:absolute)
+     слегка выходят за край карточек и создают лишний горизонтальный скролл */
+  overflow-x: hidden;
+  padding: 28px;
+}
+/* Расширенная модалка для сетки карточек детализации в 2 столбца */
+.modal--wide {
+  max-width: 780px;
+}
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.modal__head h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--text-strong);
+  letter-spacing: -0.01em;
+}
+.modal__head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+/* ── Примитив: кнопка-иконка (выход, закрытие, обновление, «+», импорт, копирование, удаление) ── */
+.icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.icon-btn--sm {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+}
+.icon-btn--xs {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-xs);
+  background: transparent;
+}
+.icon-btn--plain {
+  background: transparent;
+}
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.icon-btn--sm svg {
+  width: 14px;
+  height: 14px;
+}
+.icon-btn--xs svg {
+  width: 12px;
+  height: 12px;
+}
+.icon-btn__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.icon-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.icon-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+.icon-btn--danger:hover:not(:disabled) {
+  color: var(--color-danger-strong);
+  background: var(--surface-muted);
+}
+.icon-btn--active,
+.icon-btn--active:hover:not(:disabled) {
+  color: var(--color-success-strong);
+}
+/* Всплывающая подсказка к кнопке-иконке (data-tooltip) */
+.icon-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--text-strong);
+  color: var(--surface);
+  font-size: var(--font-size-2xs);
+  font-weight: 500;
+  line-height: 1;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+  box-shadow: var(--shadow-card);
+}
+.icon-btn[data-tooltip]:hover::after,
+.icon-btn[data-tooltip]:focus-visible::after {
+  opacity: 1;
+}
+.modal__summary {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.modal__summary strong {
+  color: var(--text-strong);
+}
+
+/* Уведомление об импорте VPS из JSON */
+.modal__import-note {
+  font-size: var(--font-size-sm2);
+  color: var(--text);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+  /* Длинные URL в уведомлениях не должны выходить за край на узких экранах */
+  overflow-wrap: anywhere;
+}
+.modal__import-note--ok {
+  color: var(--color-success-strong);
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+}
+.modal__import-note--error {
+  color: var(--color-danger-strong);
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+}
+.modal__import-errors {
+  list-style: none;
+  margin-top: 6px;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+.modal__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 640px) {
+  .modal__list {
+    grid-template-columns: 1fr;
+  }
+}
+.modal__vps {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  background: var(--card-bg);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'flag head'
+    'flag ip'
+    'flag srv';
+  column-gap: 10px;
+  row-gap: 6px;
+  align-items: start;
+  /* Не растягивать строки по высоте карточки (иначе при выравнивании карточек в
+     сетке по высоте IP «уезжает» в центр пустого пространства) */
+  align-content: start;
+}
+.modal__vps-head {
+  grid-area: head;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.modal__vps-flag {
+  grid-area: flag;
+  width: 24px;
+  height: 16px;
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.modal__vps-name {
+  font-weight: 600;
+  color: var(--text-strong);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.modal__vps-ip {
+  font-size: var(--font-size-xs);
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Строка соединения: IP-адрес + копирование, выровнена по левому краю с именем */
+.modal__vps-ip-row {
+  grid-area: ip;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.modal__vps-percent {
+  margin-left: auto;
+  margin-right: 8px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+}
+.modal__vps-percent--ok {
+  color: var(--color-success-strong);
+  background: var(--color-success-halo);
+}
+.modal__vps-percent--warning {
+  color: var(--color-critical-strong);
+  background: var(--color-critical-bg);
+}
+.modal__vps-percent--error {
+  color: var(--color-danger-strong);
+  background: var(--color-danger-halo);
+}
+.modal__vps-percent--checking,
+.modal__vps-percent--unknown {
+  color: var(--color-warning-strong);
+  background: var(--color-warning-bg);
+}
+.modal__vps-head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.modal__services {
+  grid-area: srv;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.modal__service {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--font-size-sm2);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  min-width: 0;
+}
+.modal__service-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.modal__service-dot--ok {
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px var(--color-success-halo);
+}
+.modal__service-dot--error {
+  background: var(--color-danger);
+  box-shadow: 0 0 0 3px var(--color-danger-halo);
+}
+.modal__service--muted {
+  color: var(--text-faint);
+  justify-content: center;
+}
+.modal__service-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+}
+/* Подчёркивание/цвет при наведении — только для настоящих ссылок (<a>);
+   не-ссылочные имена сервисов (span) не выглядят интерактивными */
+a.modal__service-name:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+.modal__service-latency {
+  flex-shrink: 0;
+  font-size: var(--font-size-2xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+

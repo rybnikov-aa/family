@@ -1,0 +1,113 @@
+/* Экран входа */
+.auth-loading {
+  color: var(--text-muted);
+  font-size: var(--font-size-md);
+  padding: 24px;
+}
+.login {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  position: relative;
+}
+.login__theme {
+  position: absolute;
+  top: -8px;
+  right: 0;
+}
+.login__card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-3xl);
+  padding: 40px 36px 32px;
+  box-shadow: var(--shadow-container);
+  text-align: center;
+}
+.login__brand {
+  margin-bottom: 16px;
+}
+.login__brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-2xl);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text);
+}
+.login__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+.login__sub {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin: 6px 0 28px;
+}
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+.login__footer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 24px;
+  font-size: var(--font-size-xs);
+  color: var(--text-faint);
+}
+.login__footer svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 480px) {
+  /* Переключатель темы позиционирован абсолютно (top:-8px относительно .login),
+     поэтому padding-top у .login сдвигал бы только карточку вниз, а переключатель
+     «улетал» бы вверх — убираем его: переключатель остаётся на 8px выше карточки,
+     как и на десктопе. */
+  .login__card {
+    padding: 32px 24px 28px;
+  }
+}
+
+/* ── Мобильная адаптация форм (не влияет на десктоп — шире 767px) ── */
+
+/* П1: iOS-зум — поля форм >= 16px, иначе Safari увеличивает масштаб при фокусе */
+@media (max-width: 767px) {
+  .input {
+    font-size: 16px;
+  }
+  /* П5: оверлей редактора сервисов фиксируем относительно вьюпорта,
+     чтобы он не «уезжал» при прокрутке самой модалки */
+  .services-editor-backdrop {
+    position: fixed;
+    z-index: 200;
+    border-radius: 0;
+    padding: 16px;
+  }
+}
+
+/* П9: короткие вьюпорты (альбомная ориентация, клавиатура iOS) —
+   не обрезаем верх центрируемого контента */
+@media (max-height: 640px) {
+  body {
+    align-items: flex-start;
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+}
+
+/* П11: сенсорные экраны — крупнее зона нажатия основных кнопок-иконок */
+@media (hover: none) {
+  .icon-btn:not(.icon-btn--sm):not(.icon-btn--xs) {
+    width: 40px;
+    height: 40px;
+  }
+}
+

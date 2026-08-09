@@ -28,6 +28,10 @@ user-invocable: true
 
 - `npm run deploy -- --no-build` — без локальной сборки (нужен уже собранный `dist`).
 - `npm run deploy -- --no-restart` — файлы обновятся, pm2 не перезапустится.
+- `npm run deploy -- --no-pdf-setup` — не готовить сервер к импорту PDF (по умолчанию деплой сам ставит `python3-venv` + `~/renov-venv` с pdfplumber и дописывает `RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT` в `server/.env`, создавая файл при его отсутствии; идемпотентно, не роняет деплой). На Python 3.8 последний pdfplumber не ставится (нужен Python>=3.9) — деплой откатывается на `pdfplumber==0.11.0` и предупреждает.
+- `npm run deploy -- --seed-renovation` — пересев БД «Ремонта» из задеплоенных HTML (`public_html/projects/renovation`). **ВНИМАНИЕ: сбрасывает `server/data/renovation.sqlite`** — стирает импортированное через приложение. Только по явному запросу.
+
+**Рестарт pm2 в деплое — обычный (`pm2 restart`, без `--update-env`):** приложение само читает `server/.env` через dotenv при старте, а `--update-env` в неинтерактивных SSH-сессиях падает с `env: 'node': No such file or directory` (node не в PATH) — рестарт не происходит. Если вручную правили `server/.env` и рестартите вне деплоя — `export PATH=".../bin:$PATH"` и `pm2 restart family-backend` (см. `docs/server.md`).
 
 ### Предпросмотр без деплоя
 
@@ -70,6 +74,7 @@ node .github/skills/deploy/scripts/check-server.mjs [--host <хост>] [--user 
 4. pm2-логи: полный путь, т.к. pm2 не в PATH в неинтерактивной сессии — `~/.nvm/versions/node/v24.19.0/bin/pm2 logs family-backend --lines 50 --nostream`.
 5. nginx: `sudo nginx -t && sudo systemctl reload nginx` (после правки конфига).
 6. Если бэкенд не слушает: проверить `NODE_ENV=production` (без него `app.listen` не вызывается под pm2) и `pm2 describe family-backend`.
+7. **После правки `server/.env` (например, `RENOVATION_*` для импорта PDF) обязателен рестарт.** В неинтерактивной SSH-сессии `pm2 restart --update-env` падает с `env: 'node': No such file or directory` (node не в PATH) — рестарт не происходит, приложение работает со старым env. Правильно: `export PATH="/home/rybnikov/.nvm/versions/node/v24.19.0/bin:$PATH"` затем `pm2 restart family-backend` (без `--update-env` — dotenv перечитает `.env` при старте). Подробно — `docs/server.md`.
 
 ## Что сохраняется на сервере при деплое (не затирается)
 

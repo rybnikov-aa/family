@@ -1,0 +1,105 @@
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-bottom: 28px;
+  border-bottom: 2px solid var(--border-strong);
+  margin-bottom: var(--space-10);
+}
+
+.brand {
+  text-decoration: none;
+}
+.brand h1 {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+.brand h1 .brand-mark {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  color: var(--text-faint);
+}
+.brand-mark svg {
+  display: block;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.nav {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+.nav a {
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text);
+  padding: 6px 0;
+  border-bottom: 2px solid transparent;
+  transition: 0.15s;
+  letter-spacing: 0.01em;
+}
+.nav a:hover {
+  border-bottom-color: var(--link-hover);
+  color: var(--link-hover);
+}
+.nav a.active {
+  border-bottom-color: var(--link-hover);
+  color: var(--link-hover);
+}
+.nav .nav-anchor {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 6px 0;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  cursor: pointer;
+  transition: 0.15s;
+}
+.nav .nav-anchor:hover {
+  border-bottom-color: var(--link-hover);
+  color: var(--link-hover);
+}
+
+/* Пользователь и выход в шапке */
+.user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 var(--space-4);
+}
+.user__name {
+  font-size: var(--font-size-sm2);
+  font-weight: 500;
+  color: var(--text-muted);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.user__name:hover {
+  color: var(--link-hover);
+}
+.user__icon {
+  color: var(--text-faint);
+  flex-shrink: 0;
+  display: block;
+}
+

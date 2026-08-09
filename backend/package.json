@@ -8,7 +8,8 @@
     "build": "vite build",
     "start": "node dist/app.cjs",
     "typecheck": "tsc --noEmit",
-    "user": "node scripts/users.mjs"
+    "user": "node scripts/users.mjs",
+    "seed:renovation": "node scripts/seed-renovation.mjs"
   },
   "dependencies": {
     "cors": "^2.8.6",

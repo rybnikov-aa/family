@@ -20,7 +20,7 @@
   - pm2 не в PATH в неинтерактивной сессии, полный путь:
     `/home/rybnikov/.nvm/versions/node/v24.19.0/bin/pm2`
 - **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется вручную (SQL/клиентом) **или через форму добавления VPS в UI** (`POST /api/vps`), импорт из JSON (`POST /api/vps/import`), удаление — кнопка-корзина в детализации (`DELETE /api/vps/:name`). Путь задаётся через `DB_PATH` (по умолчанию `data/vps.sqlite`). При деплое папка `data/` **не удаляется** (как и `.env`); схема таблиц создаётся автоматически при первом обращении. В той же БД — таблицы авторизации `users` и `sessions` (см. ниже).
-- **Авторизация** — весь портал (SPA и API) закрыт входом: без действующей сессии API отвечает 401, фронтенд показывает экран входа. Вход/выход/текущий пользователь — `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Сессия — httpOnly `SameSite=Lax` cookie `sid` (в проде `Secure`), в БД хранится только SHA-256 от токена; срок жизни — `SESSION_TTL_HOURS`. Роли: `admin` (управление VPS + загрузка PDF) и `user` (чтение). **Первый администратор** создаётся при старте из `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей); дальнейшие учётки — CLI `npm run user -w backend` (`add`/`list`/`set-role`/`remove`), он пишет в ту же БД и использует тот же формат хэша scrypt. Скрипт `scripts/users.mjs` входит в деплой, поэтому на сервере его можно запускать прямо из каталога бэкенда: `cd /var/www/family.rybnikov.su/server && node scripts/users.mjs add <username> <name> <role>`. `/api/health` остаётся публичным (для диагностики). Статичные страницы проектов (`/projects/**`) раздаёт nginx напрямую — они вне авторизации (при необходимости закрыть — nginx `auth_basic` на соответствующие `location`).
+- **Авторизация** — весь портал (SPA и API) закрыт входом: без действующей сессии API отвечает 401, фронтенд показывает экран входа. Вход/выход/текущий пользователь — `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Сессия — httpOnly `SameSite=Lax` cookie `sid` (в проде `Secure`), в БД хранится только SHA-256 от токена; срок жизни — `SESSION_TTL_HOURS`. Роли: `admin` (управление VPS + создание проектов) и `user` (чтение). **Первый администратор** создаётся при старте из `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей); дальнейшие учётки — CLI `npm run user -w backend` (`add`/`list`/`set-role`/`remove`), он пишет в ту же БД и использует тот же формат хэша scrypt. Скрипт `scripts/users.mjs` входит в деплой, поэтому на сервере его можно запускать прямо из каталога бэкенда: `cd /var/www/family.rybnikov.su/server && node scripts/users.mjs add <username> <name> <role>`. `/api/health` остаётся публичным (для диагностики). Статичные страницы проектов (`/projects/**`) раздаёт nginx напрямую — они вне авторизации (при необходимости закрыть — nginx `auth_basic` на соответствующие `location`).
 - Для диагностики API, требующего авторизации, в curl нужна cookie сессии: `curl -c ck -X POST http://127.0.0.1:3000/api/auth/login -H 'Content-Type: application/json' -d '{"username":"…","password":"…"}'`, затем `curl -b ck http://127.0.0.1:3000/api/vps`.
 
 **Управление пользователями на сервере:**
@@ -37,7 +37,7 @@
 - Пароль запрашивается интерактивно (не эхонируется) либо через `--password <пароль>`.
 - Первый администратор: `AUTH_BOOTSTRAP_PASSWORD` в `server/.env` → создаётся при рестарте, если таблица `users` пуста; после входа переменную убрать.
 - **Проекты (раздел «Проекты»):** проект — подпапка `public_html/projects/<slug>/` с `index.html` (например, «Ремонт» — `public_html/projects/renovation/`). Список проектов отдаёт `GET /api/projects` (сканирует каталог из `PROJECTS_DIR`, по умолчанию `../public_html/projects`). Страницы проектов используют общий шаблон `projects/` (стиль + тема приложения): `projects/styles.css`, `projects/theme.js`, иконки — SVG-спрайт `projects/icon-sprite.svg` (эмодзи как иконки не используются); тема хранится в `localStorage['theme']` (общая для домена). Шаблон новой страницы — `projects/_template/index.html` в репозитории (на сервер не деплоится).
-- **Загрузка PDF в проекты** — через UI (кнопка «Загрузить PDF» на странице «Проекты») → `POST /api/projects/upload`; файлы сохраняются в `PROJECTS_DIR/<папка>/` (папка выбирается из `GET /api/projects/dirs` и создаётся при необходимости) и раздаются nginx как статика по `/projects/…`. Для работы нужен `client_max_body_size 20m` в `location /api/`.
+- **Создание проектов** — через UI (кнопка «Создать проект» на странице «Проекты», admin) → `POST /api/projects` (JSON `{slug, title, description, accent?, icon?, order?}`); бэкенд создаёт подпапку `PROJECTS_DIR/<slug>/` с `index.html` из встроенного шаблона (`backend/src/services/projectsTemplate.ts`) — проект сразу появляется в `GET /api/projects` и открывается по `/projects/<slug>/`. Страница проекта использует общий каркас `/projects/styles.css` + `/projects/theme.js` и раздаётся nginx как статика.
 - **Файл `.env` бэкенда** (`server/.env`) — конфигурация рантайма, при деплое **сохраняется** (не перезаписывается и не удаляется). Переменные:
   - `PORT` — порт API (по умолчанию `3000`);
   - `NODE_ENV` — в проде `production` (задаётся скриптом деплоя);
@@ -47,6 +47,47 @@
   - `AUTH_COOKIE_NAME` — имя cookie сессии (по умолчанию `sid`);
   - `SESSION_TTL_HOURS` — срок жизни сессии в часах (по умолчанию `168` = 7 суток);
   - `AUTH_BOOTSTRAP_PASSWORD` — пароль первого администратора (создаётся при старте, если в БД нет пользователей); после первого входа переменную можно убрать. Дополнительно: `AUTH_BOOTSTRAP_USERNAME` (`admin`), `AUTH_BOOTSTRAP_NAME` (`Администратор`).
+  - Модуль «Ремонт»: `RENOVATION_DB_PATH` (по умолчанию `data/renovation.sqlite` — отдельная БД, сохраняется в `data/`), `RENOVATION_PYTHON` и `RENOVATION_EXTRACT_SCRIPT` (импорт PDF, этап 3).
+
+  **Импорт PDF («Ремонт», этап 3):** парсер — `pdfplumber` (Python), Node-бэкенд запускает
+  `server/scripts/extract_pdf.py` как subprocess. **Деплой готовит сервер автоматически**
+  (шаг «pdf setup», отключается `--no-pdf-setup` или `DEPLOY_PDF_SETUP=0`): ставит
+  `python3-venv` (через passwordless sudo, если нет `ensurepip`), создаёт `~/renov-venv`
+  с pdfplumber и дописывает `RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT` в `server/.env`
+  (создавая файл, если его нет). Идемпотентно и не роняет деплой при сбое. **Версия pdfplumber:**
+  если последняя не ставится (на Python 3.8 последняя требует Pillow>=12 → нужен Python>=3.9),
+  деплой откатывается на `pdfplumber==0.11.0` (совместима с 3.8) и предупреждает. Ручная
+  настройка (если деплой шёл с `--no-pdf-setup`): `python3 -m venv ~/renov-venv && ~/renov-venv/bin/pip install pdfplumber`,
+  затем в `server/.env`: `RENOVATION_PYTHON=/home/rybnikov/renov-venv/bin/python`,
+  `RENOVATION_EXTRACT_SCRIPT=/var/www/family.rybnikov.su/server/scripts/extract_pdf.py`.
+  Скрипт `extract_pdf.py` входит в деплой вместе с `backend/scripts/`. Дефолт python в
+  приложении платформозависимый (Windows — `../.venv/Scripts/python.exe`, Debian/Ubuntu —
+  `../.venv/bin/python`), поэтому на сервере путь задаётся явно через `RENOVATION_PYTHON`.
+  Если на сервере нет `python3-venv` — поставить: `sudo apt-get install -y python3.13-venv`
+  (у `rybnikov` passwordless sudo), затем создать venv заново.
+
+  **После правки `server/.env` перезапустить бэкенд.** Деплой делает это сам обычным
+  `pm2 restart` (без `--update-env` — dotenv при старте перечитывает `.env`). Вне деплоя в
+  неинтерактивной SSH-сессии `node` не в PATH, поэтому `pm2 restart family-backend --update-env`
+  падает с `env: 'node': No such file or directory` (рестарт не происходит). Правильно — с node
+  в PATH и обычным рестартом:
+
+  ```bash
+  export PATH="/home/rybnikov/.nvm/versions/node/v24.19.0/bin:$PATH"
+  /home/rybnikov/.nvm/versions/node/v24.19.0/bin/pm2 restart family-backend
+  ```
+
+  Проверка, что переменные подхватились: `curl -s http://127.0.0.1:3000/api/health` (200) и
+  повторный `POST /api/renovation/pdf` (не «extract_pdf.py: …python: can't find…»).
+
+  **Пересев БД «Ремонта» на сервере** (если нужно вернуть данные из HTML после ручных правок):
+  `npm run deploy -- --seed-renovation` (сбрасывает `server/data/renovation.sqlite` — только по
+  явному запросу). Либо вручную, указывая явно путь к проекту (проекты лежат в
+  `public_html/projects/renovation`, а не в `server/../projects`):
+
+  ```bash
+  cd /var/www/family.rybnikov.su/server && RENOVATION_PROJECTS_DIR=/var/www/family.rybnikov.su/public_html/projects/renovation /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/seed-renovation.mjs
+  ```
 
   Корневой `.env` (репозиторий) — это **другое** пространство переменных: только конфигурация деплоя (`DEPLOY_*`) для `scripts/deploy.mjs`.
 
@@ -83,7 +124,7 @@ DEPLOY_PM2_APP=family-backend
 - `location /` — раздача статики фронтенда (`try_files $uri $uri/ =404`).
 - `location /api/` — прокси на бэкенд:
   `proxy_pass http://127.0.0.1:3000;` — **без** завершающего слэша (иначе срезается `/api` → 404).
-- Для загрузки PDF (`POST /api/projects/upload`) в `location /api/` задан `client_max_body_size 20m` (дефолт nginx — 1 МБ, без этого загрузка упадёт с 413).
+- Для импорта PDF в «Ремонт» (`POST /api/renovation/pdf`) в `location /api/` задан `client_max_body_size 20m` (дефолт nginx — 1 МБ, без этого загрузка упадёт с 413).
 - Редирект старого адреса проекта «Ремонт»: `location ^~ /renovation/` → `return 301 /projects$request_uri` (путь после `/renovation/` сохраняется, напр. `/renovation/estimate.html` → `/projects/renovation/estimate.html`); `location = /renovation` → `return 301 /projects/renovation/` — старые ссылки/закладки на `/renovation/...` не ломаются после переноса проекта.
 - `location /projects/renovation/` — HTML-страницы проекта отдаются с `Cache-Control: no-cache` (обновляются деплоем, чтобы не было «залипшего» кэша), статику кэширует 1ч (`expires 1h`, `Cache-Control: public, immutable`). Безопасные заголовки повторяются внутри блока (add_header не наследуется во вложенные location); файлы раздаёт основной `location /`.
 - Проекты (`/projects/<slug>/`, в т.ч. `renovation/`) и общие ассеты `projects/` (`styles.css`, `theme.js`) раздаёт основной `location /` — для раздачи правки nginx не требуются. Для `/projects/renovation/` (единственный с явным кэшем) HTML-страницы отдаются с `Cache-Control: no-cache` (блок `location ~ ^/projects/renovation/.*\.html$`), статика кэшируется 1ч (блок `location /projects/renovation/`).
@@ -126,7 +167,7 @@ server {
         # /api/health -> http://127.0.0.1:3000/api/health
         proxy_pass http://127.0.0.1:3000;
 
-        # Загрузка PDF (POST /api/projects/upload) — дефолт nginx 1 МБ, поднимаем до 20 МБ
+        # Импорт PDF в «Ремонт» (POST /api/renovation/pdf) — дефолт nginx 1 МБ, поднимаем до 20 МБ
         client_max_body_size 20m;
 
         # HTTP/1.1 и передача заголовков клиента

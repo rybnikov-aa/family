@@ -161,48 +161,47 @@ export interface Project {
   accent: string;
   /** Имя иконки (например, `renovation`); пусто — иконка по умолчанию. */
   icon: string;
+  /** Тип проекта: `static` (подпапка PROJECTS_DIR) или `app` (SPA из реестра бэкенда). */
+  kind: 'static' | 'app';
   url: string;
 }
 
-/** Список проектов: `GET /api/projects`. */
-export async function fetchProjects(): Promise<Project[]> {
-  const res = await apiFetch('/projects');
+/** Список проектов: `GET /api/projects`; `force` — обход 60-с кэша бэкенда (`?refresh=1`). */
+export async function fetchProjects(force = false): Promise<Project[]> {
+  const res = await apiFetch(`/projects${force ? '?refresh=1' : ''}`);
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<Project[]>;
 }
 
-/**
- * Список папок на сервере внутри каталога проектов: `GET /api/projects/dirs`.
- * Возвращает относительные пути (например `renovation/pdf/00 Дизайн-проект`) —
- * для выбора папки загрузки PDF.
- */
-export async function fetchProjectDirs(): Promise<string[]> {
-  const res = await apiFetch('/projects/dirs');
-  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
-  const data = (await res.json()) as { dirs: string[] };
-  return data.dirs;
-}
-
-/** Результат загрузки PDF на сервер. */
-export interface PdfUploadResult {
-  /** URL загруженного файла (например `/projects/renovation/pdf/…/файл.pdf`). */
-  url: string;
+/** Входные данные для создания статичного проекта (`POST /api/projects`). */
+export interface ProjectInput {
+  /** Имя папки проекта: латиница, цифры и дефисы (например `dacha`). */
+  slug: string;
+  /** Название для карточки и страницы проекта. */
+  title: string;
+  /** Описание для карточки. */
+  description: string;
+  /** Акцентный цвет карточки (`#RRGGBB`), по умолчанию `#3b82f6`. */
+  accent?: string;
+  /** Имя иконки: `renovation` | `folder` | `projects`, по умолчанию `projects`. */
+  icon?: string;
+  /** Порядок в списке (целое ≥ 0); не задано — в конец. */
+  order?: number;
 }
 
 /**
- * Загружает PDF на сервер в указанную папку: `POST /api/projects/upload` (multipart).
- * Поля формы: `folder` (относительный путь внутри каталога проектов),
- * `name` (имя файла, UTF-8) и `file` (PDF).
+ * Создаёт статичный проект: `POST /api/projects` (admin). Бэкенд создаёт
+ * подпапку `PROJECTS_DIR/<slug>/` с `index.html` из встроенного шаблона.
+ * Возвращает метаданные созданного проекта (201).
  */
-export async function uploadProjectPdf(folder: string, file: File): Promise<PdfUploadResult> {
-  const form = new FormData();
-  form.append('folder', folder);
-  form.append('name', file.name);
-  form.append('file', file);
-
-  const res = await apiFetch('/projects/upload', { method: 'POST', body: form });
+export async function createProject(input: ProjectInput): Promise<Project> {
+  const res = await apiFetch('/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
-  return res.json() as Promise<PdfUploadResult>;
+  return res.json() as Promise<Project>;
 }
 
 export interface VpsServiceStatus {
@@ -286,4 +285,289 @@ export async function deleteVps(name: string): Promise<void> {
     method: 'DELETE',
   });
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+}
+
+// ── Ремонт (renovation) ──────────────────────────────────────────────────────
+
+/**
+ * Сводка проекта «Ремонт» (Блок 1 Работы / Блок 2 Материалы) из отдельной БД
+ * `renovation.sqlite`. Все суммы — копейки (×100); форматирование — `utils/money.ts`.
+ */
+export interface RenovationOverview {
+  meta: {
+    object: string;
+    contractNo: string | null;
+    contractDate: string | null;
+    contractor: string | null;
+    startDate: string | null;
+    deadlineDays: number | null;
+    area: string | null;
+  } | null;
+  estimate: {
+    id: number;
+    total: number | null;
+    totalNoOverhead: number | null;
+    overhead: number | null;
+    itemsCount: number;
+  } | null;
+  works: {
+    planTotal: number | null;
+    factTotal: number | null;
+    /** Освоение бюджета, % (один знак). */
+    percent: number | null;
+    acts: {
+      id: number;
+      number: string | null;
+      date: string;
+      title: string;
+      totalWithOverhead: number | null;
+    }[];
+  };
+  materials: {
+    ordersTotal: number | null;
+    orders: {
+      id: number;
+      number: string | null;
+      date: string;
+      title: string;
+      total: number | null;
+    }[];
+  };
+  settlements: {
+    works: {
+      date: string;
+      paidIn: number | null;
+      used: number | null;
+      balance: number | null;
+    } | null;
+    materials: {
+      date: string;
+      paidIn: number | null;
+      used: number | null;
+      balance: number | null;
+    } | null;
+  };
+}
+
+/** Сводка «Ремонта»: `GET /api/renovation`. */
+export async function fetchRenovationOverview(): Promise<RenovationOverview> {
+  const res = await apiFetch('/renovation');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<RenovationOverview>;
+}
+
+/** Черновик импорта PDF (этап 3) — результат `POST /api/renovation/pdf`. */
+export interface RenovationDraftSummary {
+  id: string;
+  fileName: string;
+  type: 'work_act' | 'material_order' | 'settlement' | 'addendum' | null;
+  subtype: 'works' | 'materials' | null;
+  date: string | null;
+  number: string | null;
+  label: string;
+  itemsCount: number;
+  settlementsCount: number;
+  /** Итог (копейки) либо null. */
+  total: number | null;
+  /** Требует ручной проверки (автоматический разбор неполный). */
+  needsReview: boolean;
+  warnings: string[];
+}
+
+/** Загружает PDF и возвращает черновик импорта: `POST /api/renovation/pdf` (admin). */
+export async function uploadRenovationPdf(file: File): Promise<{ draft: RenovationDraftSummary }> {
+  const form = new FormData();
+  form.append('name', file.name);
+  form.append('file', file);
+  const res = await apiFetch('/renovation/pdf', { method: 'POST', body: form });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ draft: RenovationDraftSummary }>;
+}
+
+/** Подтверждает импорт черновика: `POST /api/renovation/pdf/:id/confirm` (admin). */
+export async function confirmRenovationPdf(
+  draftId: string,
+): Promise<{ id: number; type: string; date: string }> {
+  const res = await apiFetch(`/renovation/pdf/${encodeURIComponent(draftId)}/confirm`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ id: number; type: string; date: string }>;
+}
+
+// ── Доп. соглашения к смете (этап 4) ─────────────────────────────────────────
+
+/** Версия сметы (seed / current / history / addendum). */
+export interface RenovationEstimateVersion {
+  id: number;
+  kind: 'seed' | 'current' | 'history' | 'addendum';
+  date: string | null;
+  label: string;
+  total: number | null;
+  totalNoOverhead: number | null;
+  overhead: number | null;
+  addendumRef: string | null;
+  sourcePath: string | null;
+  pdfPath: string | null;
+}
+
+/** Список версий сметы: `GET /api/renovation/estimate/versions`. */
+export async function fetchRenovationEstimateVersions(): Promise<{
+  versions: RenovationEstimateVersion[];
+}> {
+  const res = await apiFetch('/renovation/estimate/versions');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ versions: RenovationEstimateVersion[] }>;
+}
+
+/** Строка диффа применения доп. соглашения. */
+export interface RenovationAddendumDiff {
+  key: string;
+  kind: 'update' | 'new' | 'keep' | 'remove';
+  section: string;
+  name: string;
+  unit: string | null;
+  price: number | null;
+  qty: number | null;
+  sum: number | null;
+  oldPrice: number | null;
+  oldQty: number | null;
+  oldSum: number | null;
+}
+
+/** Предложение применения доп. соглашения (дифф + новый итог). */
+export interface RenovationAddendumProposal {
+  addendum: { id: number; date: string | null; label: string; total: number | null };
+  current: { id: number; total: number | null };
+  diffs: RenovationAddendumDiff[];
+  newTotalNoOverhead: number | null;
+  newOverhead: number | null;
+  newTotal: number | null;
+  needsReview: boolean;
+  warnings: string[];
+}
+
+/** Предложение применения доп. соглашения: `POST /api/renovation/estimate/addendum` (admin). */
+export async function fetchRenovationAddendumProposal(addendumId: number): Promise<{
+  proposal: RenovationAddendumProposal;
+}> {
+  const res = await apiFetch('/renovation/estimate/addendum', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ addendumId }),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ proposal: RenovationAddendumProposal }>;
+}
+
+/**
+ * Подтверждает применение доп. соглашения:
+ * `POST /api/renovation/estimate/addendum/confirm` (admin).
+ * `removeKeys` — нормализованные имена позиций на удаление.
+ */
+export async function confirmRenovationAddendum(
+  addendumId: number,
+  removeKeys: string[],
+): Promise<{
+  currentId: number;
+  total: number | null;
+  totalNoOverhead: number | null;
+  overhead: number | null;
+  itemsCount: number;
+}> {
+  const res = await apiFetch('/renovation/estimate/addendum/confirm', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ addendumId, removeKeys }),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{
+    currentId: number;
+    total: number | null;
+    totalNoOverhead: number | null;
+    overhead: number | null;
+    itemsCount: number;
+  }>;
+}
+
+// ── Отчёты (этап 5) ─────────────────────────────────────────────────────────
+
+export type WorkRowStatus = 'done' | 'partial' | 'notdone';
+
+export interface ReportWorkRow {
+  position: number | null;
+  section: string;
+  name: string;
+  unit: string | null;
+  change: string;
+  planPrice: number | null;
+  planQty: number | null;
+  planSum: number | null;
+  factQty: number | null;
+  factSum: number | null;
+  diff: number | null;
+  status: WorkRowStatus;
+}
+
+export interface RenovationWorkReport {
+  asOf: string | null;
+  meta: {
+    object: string;
+    area: string | null;
+    startDate: string | null;
+    deadlineDays: number | null;
+  };
+  sections: { title: string; rows: ReportWorkRow[] }[];
+  totals: {
+    planSum: number;
+    factSum: number;
+    percent: number | null;
+    done: number;
+    partial: number;
+    notdone: number;
+  };
+  settlements: {
+    works: {
+      date: string;
+      paidIn: number | null;
+      used: number | null;
+      balance: number | null;
+    } | null;
+  };
+}
+
+/** «Ход работ»: `GET /api/renovation/reports/work`. */
+export async function fetchRenovationWorkReport(): Promise<{ work: RenovationWorkReport }> {
+  const res = await apiFetch('/renovation/reports/work');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ work: RenovationWorkReport }>;
+}
+
+export interface RenovationMaterialsReport {
+  orders: {
+    id: number;
+    number: string | null;
+    date: string;
+    title: string;
+    total: number | null;
+    overhead: number | null;
+    items: {
+      position: number | null;
+      name: string;
+      unit: string | null;
+      price: number | null;
+      qty: number | null;
+      sum: number | null;
+    }[];
+  }[];
+  totals: { count: number; ordersSum: number; overheadSum: number };
+}
+
+/** «Материалы»: `GET /api/renovation/reports/materials`. */
+export async function fetchRenovationMaterialsReport(): Promise<{
+  materials: RenovationMaterialsReport;
+}> {
+  const res = await apiFetch('/renovation/reports/materials');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ materials: RenovationMaterialsReport }>;
 }

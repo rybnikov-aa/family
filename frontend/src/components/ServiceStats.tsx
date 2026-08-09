@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { ServiceStatus } from '../types/service';
 import IconButton from './IconButton';
 import { RefreshIcon } from './icons';
@@ -13,6 +14,82 @@ interface ServiceStatsProps {
   refreshing?: boolean;
 }
 
+interface StatItemProps {
+  service: ServiceStatus;
+  onRefresh?: () => void;
+  refreshing?: boolean;
+}
+
+/** Тело карточки сервиса: точка, иконка, значение и подпись (общее для обоих вариантов). */
+function StatItemBody({ service, onRefresh, refreshing }: StatItemProps) {
+  const Icon = service.icon;
+  return (
+    <>
+      <span className={`stat-item__dot stat-item__dot--${service.state}`} aria-hidden="true" />
+      <span className="stat-item__icon" aria-hidden="true">
+        <Icon />
+      </span>
+      <div className="stat-item__info">
+        <span className="stat-item__value-row">
+          <span className="stat-item__value">{service.value}</span>
+          {/* Кнопка «Обновить» — только на кликабельной карточке (VPS). */}
+          {service.onClick && onRefresh && (
+            <IconButton
+              size="xs"
+              plain
+              label="Обновить"
+              tooltip="Обновить"
+              spinning={refreshing}
+              disabled={refreshing}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRefresh();
+              }}
+            >
+              <RefreshIcon />
+            </IconButton>
+          )}
+        </span>
+        <span className="stat-item__label">
+          {service.href ? <a href={service.href}>{service.label}</a> : service.label}
+        </span>
+      </div>
+    </>
+  );
+}
+
+/**
+ * Карточка сервиса (кликабельная — открывает детализацию, или обычная).
+ * memo: пропсы стабильны между рендерами (service из useMemo, onRefresh — useCallback),
+ * поэтому при повторных рендерах страницы карточки не перерисовываются.
+ */
+const StatItem = memo(function StatItem({ service, onRefresh, refreshing }: StatItemProps) {
+  if (service.onClick) {
+    return (
+      <div
+        className="stat-item stat-item--clickable"
+        role="button"
+        tabIndex={0}
+        onClick={service.onClick}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            service.onClick?.();
+          }
+        }}
+        title={`Детали: ${service.label}`}
+      >
+        <StatItemBody service={service} onRefresh={onRefresh} refreshing={refreshing} />
+      </div>
+    );
+  }
+  return (
+    <div className="stat-item" role="listitem">
+      <StatItemBody service={service} />
+    </div>
+  );
+});
+
 /**
  * Динамический блок состояния сервисов на главной странице.
  * Получает готовый список сервисов (с состояниями) извне и только отрисовывает его,
@@ -26,85 +103,14 @@ function ServiceStats({
 }: ServiceStatsProps) {
   return (
     <div className="stats" role="list" aria-label="Состояние сервисов" aria-busy={loading}>
-      {services.map((service) => {
-        const Icon = service.icon;
-        const body = (
-          <>
-            <span
-              className={`stat-item__dot stat-item__dot--${service.state}`}
-              aria-hidden="true"
-            />
-            <span className="stat-item__icon" aria-hidden="true">
-              <Icon />
-            </span>
-            <div className="stat-item__info">
-              <span className="stat-item__value">{service.value}</span>
-              <span className="stat-item__label">
-                {service.href ? <a href={service.href}>{service.label}</a> : service.label}
-              </span>
-            </div>
-          </>
-        );
-
-        // Кликабельная карточка (например, VPS — открывает детализацию).
-        // Рядом со значением доступности выводим кнопку «Обновить».
-        if (service.onClick) {
-          return (
-            <div
-              className="stat-item stat-item--clickable"
-              role="button"
-              tabIndex={0}
-              key={service.id}
-              onClick={service.onClick}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  service.onClick?.();
-                }
-              }}
-              title={`Детали: ${service.label}`}
-            >
-              <span
-                className={`stat-item__dot stat-item__dot--${service.state}`}
-                aria-hidden="true"
-              />
-              <span className="stat-item__icon" aria-hidden="true">
-                <Icon />
-              </span>
-              <div className="stat-item__info">
-                <span className="stat-item__value-row">
-                  <span className="stat-item__value">{service.value}</span>
-                  {onRefresh && (
-                    <IconButton
-                      size="xs"
-                      plain
-                      label="Обновить"
-                      tooltip="Обновить"
-                      spinning={refreshing}
-                      disabled={refreshing}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onRefresh();
-                      }}
-                    >
-                      <RefreshIcon />
-                    </IconButton>
-                  )}
-                </span>
-                <span className="stat-item__label">
-                  {service.href ? <a href={service.href}>{service.label}</a> : service.label}
-                </span>
-              </div>
-            </div>
-          );
-        }
-
-        return (
-          <div className="stat-item" role="listitem" key={service.id}>
-            {body}
-          </div>
-        );
-      })}
+      {services.map((service) => (
+        <StatItem
+          key={service.id}
+          service={service}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
+        />
+      ))}
     </div>
   );
 }

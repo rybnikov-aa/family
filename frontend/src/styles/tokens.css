@@ -1,0 +1,151 @@
+:root {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background-color: #f5f5f5;
+  -webkit-font-smoothing: antialiased;
+
+  color-scheme: light;
+
+  /* Светлая тема (по умолчанию) */
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --surface-muted: #f8f8f8;
+  --surface-hover: #fafafa;
+  --text: #1a1a1a;
+  --text-strong: #0a0a0a;
+  --text-muted: #666;
+  --text-faint: #6e6e6e;
+  --text-fainter: #7a7a7a;
+  --border: #eaeaea;
+  --border-strong: #f0f0f0;
+  --card-bg: #fafafa;
+  --card-hover-bg: #ffffff;
+  --card-hover-border: #ccc;
+  --card-renov-bg: #f2f2f2;
+  --card-renov-border: #d0d0d0;
+  --shadow-container: 0 20px 60px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.04);
+  --dot-neutral: #bbb;
+  --link-hover: #000;
+  --accent: #000;
+  --accent-text: #fff;
+  --accent-hover: #2a2a2a;
+  --toggle-active-bg: #ffffff;
+  --toggle-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  /* Цвета иконок переключателя темы (сохранение цветов исходных эмодзи) */
+  --toggle-icon-sun: #f59e0b;
+  --toggle-icon-moon: #6366f1;
+  --toggle-icon-system: #6b7280;
+
+  /* ── Дизайн-система: фокус-кольца ── */
+  --focus-ring: 2px solid var(--link-hover);
+  --focus-ring-soft: 0 0 0 3px color-mix(in srgb, var(--link-hover) 12%, transparent);
+
+  /* ── Дизайн-система: семантические цвета статусов (одинаковы для обеих тем) ── */
+  --color-success: #22c55e;
+  --color-success-strong: #16a34a;
+  --color-success-bg: rgba(34, 197, 94, 0.1);
+  --color-success-halo: rgba(34, 197, 94, 0.15);
+  --color-success-border: rgba(34, 197, 94, 0.25);
+
+  --color-warning: #f59e0b;
+  --color-warning-strong: #d97706;
+  --color-warning-bg: rgba(245, 158, 11, 0.15);
+  --color-warning-halo: rgba(245, 158, 11, 0.15);
+
+  --color-critical: #f97316;
+  --color-critical-strong: #ea580c;
+  --color-critical-bg: rgba(249, 115, 22, 0.15);
+  --color-critical-halo: rgba(249, 115, 22, 0.15);
+
+  --color-danger: #ef4444;
+  --color-danger-strong: #dc2626;
+  --color-danger-bg: rgba(239, 68, 68, 0.1);
+  --color-danger-bg-strong: rgba(239, 68, 68, 0.12);
+  --color-danger-halo: rgba(239, 68, 68, 0.15);
+  --color-danger-border: rgba(239, 68, 68, 0.25);
+
+  /* Акценты разделов/страниц */
+  --color-accent-teal: #14b8a6;
+  --color-accent-sky: #0ea5e9;
+  --color-accent-orange: #e8872e;
+  --color-accent-orange-strong: #d97706;
+
+  /* ── Дизайн-система: шкала радиусов ── */
+  --radius-xs: 5px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-1xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  /* Специальные шаги (карточки-иконки) и пилюля */
+  --radius-12px: 12px;
+  --radius-13px: 13px;
+  --radius-pill: 999px;
+
+  /* ── Дизайн-система: шкала отступов ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ── Дизайн-система: типографика (размеры шрифта) ── */
+  --font-size-2xs: 0.7rem;
+  --font-size-xs: 0.8rem;
+  --font-size-sm: 0.9rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.2rem;
+  --font-size-xl: 1.8rem;
+  --font-size-2xl: 2.6rem;
+  /* Дополнительные шаги мелкого текста (капс-подписи, таблицы, подсказки) */
+  --font-size-3xs: 0.6875rem;
+  --font-size-caption: 0.75rem;
+  --font-size-sm2: 0.85rem;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f0f12;
+  --surface: #1a1a1f;
+  --surface-muted: #222228;
+  --surface-hover: #26262c;
+  --text: #e6e6e8;
+  --text-strong: #ffffff;
+  --text-muted: #a0a0a8;
+  --text-faint: #9a9aa3;
+  --text-fainter: #8d8d97;
+  --border: #2c2c32;
+  --border-strong: #2a2a30;
+  --card-bg: #202026;
+  --card-hover-bg: #26262c;
+  --card-hover-border: #4a4a52;
+  --card-renov-bg: #24242a;
+  --card-renov-border: #3a3a42;
+  --shadow-container: 0 20px 60px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --dot-neutral: #55555e;
+  --link-hover: #ffffff;
+  --accent: #ffffff;
+  --accent-text: #0a0a0a;
+  --accent-hover: #d0d0d0;
+  --toggle-active-bg: #2e2e36;
+  --toggle-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  /* Цвета иконок переключателя темы (ярче на тёмном фоне) */
+  --toggle-icon-sun: #fbbf24;
+  --toggle-icon-moon: #818cf8;
+  --toggle-icon-system: #9ca3af;
+}
+

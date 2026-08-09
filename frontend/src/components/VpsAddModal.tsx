@@ -102,10 +102,10 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
   return (
     <Modal title="Добавить VPS" onClose={onClose} closeOnEscape={false}>
       <form className="vps-form" onSubmit={handleSubmit}>
-        <label className="vps-form__field">
-          <span className="vps-form__label">Расположение</span>
+        <label className="field">
+          <span className="field__label">Расположение</span>
           <select
-            className="vps-form__control"
+            className="input"
             value={country}
             onChange={(event) => setCountry(event.target.value)}
             required
@@ -121,10 +121,10 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
           </select>
         </label>
 
-        <label className="vps-form__field">
-          <span className="vps-form__label">Имя</span>
+        <label className="field">
+          <span className="field__label">Имя</span>
           <input
-            className="vps-form__control"
+            className="input"
             type="text"
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -133,10 +133,10 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
           />
         </label>
 
-        <label className="vps-form__field">
-          <span className="vps-form__label">IP</span>
+        <label className="field">
+          <span className="field__label">IP</span>
           <input
-            className="vps-form__control"
+            className="input"
             type="text"
             value={ip}
             onChange={(event) => setIp(event.target.value)}
@@ -145,10 +145,10 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
           />
         </label>
 
-        <label className="vps-form__field">
-          <span className="vps-form__label">Панель управления</span>
+        <label className="field">
+          <span className="field__label">Панель управления</span>
           <input
-            className="vps-form__control"
+            className="input"
             type="text"
             value={panel}
             onChange={(event) => setPanel(event.target.value)}
@@ -156,8 +156,8 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
           />
         </label>
 
-        <div className="vps-form__field">
-          <span className="vps-form__label">Сервисы</span>
+        <div className="field">
+          <span className="field__label">Сервисы</span>
           <div className="vps-services">
             {services.length > 0 ? (
               <ul className="vps-services__list">
@@ -184,7 +184,7 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
           </div>
         </div>
 
-        {error && <div className="vps-form__error">{error}</div>}
+        {error && <div className="alert alert--error">{error}</div>}
 
         <div className="vps-form__actions">
           <Button onClick={onClose} disabled={submitting}>
@@ -245,14 +245,14 @@ function ServicesEditor({ services, onChange, onClose }: ServicesEditorProps) {
             <li className="services-editor__item" key={service.uid}>
               <div className="services-editor__fields">
                 <input
-                  className="vps-form__control services-editor__name"
+                  className="input services-editor__name"
                   type="text"
                   value={service.name}
                   onChange={(event) => updateService(index, { name: event.target.value })}
                   placeholder="Имя (напр. 3x-ui)"
                 />
                 <select
-                  className="vps-form__control services-editor__type"
+                  className="input services-editor__type"
                   value={service.type}
                   onChange={(event) => updateService(index, { type: event.target.value })}
                 >
@@ -265,7 +265,7 @@ function ServicesEditor({ services, onChange, onClose }: ServicesEditorProps) {
               </div>
               <div className="services-editor__addr">
                 <input
-                  className="vps-form__control"
+                  className="input"
                   type="text"
                   value={service.address}
                   onChange={(event) => updateService(index, { address: event.target.value })}

@@ -1,0 +1,334 @@
+/* Форма добавления VPS */
+.vps-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.vps-form__note {
+  font-size: var(--font-size-sm2);
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: var(--radius-lg);
+}
+.vps-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+/* ── Примитив: кнопка (btn) — единый паттерн кнопок форм/действий ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+.btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.btn--primary {
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: transparent;
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.btn__icon {
+  display: inline-flex;
+  align-items: center;
+}
+.btn__icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ── Примитив: поле формы (field + input) — единый паттерн инпутов форм ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field__label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+/* Подсказка под полем (например, формат slug в форме создания проекта) */
+.field__hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-faint);
+}
+/* Поле с нижним отступом (в блочных формах, напр. профиль) */
+.field--block {
+  margin-bottom: var(--space-4);
+}
+.input {
+  width: 100%;
+  font: inherit;
+  font-size: var(--font-size-md);
+  padding: 10px 14px;
+  color: var(--text);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.input::placeholder {
+  color: var(--text-faint);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--link-hover);
+  background: var(--surface-hover);
+  box-shadow: var(--focus-ring-soft);
+}
+/* Инпут на поверхности-карточке (профиль) — фон поверхности */
+.input--surface {
+  background: var(--surface);
+}
+select.input {
+  cursor: pointer;
+}
+
+/* ── Примитив: алерт/уведомление (успех/ошибка/предупреждение) ── */
+.alert {
+  font-size: var(--font-size-sm2);
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+}
+.alert--success {
+  color: var(--color-success-strong);
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+}
+.alert--error {
+  color: var(--color-danger-strong);
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+}
+.alert--warning {
+  color: var(--color-warning-strong);
+  background: var(--color-warning-bg);
+  border-color: color-mix(in srgb, var(--color-warning) 40%, transparent);
+}
+/* Алерт с нижним отступом (в блочных формах, напр. профиль) */
+.alert--block {
+  margin-bottom: var(--space-4);
+}
+
+/* ── Примитив: бейдж-пилюля (роль, статус) ── */
+.badge {
+  display: inline-block;
+  font-size: var(--font-size-3xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+/* Бейдж на поверхности-карточке (профиль, админ-таблица) */
+.badge--surface {
+  background: var(--surface);
+}
+.badge--muted {
+  color: var(--text-muted);
+}
+/* Бейдж-ссылка (роль в шапке) */
+.badge--link {
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.badge--link:hover {
+  color: var(--link-hover);
+  border-color: var(--link-hover);
+}
+
+/* Строка «акцентный цвет» в форме создания проекта: пикер цвета + hex-поле */
+.project-accent__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.project-accent__picker {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+  cursor: pointer;
+}
+.project-accent__picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.project-accent__picker::-webkit-color-swatch {
+  border: none;
+  border-radius: calc(var(--radius-lg) - 4px);
+}
+
+/* Поле «Сервисы» (чипы + кнопка с троеточием) */
+.vps-services {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+}
+.vps-services__list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.vps-services__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-2xl);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: var(--font-size-xs);
+  color: var(--text);
+}
+.vps-services__chip-name {
+  font-weight: 600;
+}
+.vps-services__chip-meta {
+  font-size: var(--font-size-2xs);
+  color: var(--text-faint);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.vps-services__empty {
+  flex: 1;
+  font-size: var(--font-size-sm2);
+  color: var(--text-faint);
+}
+.vps-services__edit {
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* Редактор сервисов (поверх формы) */
+.services-editor-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: var(--radius-2xl);
+}
+.services-editor {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-1xl);
+  box-shadow: var(--shadow-container);
+  width: 100%;
+  max-width: 576px; /* +20% от 480px (редактор сервисов) */
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.services-editor__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.services-editor__head h4 {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.services-editor__empty {
+  font-size: var(--font-size-sm2);
+  color: var(--text-faint);
+}
+.services-editor__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.services-editor__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'fields trash'
+    'addr trash';
+  column-gap: 8px;
+  row-gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-12px);
+  background: var(--card-bg);
+}
+/* Строка «имя + тип» (4:3) и строка адреса; корзина — в правой колонке на обе строки */
+.services-editor__fields {
+  grid-area: fields;
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 3fr); /* имя : тип = 4:3 */
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+.services-editor__addr {
+  grid-area: addr;
+  min-width: 0;
+}
+.services-editor__name {
+  min-width: 0;
+}
+.services-editor__type {
+  min-width: 0;
+}
+.services-editor__remove {
+  grid-area: trash;
+  align-self: center;
+}
+.services-editor__add {
+  align-self: flex-start;
+}

@@ -86,7 +86,7 @@ function PageLayout({ children }: PageLayoutProps) {
               {user.role === 'admin' && (
                 <Link
                   to={ROUTES.adminUsers}
-                  className="user__role user__role--link"
+                  className="badge badge--link"
                   title="Управление пользователями"
                 >
                   админ

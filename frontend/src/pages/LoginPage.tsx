@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import ThemeToggle from '../components/ThemeToggle';
+import Button from '../components/Button';
 import { LockIcon, UsersIcon } from '../components/icons';
 import { useAuth } from '../hooks/useAuth';
 
@@ -44,10 +45,10 @@ function LoginPage() {
         <p className="login__sub">Вход для членов семьи</p>
 
         <form className="login__form" onSubmit={onSubmit}>
-          <label className="login__field">
-            <span className="login__label">Имя пользователя</span>
+          <label className="field">
+            <span className="field__label">Имя пользователя</span>
             <input
-              className="login__input"
+              className="input"
               type="text"
               autoComplete="username"
               value={username}
@@ -56,10 +57,10 @@ function LoginPage() {
               autoFocus
             />
           </label>
-          <label className="login__field">
-            <span className="login__label">Пароль</span>
+          <label className="field">
+            <span className="field__label">Пароль</span>
             <input
-              className="login__input"
+              className="input"
               type="password"
               autoComplete="current-password"
               value={password}
@@ -69,18 +70,18 @@ function LoginPage() {
           </label>
 
           {error && (
-            <div className="login__error" role="alert">
+            <div className="alert alert--error" role="alert">
               {error}
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
-            className="login__submit"
+            variant="primary"
             disabled={submitting || !username.trim() || !password}
           >
             {submitting ? 'Вход…' : 'Войти'}
-          </button>
+          </Button>
         </form>
 
         <div className="login__footer">

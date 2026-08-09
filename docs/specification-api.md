@@ -18,7 +18,7 @@
 
 Кроме `/api/health` и `POST /api/auth/login` **все** эндпоинты требуют действующую сессию (httpOnly-cookie `sid`): отсутствие/истёкшая сессия → **401**.
 
-Мутирующие операции (`POST /api/vps`, `POST /api/vps/import`, `DELETE /api/vps/:name`, `POST /api/projects/upload`, а также все эндпоинты `/api/auth/admin/*`) доступны только роли `admin`; иначе — **403**.
+Мутирующие операции (`POST /api/vps`, `POST /api/vps/import`, `DELETE /api/vps/:name`, `POST /api/projects`, а также все эндпоинты `/api/auth/admin/*`) доступны только роли `admin`; иначе — **403**.
 
 - **Сессия:** cookie `sid` — httpOnly, `SameSite=Lax`, `Secure` в проде (`NODE_ENV=production`), срок `SESSION_TTL_HOURS` (по умолчанию 168 ч). В БД хранится только SHA-256 от токена.
 - **Пароли** проверяются через scrypt (constant-time).
@@ -47,11 +47,10 @@
 
 ### 2.2. Проекты
 
-| Метод | Путь                   | Назначение                                                        | Параметры                                                                                         |
-| ----- | ---------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| GET   | `/api/projects`        | Список проектов (подпапки с `index.html`)                         | —                                                                                                 |
-| GET   | `/api/projects/dirs`   | Список подпапок внутри `PROJECTS_DIR` (для выбора папки загрузки) | —; ответ — `{dirs: string[]}`                                                                     |
-| POST  | `/api/projects/upload` | Загрузка PDF в папку на сервере (admin)                           | multipart: `folder` (относительный путь), `name` (имя файла), `file` (PDF); ответ — `{url}` (201) |
+| Метод | Путь            | Назначение                                | Параметры                                                                                                                               |
+| ----- | --------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| GET   | `/api/projects` | Список проектов (подпапки с `index.html`) | `refresh=1` — обход 60-с кэша сканирования                                                                                              |
+| POST  | `/api/projects` | Создание статичного проекта (admin)       | JSON: `{slug, title, description, accent?, icon?, order?}`; ответ — метаданные проекта (201); 400 — невалидные данные, 409 — имя занято |
 
 ### 2.3. VPS
 
@@ -67,6 +66,26 @@
 | Метод | Путь          | Назначение                   | Параметры |
 | ----- | ------------- | ---------------------------- | --------- |
 | GET   | `/api/health` | Здоровье бэкенда (публичный) | —         |
+
+### 2.5. Ремонт (renovation)
+
+Модуль «Ремонт» — отчётность из отдельной БД `renovation.sqlite`. Чтение — под `requireAuth`;
+мутации (импорт PDF, применение доп. соглашений) — под `requireAdmin`. Подробно о
+данных/домене — `docs/specification-renovation.md`.
+
+| Метод | Путь                                        | Назначение                                                              | Параметры/ответ                                                                                                                                           |
+| ----- | ------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET   | `/api/renovation`                           | Сводка: Блок 1 Работы / Блок 2 Материалы (план/факт, заказы, ведомости) | —; ответ — `RenovationOverview` (копейки)                                                                                                                 |
+| GET   | `/api/renovation/estimate/versions`         | Список версий сметы (сводки)                                            | —; ответ — `{versions: EstimateVersion[]}`                                                                                                                |
+| GET   | `/api/renovation/estimate`                  | Версия сметы с позициями                                                | `version` — числовой id либо тип `seed\|current\|history\|addendum` (по умолчанию `current`); 404 — не найдена                                            |
+| GET   | `/api/renovation/docs`                      | Документы: акты работ / заказы материалов                               | `type` — `work_act\|material_order` (необязательно); ответ — `{docs: RenovationDoc[]}`                                                                    |
+| GET   | `/api/renovation/settlements`               | Акты взаиморасчётов                                                     | `type` — `works\|materials` (необязательно); ответ — `{acts: SettlementAct[]}`                                                                            |
+| POST  | `/api/renovation/pdf`                       | Импорт PDF → черновик (admin)                                           | multipart: `name` (имя файла), `file` (PDF); ответ — `{draft}` (201) или 422 (не удалось извлечь)                                                         |
+| POST  | `/api/renovation/pdf/:id/confirm`           | Подтверждение импорта черновика (admin)                                 | —; ответ — `{id, type, date}` (201); 409 — документ типа+даты уже есть; 400 — тип/дата не определены; 404 — черновик истёк                                |
+| POST  | `/api/renovation/estimate/addendum`         | Предложение применения доп. соглашения (admin)                          | тело — `{addendumId}`; ответ — `{proposal}` (дифф + новый итог); 404 — соглашение/смета не найдены                                                        |
+| POST  | `/api/renovation/estimate/addendum/confirm` | Применение доп. соглашения (admin)                                      | тело — `{addendumId, removeKeys?: string[]}`; ответ — `{currentId, total, totalNoOverhead, overhead, itemsCount}` (201); 400 — нет даты; 404 — не найдено |
+| GET   | `/api/renovation/reports/work`              | Отчёт «Ход работ»: план vs факт по позициям сметы                       | —; ответ — `{work: ReportWork}` (секции/строки со статусами, итоги, `asOf`, взаиморасчёты)                                                                |
+| GET   | `/api/renovation/reports/materials`         | Отчёт «Материалы»: заказы с позициями и итогами                         | —; ответ — `{materials: ReportMaterials}` (заказы + сводка)                                                                                               |
 
 ---
 
@@ -114,11 +133,68 @@
 ]
 ```
 
+### 3.3. `GET /api/renovation`
+
+Все суммы/количество — **целые копейки (×100)**. Поля: `meta`, `estimate`, `works`
+(`planTotal`/`factTotal`/`percent`/`acts[]`), `materials` (`ordersTotal`/`orders[]`),
+`settlements` (`works`/`materials` — последний акт на тип, `null` если нет).
+
+```json
+{
+  "meta": {
+    "object": "г. Ростов-на-Дону, пр-кт Сиверса, д. 8, стр. 2.3, кв. 100, этаж 7",
+    "contractNo": "№6124",
+    "contractDate": "2025-12-26",
+    "contractor": "ООО «А-сервис»",
+    "startDate": "2026-06-30",
+    "deadlineDays": 200,
+    "area": "91,91 м²"
+  },
+  "estimate": {
+    "id": 61,
+    "total": 204001048,
+    "totalNoOverhead": 194286712,
+    "overhead": 9714336,
+    "itemsCount": 62
+  },
+  "works": {
+    "planTotal": 204001048,
+    "factTotal": 14112788,
+    "percent": 6.9,
+    "acts": [
+      {
+        "id": 51,
+        "number": null,
+        "date": "2026-07-26",
+        "title": "Акт приемки выполненных работ",
+        "totalWithOverhead": 14112788
+      }
+    ]
+  },
+  "materials": {
+    "ordersTotal": 43372480,
+    "orders": [
+      {
+        "id": 52,
+        "number": "1",
+        "date": "2026-07-17",
+        "title": "Заказ материалов №1",
+        "total": 10873204
+      }
+    ]
+  },
+  "settlements": {
+    "works": { "date": "2026-07-26", "paidIn": 30187600, "used": 14112780, "balance": 16074820 },
+    "materials": { "date": "2026-08-06", "paidIn": 40000000, "used": 42283280, "balance": -2283280 }
+  }
+}
+```
+
 ---
 
 ## 4. Примечания
 
-- **Кэширование:** `GET /api/vps` — 30 с (`?refresh=1` — мимо кэша); `GET /api/projects` — 60 с.
-- **Загрузка PDF** (`POST /api/projects/upload`): multipart (`folder`, `name`, `file`); лимит 20 МБ → 413, не-PDF → 400; имя файла берётся из поля `name` (UTF-8); для работы нужен `client_max_body_size 20m` в `location /api/` nginx.
+- **Кэширование:** `GET /api/vps` — 30 с (`?refresh=1` — мимо кэша); `GET /api/projects` — 60 с (`?refresh=1` — мимо кэша).
+- **Создание проекта** (`POST /api/projects`): JSON `{slug, title, description, accent?, icon?, order?}` (admin). `slug` — латиница, цифры и дефисы (без `_`/`.` в начале); невалидные данные → 400, занятое имя → 409. Бэкенд создаёт `PROJECTS_DIR/<slug>/index.html` из встроенного шаблона и сбрасывает кэш списка.
 - **Коды ошибок:** валидация → 400, дубликат имени VPS → 409, нет/истёкшая сессия → 401, недостаточно прав → 403, не найдено → 404, непредвиденные → 500 (`{message: 'Внутренняя ошибка сервера'}`).
 - Сообщения об ошибках API — на русском.

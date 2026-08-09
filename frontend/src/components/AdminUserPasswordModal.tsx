@@ -52,10 +52,10 @@ function AdminUserPasswordModal({ user, onClose, onChanged }: AdminUserPasswordM
           требуется.
         </p>
 
-        <label className="vps-form__field">
-          <span className="vps-form__label">Новый пароль</span>
+        <label className="field">
+          <span className="field__label">Новый пароль</span>
           <input
-            className="vps-form__control"
+            className="input"
             type="password"
             autoComplete="new-password"
             value={password}
@@ -67,7 +67,7 @@ function AdminUserPasswordModal({ user, onClose, onChanged }: AdminUserPasswordM
         </label>
 
         {error && (
-          <div className="vps-form__error" role="alert">
+          <div className="alert alert--error" role="alert">
             {error}
           </div>
         )}

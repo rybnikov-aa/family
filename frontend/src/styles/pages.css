@@ -1,0 +1,290 @@
+/* Профиль пользователя */
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 560px;
+}
+.profile__title {
+  font-size: var(--font-size-2xl);
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.profile__card {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-1xl);
+  padding: var(--space-6);
+}
+.profile__card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.profile__card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-12px);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text);
+}
+.profile__card-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.profile__card-title {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.profile__card-sub {
+  font-size: var(--font-size-sm2);
+  color: var(--text-muted);
+}
+.profile__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-size: var(--font-size-sm2);
+  color: var(--text-muted);
+}
+.profile__hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-faint);
+  margin-top: 12px;
+}
+
+/* Админ-панель «Пользователи» */
+.admin {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 860px;
+}
+.admin__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.admin__title {
+  font-size: var(--font-size-2xl);
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.admin__sub {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.admin__card {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-1xl);
+  padding: 20px;
+  overflow-x: auto;
+}
+.admin__empty {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  padding: 12px 0;
+}
+.admin__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+.admin__table th {
+  text-align: left;
+  font-size: var(--font-size-2xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.admin__table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+.admin__table tbody tr:last-child td {
+  border-bottom: none;
+}
+.admin__table-actions {
+  width: 1%;
+  text-align: right;
+}
+.admin__username {
+  font-weight: 500;
+  color: var(--text-strong);
+}
+.admin__date {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.admin__row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  white-space: nowrap;
+}
+.admin__hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-faint);
+  margin-top: 12px;
+}
+
+/* Hero */
+.hero {
+  margin-bottom: var(--space-12);
+}
+.hero h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.hero h2 strong {
+  font-weight: 700;
+}
+.hero p {
+  font-size: var(--font-size-md);
+  color: var(--text-muted);
+  max-width: 580px;
+  margin-top: 10px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Stats bar — динамический блок состояния сервисов */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  background: var(--surface-muted);
+  border-radius: var(--radius-1xl);
+  padding: 20px 28px;
+  margin-bottom: 44px;
+  border: 1px solid var(--border);
+}
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.stat-item__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dot-neutral);
+  flex-shrink: 0;
+}
+.stat-item__dot--ok {
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px var(--color-success-halo);
+}
+.stat-item__dot--warning {
+  background: var(--color-critical);
+  box-shadow: 0 0 0 3px var(--color-critical-halo);
+}
+.stat-item__dot--error {
+  background: var(--color-danger);
+  box-shadow: 0 0 0 3px var(--color-danger-halo);
+}
+.stat-item__dot--checking {
+  background: var(--color-warning);
+  box-shadow: 0 0 0 3px var(--color-warning-halo);
+}
+.stat-item__dot--unknown {
+  background: var(--dot-neutral);
+}
+.stat-item__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text-muted);
+}
+.stat-item__icon svg {
+  width: 20px;
+  height: 20px;
+}
+.stat-item__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.stat-item__value {
+  font-weight: 700;
+  font-size: var(--font-size-md);
+  color: var(--text-strong);
+}
+.stat-item__label {
+  font-size: var(--font-size-caption);
+  font-weight: 400;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.stat-item__label a {
+  color: var(--link-hover);
+  text-decoration: none;
+  font-weight: 500;
+}
+.stat-item__label a:hover {
+  text-decoration: underline;
+}
+
+/* Clickable stat item */
+.stat-item--clickable {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.stat-item--clickable:hover .stat-item__icon {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--link-hover);
+}
+.stat-item--clickable:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-12px);
+}
+.stat-item__value-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Вращение иконки при обновлении */
+.icon-btn--spinning svg {
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+

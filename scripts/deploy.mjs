@@ -19,6 +19,8 @@
  *   npm run deploy                  # full deploy
  *   npm run deploy -- --no-build    # skip local build
  *   npm run deploy -- --no-restart  # skip pm2 restart
+ *   npm run deploy -- --no-pdf-setup      # skip provisioning python+pdfplumber for PDF import
+ *   npm run deploy -- --seed-renovation   # re-seed «Ремонт» DB from deployed HTML (RESETS it)
  *
  * Configuration via env vars (all optional):
  *   DEPLOY_HOST          default: family.rybnikov.su
@@ -27,6 +29,9 @@
  *   DEPLOY_FRONTEND_DIR  default: /var/www/family.rybnikov.su/public_html
  *   DEPLOY_BACKEND_DIR   default: /var/www/family.rybnikov.su/server
  *   DEPLOY_PM2_APP       default: family-backend
+ *   DEPLOY_PDF_SETUP     default: 1. Provision python3-venv + ~/renov-venv (pdfplumber) and
+ *                        write RENOVATION_PYTHON / RENOVATION_EXTRACT_SCRIPT into server/.env
+ *                        if absent (idempotent, non-fatal). 0 disables.
  *   DEPLOY_NODE_PATH     bin dir with node/npm on the SERVER (e.g. /home/rybnikov/.nvm/versions/node/v24.19.0/bin).
  *                        If unset, the remote script auto-detects node/npm (profiles, nvm, common paths).
  *
@@ -94,6 +99,13 @@ const cfg = {
   nodePath: process.env.DEPLOY_NODE_PATH ?? '',
   build: !process.argv.includes('--no-build'),
   restart: !process.argv.includes('--no-restart'),
+  // Подготовка сервера к импорту PDF («Ремонт»): python3-venv + ~/renov-venv (pdfplumber)
+  // + RENOVATION_* в server/.env. Отключить: --no-pdf-setup или DEPLOY_PDF_SETUP=0.
+  pdfSetup:
+    !process.argv.includes('--no-pdf-setup') && (process.env.DEPLOY_PDF_SETUP ?? '1') !== '0',
+  // Пересев БД «Ремонта» из задеплоенных HTML. ВНИМАНИЕ: сбрасывает data/renovation.sqlite
+  // (стирает данные, импортированные через приложение). Только по явному флагу.
+  seedRenovation: process.argv.includes('--seed-renovation'),
 };
 
 const target = `${cfg.user}@${cfg.host}`;
@@ -230,6 +242,49 @@ cp -a /tmp/family-deploy/backend/. "$SERVER"/
 cd "$SERVER"
 npm install --omit=dev
 
+# 4b. Ensure the server is ready for PDF import («Ремонт»): python + pdfplumber.
+#     Идемпотентно: ставит python3-venv (через passwordless sudo), создаёт
+#     ~/renov-venv с pdfplumber и дописывает RENOVATION_PYTHON /
+#     RENOVATION_EXTRACT_SCRIPT в server/.env, если их ещё нет.
+#     Отключить: --no-pdf-setup или DEPLOY_PDF_SETUP=0. Сбой здесь не роняет деплой.
+if ${cfg.pdfSetup ? 'true' : 'false'}; then
+  if command -v python3 >/dev/null 2>&1; then
+    # python3-venv даёт ensurepip (без него «python3 -m venv» падает) — ставим через sudo
+    if ! python3 -c 'import ensurepip' >/dev/null 2>&1; then
+      echo "[deploy] installing python3-venv (sudo)..."
+      sudo apt-get update -qq >/dev/null 2>&1 || true
+      PYV=$(python3 --version 2>/dev/null | sed -E 's#Python ([0-9]+\\.[0-9]+).*#\\1#')
+      if ! sudo apt-get install -y -qq "python\${PYV}-venv" >/dev/null 2>&1; then
+        sudo apt-get install -y -qq python3-venv >/dev/null 2>&1 || \\
+          echo "[deploy] WARN: could not install python3-venv — PDF import may need it"
+      fi
+    fi
+    VENV="$HOME/renov-venv"
+    if [ ! -x "$VENV/bin/python" ]; then
+      echo "[deploy] creating $VENV (pdfplumber)..."
+      python3 -m venv "$VENV" || \\
+        echo "[deploy] WARN: python3 -m venv failed — PDF import may need it"
+    fi
+    if ! "$VENV/bin/python" -c 'import pdfplumber' >/dev/null 2>&1; then
+      echo "[deploy] installing pdfplumber into $VENV..."
+      if ! "$VENV/bin/pip" install --quiet pdfplumber; then
+        # На Python 3.8 последний pdfplumber требует Pillow>=12 (нужен Python>=3.9).
+        # Откат на 0.11.0 — последняя версия, совместимая с Python 3.8.
+        echo "[deploy] latest pdfplumber needs a newer Python — retrying pdfplumber==0.11.0 ..."
+        "$VENV/bin/pip" install --quiet "pdfplumber==0.11.0" || \\
+          echo "[deploy] WARN: pdfplumber install failed — PDF import may need it"
+      fi
+    fi
+    # server/.env: создаётся при отсутствии (>> создаёт файл), RENOVATION_* дописываются.
+    grep -q '^RENOVATION_PYTHON=' "$SERVER/.env" 2>/dev/null || \\
+      printf '\\n# Import PDF (Remont): python + pdfplumber\\nRENOVATION_PYTHON=%s/bin/python\\n' "$VENV" >> "$SERVER/.env"
+    grep -q '^RENOVATION_EXTRACT_SCRIPT=' "$SERVER/.env" 2>/dev/null || \\
+      printf 'RENOVATION_EXTRACT_SCRIPT=%s/scripts/extract_pdf.py\\n' "$SERVER" >> "$SERVER/.env"
+  else
+    echo "[deploy] WARN: python3 not found — PDF import («Ремонт») needs python + pdfplumber"
+  fi
+fi
+
 # 5. Restart the backend under pm2
 if ${cfg.restart ? 'true' : 'false'}; then
   # pm2 may be installed for a different Node version — look for it there too
@@ -276,13 +331,28 @@ if ${cfg.restart ? 'true' : 'false'}; then
   # container, so the argv-based entry check in app.ts cannot be used).
   export NODE_ENV=production
   if pm2 describe ${cfg.pm2App} >/dev/null 2>&1; then
-    pm2 restart ${cfg.pm2App} --update-env
+    # Обычный restart БЕЗ --update-env: приложение само читает server/.env через
+    # dotenv при старте, поэтому изменения .env подхватываются и так. А вот
+    # --update-env запускает env и в неинтерактивных SSH-сессиях падает с
+    # "env: 'node': No such file or directory" (node не в PATH) — рестарт не происходит.
+    pm2 restart ${cfg.pm2App}
   else
     pm2 start dist/app.cjs --name ${cfg.pm2App} --cwd "$SERVER"
   fi
   pm2 save >/dev/null 2>&1 || true
 else
   echo "[deploy] restart skipped (--no-restart)"
+fi
+
+# 5b. Опциональный пересев БД «Ремонта» из задеплоенных HTML.
+#     ВНИМАНИЕ: seed сбрасывает data/renovation.sqlite (стирает импортированное
+#     через приложение). Только явно: npm run deploy -- --seed-renovation.
+if ${cfg.seedRenovation ? 'true' : 'false'}; then
+  echo "[deploy] Re-seeding renovation DB from $PUBLIC/projects/renovation ..."
+  cd "$SERVER"
+  RENOVATION_PROJECTS_DIR="$PUBLIC/projects/renovation" \\
+    node scripts/seed-renovation.mjs || \\
+    echo "[deploy] WARN: seed-renovation failed — run manually (см. docs/server.md)"
 fi
 
 # 6. Cleanup temp files
@@ -301,6 +371,8 @@ function main() {
   console.log(`  pm2 app     : ${cfg.pm2App}`);
   console.log(`  build       : ${cfg.build ? 'yes' : 'no (--no-build)'}`);
   console.log(`  restart     : ${cfg.restart ? 'yes' : 'no (--no-restart)'}`);
+  console.log(`  pdf setup   : ${cfg.pdfSetup ? 'yes' : 'no'}`);
+  console.log(`  seed renov  : ${cfg.seedRenovation ? 'yes (resets DB)' : 'no'}`);
 
   // Just print the resolved config and exit (no deployment)
   if (process.argv.includes('--print-config')) {
