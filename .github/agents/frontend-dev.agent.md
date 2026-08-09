@@ -1,5 +1,5 @@
 ---
-description: 'Разработка фронтенда приложения family (React 19 + TypeScript + Vite, workspace frontend/, порт 5173). Use when: изменение UI/компонентов/страниц (frontend/src/**), роутинг react-router (createHashRouter), тема light/dark/system, хуки (useServices/useVps/useProjects/useHealth/useTheme), API-клиент (api/client.ts), стили (index.css, CSS-переменные), доступность (role=button), инлайн SVG-иконки, typecheck/format фронтенда. Не для бэкенда (backend/**), деплоя и статичных проектов (projects/**).'
+description: 'Разработка фронтенда приложения family (React 19 + TypeScript + Vite, workspace frontend/, порт 5173). Use when: изменение UI/компонентов/страниц (frontend/src/**), роутинг react-router (createHashRouter), тема light/dark/system, хуки (useServices/useVps/useProjects/useHealth/useTheme), API-клиент (api/client.ts), стили (index.css, CSS-переменные), доступность (role=button), инлайн SVG-иконки, typecheck/format фронтенда. Не для бэкенда (backend/**), деплоя и источника данных «Ремонта» (projects/**).'
 name: 'Frontend Dev'
 argument-hint: 'Задача по фронтенду'
 tools: [vscode, execute, read, agent, edit, search, web, browser, 'playwright/*', todo]

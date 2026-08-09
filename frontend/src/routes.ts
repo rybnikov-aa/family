@@ -12,6 +12,8 @@ export const ROUTES = {
   profile: '/profile',
   adminUsers: '/admin/users',
   renovation: '/projects/renovation',
+  /** Страница прикладного проекта (созданного через UI), например `/projects/dacha`. */
+  project: '/projects/:slug',
 } as const;
 
 export type AppRoute = keyof typeof ROUTES;

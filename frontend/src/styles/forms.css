@@ -112,6 +112,13 @@
 select.input {
   cursor: pointer;
 }
+/* Текстовая область (markdown-контент проекта) — моноширинный шрифт */
+.input--area {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+}
 
 /* ── Примитив: алерт/уведомление (успех/ошибка/предупреждение) ── */
 .alert {

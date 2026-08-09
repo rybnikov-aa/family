@@ -1,35 +1,51 @@
-import { useState, type ComponentType } from 'react';
+import { useState } from 'react';
 import PageLayout from '../components/PageLayout';
 import CreateProjectModal from '../components/CreateProjectModal';
+import ProjectEditModal from '../components/ProjectEditModal';
 import SectionCard from '../components/SectionCard';
+import IconButton from '../components/IconButton';
 import Button from '../components/Button';
-import { FolderIcon, PlusIcon, ProjectsIcon, RenovationIcon } from '../components/icons';
-import type { IconProps } from '../components/icons';
+import { EditIcon, PlusIcon, ProjectsIcon, TrashIcon } from '../components/icons';
+import { deleteProject, fetchProject, type Project, type ProjectDetail } from '../api/client';
 import { useProjects } from '../hooks/useProjects';
 import { useAuth } from '../hooks/useAuth';
-
-/** Иконки проектов по имени из `<meta name="project-icon">` (см. `projects/_template`). */
-const projectIcons: Record<string, ComponentType<IconProps>> = {
-  renovation: RenovationIcon,
-  folder: FolderIcon,
-  projects: ProjectsIcon,
-};
+import { projectIcons } from '../utils/projectIcons';
 
 /**
  * Раздел «Проекты»: список отдельных подпроектов. Данные динамические —
- * приходят с бэкенда (`GET /api/projects`): статичные проекты (подпапки
- * `PROJECTS_DIR` с `index.html`) + прикладные (SPA) проекты из реестра
- * `backend/src/config/appProjects.ts` (`kind: 'app'`, например «Ремонт»).
- * Для прикладных проектов бэкенд отдаёт внутренний маршрут (`/projects/renovation`),
- * который SectionCard рендерит как внутренний Link (hash-роутинг); статичные
- * (`/projects/<slug>/`) — как обычные ссылки.
+ * приходят с бэкенда (`GET /api/projects`): встроенные (SPA) проекты из
+ * реестра `backend/src/config/appProjects.ts` + созданные через UI записи БД.
+ * Все проекты — прикладные (`kind: 'app'`), карточка ведёт в SPA-маршрут
+ * `/projects/<slug>` (hash-роутинг). Создание/редактирование/удаление — admin.
  */
 function ProjectsPage() {
   const { projects, error, loading, refresh } = useProjects();
-  // Создание проекта — только для admin.
+  // Создание/редактирование/удаление — только для admin.
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [createOpen, setCreateOpen] = useState(false);
+  const [editing, setEditing] = useState<ProjectDetail | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  // Редактирование: нужны полные данные (контент) — запрашиваем отдельно.
+  const handleEdit = async (project: Project) => {
+    try {
+      setEditing(await fetchProject(project.slug));
+    } catch {
+      /* модалка не откроется — список не трогаем */
+    }
+  };
+
+  const handleDelete = async (project: Project) => {
+    if (!window.confirm(`Удалить проект «${project.title}»? Действие необратимо.`)) return;
+    setDeleting(project.slug);
+    try {
+      await deleteProject(project.slug);
+      refresh();
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   return (
     <PageLayout>
@@ -60,7 +76,32 @@ function ProjectsPage() {
         ) : (
           <div className="grid">
             {projects.map((project) => {
-              const Icon = projectIcons[project.icon] ?? ProjectsIcon;
+              const Icon = projectIcons[project.icon] ?? projectIcons.projects;
+              const actions =
+                isAdmin && project.editable ? (
+                  <div className="card-actions__buttons">
+                    <IconButton
+                      label={`Редактировать «${project.title}»`}
+                      tooltip="Редактировать"
+                      size="sm"
+                      plain
+                      onClick={() => void handleEdit(project)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      label={`Удалить «${project.title}»`}
+                      tooltip="Удалить"
+                      size="sm"
+                      plain
+                      danger
+                      disabled={deleting === project.slug}
+                      onClick={() => void handleDelete(project)}
+                    >
+                      <TrashIcon />
+                    </IconButton>
+                  </div>
+                ) : undefined;
               return (
                 <SectionCard
                   key={project.slug}
@@ -71,6 +112,7 @@ function ProjectsPage() {
                   tag="→ открыть"
                   href={project.url}
                   wide
+                  actions={actions}
                 />
               );
             })}
@@ -80,6 +122,9 @@ function ProjectsPage() {
 
       {createOpen && (
         <CreateProjectModal onClose={() => setCreateOpen(false)} onCreated={refresh} />
+      )}
+      {editing && (
+        <ProjectEditModal project={editing} onClose={() => setEditing(null)} onSaved={refresh} />
       )}
     </PageLayout>
   );

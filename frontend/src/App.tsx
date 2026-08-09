@@ -3,6 +3,7 @@ import { Navigate, Outlet, RouterProvider, createHashRouter, useLocation } from 
 import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
 import ProjectsPage from './pages/ProjectsPage';
+import ProjectPage from './pages/ProjectPage';
 import LoginPage from './pages/LoginPage';
 // Тяжёлые страницы (с модалками/отчётами) грузим лениво — отдельные чанки.
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
@@ -23,11 +24,13 @@ function RouteLayout() {
           ? 'Проекты • family.rybnikov.su'
           : location.pathname === ROUTES.renovation
             ? 'Ремонт • family.rybnikov.su'
-            : location.pathname === ROUTES.profile
-              ? 'Профиль • family.rybnikov.su'
-              : location.pathname === ROUTES.adminUsers
-                ? 'Пользователи • family.rybnikov.su'
-                : 'Семейное пространство • family.rybnikov.su';
+            : location.pathname.startsWith('/projects/')
+              ? 'Проект • family.rybnikov.su'
+              : location.pathname === ROUTES.profile
+                ? 'Профиль • family.rybnikov.su'
+                : location.pathname === ROUTES.adminUsers
+                  ? 'Пользователи • family.rybnikov.su'
+                  : 'Семейное пространство • family.rybnikov.su';
   }, [location.pathname]);
 
   // Ленивые страницы ждут чанк — показываем заглушку.
@@ -71,6 +74,8 @@ const router = createHashRouter([
           { path: ROUTES.news, element: <NewsPage /> },
           { path: ROUTES.projects, element: <ProjectsPage /> },
           { path: ROUTES.renovation, element: <RenovationPage /> },
+          // Страница прикладного проекта (статические пути, например renovation, выше).
+          { path: ROUTES.project, element: <ProjectPage /> },
           { path: ROUTES.profile, element: <ProfilePage /> },
           // Админ-разделы: доступны только роли `admin` (иначе — на главную).
           {

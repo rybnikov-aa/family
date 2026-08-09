@@ -151,8 +151,9 @@ export async function deleteAdminUser(id: number): Promise<void> {
 
 /**
  * Метаданные проекта (раздел «Проекты»).
- * Проект — подпапка на сервере с `index.html`; метаданные бэкенд читает
- * из самого `index.html` (`<title>`, `<meta name="description">` и т.п.).
+ * Проект — запись в БД (`projects`, созданные через UI) либо встроенный проект
+ * из реестра бэкенда (`config/appProjects.ts`, например «Ремонт»). Все проекты —
+ * прикладные (`kind: 'app'`), их страницы — маршруты приложения.
  */
 export interface Project {
   slug: string;
@@ -161,21 +162,37 @@ export interface Project {
   accent: string;
   /** Имя иконки (например, `renovation`); пусто — иконка по умолчанию. */
   icon: string;
-  /** Тип проекта: `static` (подпапка PROJECTS_DIR) или `app` (SPA из реестра бэкенда). */
-  kind: 'static' | 'app';
+  kind: 'app';
+  /** Внутренний маршрут приложения без `#` (hash-роутинг), например `/projects/renovation`. */
   url: string;
+  order: number;
+  /** Встроенные проекты (реестр) редактировать/удалять нельзя. */
+  editable: boolean;
 }
 
-/** Список проектов: `GET /api/projects`; `force` — обход 60-с кэша бэкенда (`?refresh=1`). */
+/** Полные данные проекта: метаданные + markdown-контент. */
+export interface ProjectDetail extends Project {
+  /** Markdown-контент страницы проекта (пусто у встроенных проектов). */
+  content: string;
+}
+
+/** Список проектов: `GET /api/projects`. Кэша сканирования больше нет, `force` игнорируется. */
 export async function fetchProjects(force = false): Promise<Project[]> {
   const res = await apiFetch(`/projects${force ? '?refresh=1' : ''}`);
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<Project[]>;
 }
 
-/** Входные данные для создания статичного проекта (`POST /api/projects`). */
+/** Полные данные проекта: `GET /api/projects/:slug` (включая markdown-контент). */
+export async function fetchProject(slug: string): Promise<ProjectDetail> {
+  const res = await apiFetch(`/projects/${encodeURIComponent(slug)}`);
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<ProjectDetail>;
+}
+
+/** Входные данные для создания/обновления проекта. */
 export interface ProjectInput {
-  /** Имя папки проекта: латиница, цифры и дефисы (например `dacha`). */
+  /** Имя (slug): латиница, цифры и дефисы (например `dacha`). */
   slug: string;
   /** Название для карточки и страницы проекта. */
   title: string;
@@ -187,12 +204,14 @@ export interface ProjectInput {
   icon?: string;
   /** Порядок в списке (целое ≥ 0); не задано — в конец. */
   order?: number;
+  /** Markdown-контент страницы проекта (необязательно). */
+  content?: string;
 }
 
 /**
- * Создаёт статичный проект: `POST /api/projects` (admin). Бэкенд создаёт
- * подпапку `PROJECTS_DIR/<slug>/` с `index.html` из встроенного шаблона.
- * Возвращает метаданные созданного проекта (201).
+ * Создаёт проект: `POST /api/projects` (admin). Бэкенд записывает проект в БД
+ * `projects` (без статичных папок и шаблонов). Ответ — метаданные (201);
+ * 400 — невалидные данные, 409 — имя занято.
  */
 export async function createProject(input: ProjectInput): Promise<Project> {
   const res = await apiFetch('/projects', {
@@ -202,6 +221,26 @@ export async function createProject(input: ProjectInput): Promise<Project> {
   });
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<Project>;
+}
+
+/**
+ * Обновляет проект: `PATCH /api/projects/:slug` (admin) — метаданные и/или
+ * markdown-контент. 400 — встроенный проект, 404 — не найден.
+ */
+export async function updateProject(slug: string, input: ProjectInput): Promise<ProjectDetail> {
+  const res = await apiFetch(`/projects/${encodeURIComponent(slug)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<ProjectDetail>;
+}
+
+/** Удаляет проект: `DELETE /api/projects/:slug` (admin). 400 — встроенный, 404 — не найден. */
+export async function deleteProject(slug: string): Promise<void> {
+  const res = await apiFetch(`/projects/${encodeURIComponent(slug)}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
 }
 
 export interface VpsServiceStatus {

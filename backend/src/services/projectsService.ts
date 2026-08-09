@@ -1,10 +1,15 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, relative, resolve, sep } from 'node:path';
-import { env } from '../config/env';
-import { APP_PROJECTS } from '../config/appProjects';
-import { buildProjectHtml } from './projectsTemplate';
+import { APP_PROJECTS, type AppProject } from '../config/appProjects';
+import { isConstraintError } from '../db/errors';
+import {
+  createProjectRow,
+  deleteProjectRow,
+  getProjectRow,
+  listProjectRows,
+  updateProjectRow,
+  type ProjectRow,
+} from '../db/projectsRepository';
 
-/** Ошибка с HTTP-статусом — для ответов 400/413 и т.п. */
+/** Ошибка с HTTP-статусом — для ответов 400/404/409 и т.п. */
 export class HttpError extends Error {
   readonly status: number;
 
@@ -18,178 +23,122 @@ export class HttpError extends Error {
 /**
  * Метаданные проекта (раздел «Проекты»).
  *
- * Проект — это подпапка в каталоге `PROJECTS_DIR` (папка проектов на сервере,
- * по умолчанию `public_html/projects`) с файлом `index.html`. Страницы проекта
- * обслуживаются по `/projects/<slug>/`. Метаданные для списка берутся из
- * самого `index.html`:
- *
- *   <title>…</title>                                  — название (заголовок вкладки)
- *   <meta name="project-title" content="Ремонт">      — короткое название для карточки (приоритетнее `<title>`)
- *   <meta name="description" content="…">             — описание
- *   <meta name="project-accent" content="#e8872e">    — акцентный цвет карточки (необязательно)
- *   <meta name="project-icon" content="renovation">    — имя иконки в списке (необязательно)
- *   <meta name="project-order" content="0">           — порядок в списке (необязательно)
+ * Проект — это запись в БД (`projects`, созданные через UI) либо запись в
+ * реестре встроенных проектов `config/appProjects.ts` («Ремонт»). Статичные
+ * подпапки больше не используются: все проекты живут в приложении (kind: 'app').
  */
 export interface ProjectInfo {
   slug: string;
   title: string;
   description: string;
   accent: string;
-  /** Имя иконки из `<meta name="project-icon">` (например, `renovation`); пусто — иконка по умолчанию. */
+  /** Имя иконки из `projectIcons` на фронтенде (например `renovation`). */
   icon: string;
-  /**
-   * Тип проекта:
-   * - `static` — статичная подпапка `PROJECTS_DIR` с `index.html`;
-   * - `app` — прикладной (SPA) проект из реестра `config/appProjects.ts`.
-   */
-  kind: 'static' | 'app';
-  /** URL назначения карточки: `/projects/<slug>/` (статичный) или внутренний маршрут приложения без `#` (прикладной). */
+  /** Тип проекта — всегда `app` (проект в приложении). */
+  kind: 'app';
+  /** Внутренний маршрут приложения без `#` (hash-роутинг), например `/projects/renovation`. */
   url: string;
   order: number;
+  /** Встроенные проекты (реестр) редактировать/удалять нельзя. */
+  editable: boolean;
 }
 
-/** Каталоги, которые не считаются проектами (служебные/скрытые: `_template`, `.well-known` и т.п.). */
-const SKIP_PREFIXES = ['.', '_'];
-
-/** Сколько кэшировать список проектов (сканирование ФС — не на каждый запрос). */
-const TTL_MS = 60_000;
-
-let cache: { at: number; projects: ProjectInfo[] } | null = null;
-
-/** Значение `content` у `<meta name="…">`. */
-function readMeta(html: string, name: string): string | null {
-  const re = new RegExp(`<meta\\s+name=["']${name}["']\\s+content=["']([^"']*)["']`, 'i');
-  const match = html.match(re);
-  return match ? match[1] : null;
+/** Полные данные проекта: метаданные + markdown-контент. */
+export interface ProjectDetail extends ProjectInfo {
+  /** Markdown-контент страницы проекта (пусто у встроенных проектов). */
+  content: string;
 }
 
-/** Текст тега `<title>`. */
-function readTitle(html: string): string {
-  const match = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-  return match ? match[1].trim() : '';
-}
-
-/**
- * Собирает список проектов из каталога `env.PROJECTS_DIR` (подпапки с
- * `index.html`), сортирует по `project-order`, затем по названию.
- * Результат кэшируется на `TTL_MS`; `force` сбрасывает кэш.
- */
-export function listProjects(force = false): ProjectInfo[] {
-  if (!force && cache && Date.now() - cache.at < TTL_MS) {
-    return cache.projects;
-  }
-
-  const root = resolve(env.PROJECTS_DIR);
-  const projects: ProjectInfo[] = [];
-
-  // Прикладные (SPA) проекты из реестра перекрывают статичные папки с тем же
-  // slug (strangler fig): карточка переехавшего проекта не зависит от статики.
-  const appBySlug = new Map(APP_PROJECTS.map((p) => [p.slug, p]));
-
-  if (existsSync(root)) {
-    for (const entry of readdirSync(root, { withFileTypes: true })) {
-      if (!entry.isDirectory()) continue;
-      if (SKIP_PREFIXES.some((prefix) => entry.name.startsWith(prefix))) continue;
-      if (appBySlug.has(entry.name)) continue;
-
-      const indexFile = join(root, entry.name, 'index.html');
-      if (!existsSync(indexFile)) continue;
-
-      try {
-        const html = readFileSync(indexFile, 'utf8');
-        const rawOrder = readMeta(html, 'project-order');
-        projects.push({
-          slug: entry.name,
-          kind: 'static',
-          title: readMeta(html, 'project-title') ?? (readTitle(html) || entry.name),
-          description: readMeta(html, 'description') ?? '',
-          accent: readMeta(html, 'project-accent') ?? '#3b82f6',
-          icon: readMeta(html, 'project-icon') ?? '',
-          // Папка проектов зеркалится деплоем в `public_html/projects/` и
-          // обслуживается по `/projects/` → URL проекта — `/projects/<slug>/`.
-          url: `/projects/${entry.name}/`,
-          order: rawOrder === null ? Number.MAX_SAFE_INTEGER : Number(rawOrder) || 0,
-        });
-      } catch {
-        // Нечитаемый index.html — проект пропускаем.
-      }
-    }
-  }
-
-  // Прикладные проекты из реестра — отображаются независимо от статики PROJECTS_DIR.
-  for (const app of APP_PROJECTS) {
-    projects.push({
-      slug: app.slug,
-      kind: 'app',
-      title: app.title,
-      description: app.description,
-      accent: app.accent,
-      icon: app.icon,
-      // Внутренний маршрут приложения (hash-роутинг, без `#`), например `/projects/renovation`.
-      url: app.route,
-      order: app.order,
-    });
-  }
-
-  projects.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title, 'ru'));
-  cache = { at: Date.now(), projects };
-  return projects;
-}
-
-/** Входные данные для создания статичного проекта (`POST /api/projects`). */
-export interface CreateProjectInput {
-  /** Имя папки проекта: латиница, цифры и дефисы (например `dacha`). */
+/** Входные данные создания/обновления проекта (`POST`/`PATCH /api/projects`). */
+export interface ProjectInput {
+  /** Имя (slug): латиница, цифры и дефисы (например `dacha`). */
   slug: string;
-  /** Название для карточки списка и страницы проекта. */
+  /** Название для карточки и страницы проекта. */
   title: string;
-  /** Описание для карточки списка. */
+  /** Описание для карточки. */
   description: string;
   /** Акцентный цвет карточки (`#RRGGBB`), по умолчанию `#3b82f6`. */
   accent?: string;
   /** Имя иконки: `renovation` | `folder` | `projects`, по умолчанию `projects`. */
   icon?: string;
-  /** Порядок в списке (целое ≥ 0); не задано — проект уходит в конец списка. */
+  /** Порядок в списке (целое ≥ 0); не задано — в конец. */
   order?: number;
+  /** Markdown-контент страницы проекта (необязательно). */
+  content?: string;
 }
 
-/** Допустимое имя папки проекта (slug): латиница, цифры, дефисы, без `_`/`.` в начале. */
+/** Допустимое имя проекта (slug): латиница, цифры, дефисы, без `_`/`.` в начале. */
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 /** Допустимый акцентный цвет (`#RRGGBB`). */
 const ACCENT_RE = /^#[0-9a-fA-F]{6}$/;
 /** Допустимые иконки карточки (маппятся на фронтенде в `projectIcons`). */
 const PROJECT_ICONS = ['renovation', 'folder', 'projects'];
-/** Акцентный цвет по умолчанию (как в `projects/_template`). */
+/** Акцентный цвет по умолчанию. */
 const DEFAULT_ACCENT = '#3b82f6';
+/** Порядок по умолчанию — проект уходит в конец списка. */
+const DEFAULT_ORDER = Number.MAX_SAFE_INTEGER;
 
-/**
- * Создаёт статичный проект: подпапку `PROJECTS_DIR/<slug>/` с `index.html`
- * из встроенного шаблона (`projectsTemplate.ts`, аналог `projects/_template`).
- * Валидирует входные данные, сбрасывает кэш списка и возвращает метаданные
- * созданного проекта (201). Ошибки — `HttpError` (400/409).
- */
-export function createProject(input: CreateProjectInput): ProjectInfo {
-  const slug = input.slug.trim();
-  const title = input.title.trim();
-  const description = input.description.trim();
-  const accent = (input.accent ?? '').trim().toLowerCase() || DEFAULT_ACCENT;
-  const icon = (input.icon ?? '').trim() || 'projects';
-  const { order } = input;
+/** Строка БД → метаданные прикладного проекта. */
+function rowToInfo(row: ProjectRow): ProjectInfo {
+  return {
+    slug: row.slug,
+    title: row.title,
+    description: row.description,
+    accent: row.accent,
+    icon: row.icon,
+    kind: 'app',
+    url: `/projects/${row.slug}`,
+    order: row.order_num,
+    editable: true,
+  };
+}
 
+/** Запись реестра → метаданные прикладного проекта. */
+function registryToInfo(app: AppProject): ProjectInfo {
+  return {
+    slug: app.slug,
+    title: app.title,
+    description: app.description,
+    accent: app.accent,
+    icon: app.icon,
+    kind: 'app',
+    url: app.route,
+    order: app.order,
+    editable: false,
+  };
+}
+
+/** Встроенный (реестровый) проект по slug. */
+function findRegistry(slug: string): AppProject | undefined {
+  return APP_PROJECTS.find((p) => p.slug === slug);
+}
+
+/** Нормализует и валидирует slug; кидает `HttpError(400)` при невалидном. */
+function normalizeSlug(raw: string): string {
+  const slug = raw.trim();
   if (!SLUG_RE.test(slug)) {
     throw new HttpError(
       400,
       'Недопустимое имя проекта: латиница, цифры и дефисы (например «dacha» или «trip-2026»).',
     );
   }
-  if (slug.startsWith('_') || slug.startsWith('.')) {
-    throw new HttpError(400, 'Недопустимое имя проекта');
-  }
-  if (title === '') {
-    throw new HttpError(400, 'Укажите название проекта');
-  }
-  if (description === '') {
-    throw new HttpError(400, 'Укажите описание проекта');
-  }
+  return slug;
+}
+
+/** Нормализованные необязательные поля проекта (всегда конкретные значения). */
+interface NormalizedOptional {
+  accent: string;
+  icon: string;
+  order?: number;
+  content: string;
+}
+
+/** Нормализует необязательные поля (цвет/иконка/порядок/контент). */
+function normalizeOptional(input: ProjectInput): NormalizedOptional {
+  const accent = (input.accent ?? '').trim().toLowerCase() || DEFAULT_ACCENT;
+  const icon = (input.icon ?? '').trim() || 'projects';
+  const { order, content } = input;
+
   if (!ACCENT_RE.test(accent)) {
     throw new HttpError(400, 'Акцентный цвет должен быть в формате #RRGGBB');
   }
@@ -200,39 +149,117 @@ export function createProject(input: CreateProjectInput): ProjectInfo {
     throw new HttpError(400, 'Порядок должен быть неотрицательным целым числом');
   }
 
-  const root = resolve(env.PROJECTS_DIR);
-  const dir = join(root, slug);
-  // Slug уже проверен регуляркой (без `..`/`_`/`.` в начале), дополнительный
-  // контроль — чтобы создание шло строго внутри `PROJECTS_DIR`.
-  const rel = relative(root, dir);
-  if (rel.startsWith('..') || rel.split(sep).some((s) => s.startsWith('_') || s.startsWith('.'))) {
-    throw new HttpError(400, 'Недопустимое имя проекта');
-  }
+  return { accent, icon, order, content: content ?? '' };
+}
 
-  // Занятое имя: существующая статичная папка или запись в реестре прикладных
-  // проектов (реестр перекрывает статику по slug — дубликат недопустим).
-  if (existsSync(join(dir, 'index.html')) || APP_PROJECTS.some((p) => p.slug === slug)) {
+/**
+ * Список проектов: встроенный реестр `config/appProjects.ts` + созданные через
+ * UI записи БД (`projects`). Сортировка по порядку, затем по названию (ru).
+ * Скан файловой системы не выполняется — проекты живут в приложении.
+ */
+export function listProjects(): ProjectInfo[] {
+  const projects: ProjectInfo[] = APP_PROJECTS.map(registryToInfo);
+  projects.push(...listProjectRows().map(rowToInfo));
+  projects.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title, 'ru'));
+  return projects;
+}
+
+/** Полные данные проекта по slug (встроенный или из БД); 404 — не найден. */
+export function getProject(slug: string): ProjectDetail {
+  const registry = findRegistry(slug);
+  if (registry) {
+    return { ...registryToInfo(registry), content: '' };
+  }
+  const row = getProjectRow(slug);
+  if (!row) {
+    throw new HttpError(404, 'Проект не найден');
+  }
+  return { ...rowToInfo(row), content: row.content };
+}
+
+/**
+ * Создаёт проект (admin): вставка в БД. Занятое имя (запись реестра или БД)
+ * → 409; невалидные данные → 400. Ответ — метаданные созданного проекта (201).
+ */
+export function createProject(input: ProjectInput): ProjectInfo {
+  const slug = normalizeSlug(input.slug);
+  const title = input.title.trim();
+  const description = input.description.trim();
+  const { accent, icon, order, content } = normalizeOptional(input);
+
+  if (title === '') {
+    throw new HttpError(400, 'Укажите название проекта');
+  }
+  if (description === '') {
+    throw new HttpError(400, 'Укажите описание проекта');
+  }
+  if (findRegistry(slug)) {
     throw new HttpError(409, 'Проект с таким именем уже существует');
   }
 
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(
-    join(dir, 'index.html'),
-    buildProjectHtml({ title, description, accent, icon, order }),
-    'utf8',
-  );
+  try {
+    createProjectRow({
+      slug,
+      title,
+      description,
+      accent,
+      icon,
+      order: order ?? DEFAULT_ORDER,
+      content,
+    });
+  } catch (err) {
+    if (isConstraintError(err)) {
+      throw new HttpError(409, 'Проект с таким именем уже существует');
+    }
+    throw err;
+  }
 
-  // Новый проект должен сразу появиться в списке — сбрасываем кэш сканирования.
-  cache = null;
+  const row = getProjectRow(slug);
+  return rowToInfo(row as ProjectRow);
+}
 
-  return {
-    slug,
-    kind: 'static',
-    title,
-    description,
-    accent,
-    icon,
-    url: `/projects/${slug}/`,
-    order: order ?? Number.MAX_SAFE_INTEGER,
+/**
+ * Обновляет проект (admin): метаданные и/или markdown-контент. Встроенные
+ * проекты (реестр) редактировать нельзя → 400; не найден → 404.
+ */
+export function updateProject(slug: string, input: ProjectInput): ProjectDetail {
+  const normalized = normalizeSlug(slug);
+  const { accent, icon, order, content } = normalizeOptional(input);
+
+  if (findRegistry(normalized)) {
+    throw new HttpError(400, 'Встроенный проект нельзя редактировать');
+  }
+
+  const patch: Parameters<typeof updateProjectRow>[1] = {
+    ...(input.title !== undefined ? { title: input.title.trim() } : {}),
+    ...(input.description !== undefined ? { description: input.description.trim() } : {}),
+    ...(accent !== undefined ? { accent } : {}),
+    ...(icon !== undefined ? { icon } : {}),
+    ...(order !== undefined ? { order } : {}),
+    ...(content !== undefined ? { content } : {}),
   };
+
+  if (patch.title === '') {
+    throw new HttpError(400, 'Укажите название проекта');
+  }
+  if (patch.description === '') {
+    throw new HttpError(400, 'Укажите описание проекта');
+  }
+
+  const row = updateProjectRow(normalized, patch);
+  if (!row) {
+    throw new HttpError(404, 'Проект не найден');
+  }
+  return { ...rowToInfo(row), content: row.content };
+}
+
+/** Удаляет проект (admin). Встроенные проекты удалить нельзя → 400. */
+export function deleteProject(slug: string): void {
+  const normalized = normalizeSlug(slug);
+  if (findRegistry(normalized)) {
+    throw new HttpError(400, 'Встроенный проект нельзя удалить');
+  }
+  if (!deleteProjectRow(normalized)) {
+    throw new HttpError(404, 'Проект не найден');
+  }
 }

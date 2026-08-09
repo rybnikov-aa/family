@@ -1,18 +1,18 @@
 import { useState, type FormEvent } from 'react';
-import { createProject } from '../api/client';
+import { updateProject, type ProjectDetail } from '../api/client';
 import Modal from './Modal';
 import Button from './Button';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 
-interface CreateProjectModalProps {
-  /** Закрыть форму без сохранения */
+interface ProjectEditModalProps {
+  /** Проект для редактирования (только созданные через UI — `editable`). */
+  project: ProjectDetail;
+  /** Закрыть форму без сохранения. */
   onClose: () => void;
-  /** Вызывается после успешного создания проекта (для обновления списка) */
-  onCreated: () => void;
+  /** Вызывается после успешного сохранения (для обновления страницы/списка). */
+  onSaved: () => void;
 }
 
-/** Допустимое имя папки проекта (slug): латиница, цифры, дефисы, без `_`/`.` в начале. */
-const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 /** Допустимый акцентный цвет (`#RRGGBB`). */
 const ACCENT_RE = /^#[0-9a-fA-F]{6}$/;
 const DEFAULT_ACCENT = '#3b82f6';
@@ -25,20 +25,18 @@ const PROJECT_ICONS = [
 ];
 
 /**
- * Форма создания статичного проекта (кнопка «Создать проект», admin).
- *
- * Поля: имя (slug), название, описание, акцентный цвет, иконка, порядок, контент.
- * `POST /api/projects` создаёт запись в БД `projects` (метаданные + markdown-контент);
- * после успеха список проектов обновляется.
+ * Форма редактирования проекта (admin): метаданные + markdown-контент страницы.
+ * `PATCH /api/projects/:slug` — slug менять нельзя (имя проекта неизменно).
  */
-function CreateProjectModal({ onClose, onCreated }: CreateProjectModalProps) {
-  const [slug, setSlug] = useState('');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [accent, setAccent] = useState(DEFAULT_ACCENT);
-  const [icon, setIcon] = useState('projects');
-  const [order, setOrder] = useState('');
-  const [content, setContent] = useState('');
+function ProjectEditModal({ project, onClose, onSaved }: ProjectEditModalProps) {
+  const [title, setTitle] = useState(project.title);
+  const [description, setDescription] = useState(project.description);
+  const [accent, setAccent] = useState(project.accent);
+  const [icon, setIcon] = useState(project.icon);
+  const [order, setOrder] = useState(
+    project.order === Number.MAX_SAFE_INTEGER ? '' : String(project.order),
+  );
+  const [content, setContent] = useState(project.content);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,15 +47,10 @@ function CreateProjectModal({ onClose, onCreated }: CreateProjectModalProps) {
     event.preventDefault();
     if (submitting) return;
 
-    const slugValue = slug.trim();
     const titleValue = title.trim();
     const descriptionValue = description.trim();
     const accentValue = accent.trim();
 
-    if (!SLUG_RE.test(slugValue)) {
-      setError('Имя проекта — латиница, цифры и дефисы (например «dacha» или «trip-2026»).');
-      return;
-    }
     if (!titleValue) {
       setError('Укажите название проекта');
       return;
@@ -76,8 +69,8 @@ function CreateProjectModal({ onClose, onCreated }: CreateProjectModalProps) {
     setSubmitting(true);
     setError(null);
     try {
-      await createProject({
-        slug: slugValue,
+      await updateProject(project.slug, {
+        slug: project.slug,
         title: titleValue,
         description: descriptionValue,
         accent: accentValue,
@@ -85,34 +78,17 @@ function CreateProjectModal({ onClose, onCreated }: CreateProjectModalProps) {
         order: orderValue,
         content,
       });
-      onCreated();
+      onSaved();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось создать проект');
+      setError(err instanceof Error ? err.message : 'Не удалось сохранить проект');
       setSubmitting(false);
     }
   };
 
   return (
-    <Modal title="Создать проект" onClose={onClose}>
+    <Modal title={`Редактировать «${project.title}»`} onClose={onClose}>
       <form className="vps-form" onSubmit={handleSubmit}>
-        <label className="field">
-          <span className="field__label">Имя проекта (slug)</span>
-          <input
-            className="input"
-            type="text"
-            autoComplete="off"
-            maxLength={50}
-            value={slug}
-            onChange={(event) => setSlug(event.target.value)}
-            placeholder="напр. dacha"
-            required
-          />
-          <span className="field__hint">
-            Латиница, цифры и дефисы — уникальное имя проекта (например, dacha).
-          </span>
-        </label>
-
         <label className="field">
           <span className="field__label">Название</span>
           <input
@@ -122,7 +98,6 @@ function CreateProjectModal({ onClose, onCreated }: CreateProjectModalProps) {
             maxLength={100}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="напр. Дача"
             required
           />
         </label>
@@ -135,7 +110,6 @@ function CreateProjectModal({ onClose, onCreated }: CreateProjectModalProps) {
             maxLength={300}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            placeholder="Краткое описание для карточки в разделе «Проекты»."
             required
           />
         </label>
@@ -188,7 +162,7 @@ function CreateProjectModal({ onClose, onCreated }: CreateProjectModalProps) {
           <span className="field__label">Контент страницы (markdown)</span>
           <textarea
             className="input input--area"
-            rows={8}
+            rows={10}
             value={content}
             onChange={(event) => setContent(event.target.value)}
             placeholder="## Раздел&#10;&#10;Текст проекта в формате markdown: заголовки, списки, ссылки."
@@ -209,7 +183,7 @@ function CreateProjectModal({ onClose, onCreated }: CreateProjectModalProps) {
             Отмена
           </Button>
           <Button type="submit" variant="primary" disabled={submitting}>
-            {submitting ? 'Создание…' : 'Создать'}
+            {submitting ? 'Сохранение…' : 'Сохранить'}
           </Button>
         </div>
       </form>
@@ -217,4 +191,4 @@ function CreateProjectModal({ onClose, onCreated }: CreateProjectModalProps) {
   );
 }
 
-export default CreateProjectModal;
+export default ProjectEditModal;

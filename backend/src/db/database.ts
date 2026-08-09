@@ -70,6 +70,22 @@ function openDatabase(): DatabaseSync {
 
     CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+
+    -- Проекты (раздел «Проекты»): созданные через UI — записи в БД (kind: app),
+    -- а не статичные папки. Встроенные проекты (например, «Ремонт») живут в
+    -- реестре config/appProjects.ts и в эту таблицу не попадают.
+    CREATE TABLE IF NOT EXISTS projects (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug        TEXT    NOT NULL UNIQUE,          -- латиница, цифры, дефисы
+      title       TEXT    NOT NULL,
+      description TEXT    NOT NULL,
+      accent      TEXT    NOT NULL DEFAULT '#3b82f6',
+      icon        TEXT    NOT NULL DEFAULT 'projects', -- renovation | folder | projects
+      order_num   INTEGER NOT NULL DEFAULT 2147483647, -- меньше — раньше в списке
+      content     TEXT    NOT NULL DEFAULT '',          -- markdown-контент страницы проекта
+      created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+      updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 
   return db;

@@ -9,9 +9,10 @@
  *   4. On the server: extract to
  *        - /var/www/family.rybnikov.su/public_html  (frontend)
  *        - /var/www/family.rybnikov.su/server       (backend)
- *      Projects: the repo's projects/ folder is mirrored 1:1 into
- *      public_html/projects/ (shared files AND project subfolders, e.g.
- *      /projects/renovation/).
+ *      Renovation source: the repo's projects/renovation folder (source HTML
+ *      for the «Ремонт» DB seed) is copied to $SERVER/renovation-source.
+ *      Static project pages are NOT deployed anymore — all projects live in
+ *      the app (SQLite) and are served via the SPA at /projects/<slug>.
  *   5. Install production deps (npm install --omit=dev)
  *   6. Restart the backend under pm2 (family-backend)
  *
@@ -214,22 +215,14 @@ find "$PUBLIC" -maxdepth 1 -type f -delete
 rm -rf "$PUBLIC/assets"
 cp -a /tmp/family-deploy/frontend/. "$PUBLIC"/
 
-# 2b. Copy projects into the web root.
-#     The repo's projects/ folder mirrors the web root's /projects/ folder
-#     1:1: shared files (styles.css, theme.js, icon-sprite.svg) AND project
-#     subfolders (renovation/ etc.) all go to public_html/projects/.
-#     Project pages are served at /projects/<slug>/ (e.g. /projects/renovation/,
-#     see docs/server.md). Only entries present in the repo are overwritten;
-#     other subfolders on the server are preserved. No backup is created.
-if [ -d /tmp/family-deploy/projects ]; then
-  mkdir -p "$PUBLIC/projects"
-  for p in /tmp/family-deploy/projects/*; do
-    [ -e "$p" ] || continue
-    name=$(basename "$p")
-    # Project subfolder or shared file -> /projects/ (repo mirrors web root 1:1)
-    cp -a "$p" "$PUBLIC/projects/"
-  done
-  echo "[deploy] Projects copied to $PUBLIC/projects"
+# 2b. Copy the «Ремонт» source (projects/renovation) into the backend dir.
+#     It is the data source for the renovation DB seed (--seed-renovation), not
+#     web content: static project pages are no longer deployed — all projects
+#     live in the app (SQLite) and are served via the SPA at /projects/<slug>.
+if [ -d /tmp/family-deploy/renovation-source ]; then
+  rm -rf "$SERVER/renovation-source"
+  cp -a /tmp/family-deploy/renovation-source "$SERVER/renovation-source"
+  echo "[deploy] Renovation source copied to $SERVER/renovation-source"
 fi
 
 # 3. Replace backend files (server).
@@ -344,13 +337,13 @@ else
   echo "[deploy] restart skipped (--no-restart)"
 fi
 
-# 5b. Опциональный пересев БД «Ремонта» из задеплоенных HTML.
-#     ВНИМАНИЕ: seed сбрасывает data/renovation.sqlite (стирает импортированное
-#     через приложение). Только явно: npm run deploy -- --seed-renovation.
+# 5b. Опциональный пересев БД «Ремонта» из задеплоенного источника HTML
+#     ($SERVER/renovation-source). ВНИМАНИЕ: seed сбрасывает data/renovation.sqlite
+#     (стирает импортированное через приложение). Только явно: npm run deploy -- --seed-renovation.
 if ${cfg.seedRenovation ? 'true' : 'false'}; then
-  echo "[deploy] Re-seeding renovation DB from $PUBLIC/projects/renovation ..."
+  echo "[deploy] Re-seeding renovation DB from $SERVER/renovation-source ..."
   cd "$SERVER"
-  RENOVATION_PROJECTS_DIR="$PUBLIC/projects/renovation" \\
+  RENOVATION_PROJECTS_DIR="$SERVER/renovation-source" \\
     node scripts/seed-renovation.mjs || \\
     echo "[deploy] WARN: seed-renovation failed — run manually (см. docs/server.md)"
 fi
@@ -440,30 +433,24 @@ function main() {
       cpSync(backendScripts, join(stageBackend, 'scripts'), { recursive: true, force: true });
     }
 
-    // Projects -> public_html/projects/ (repo mirrors web root /projects/ 1:1:
-    // shared files styles.css/theme.js AND project subfolders like renovation/).
-    // Project pages are served at /projects/<slug>/ (e.g. /projects/renovation/).
-    // Service entries starting with '_' (e.g. _template) are skipped.
-    const stageProjects = join(staging, 'projects');
-    let haveProjects = false;
-    const projectsRoot = join(ROOT, 'projects');
-    if (existsSync(projectsRoot)) {
-      mkdirSync(stageProjects, { recursive: true });
-      for (const entry of readdirSync(projectsRoot, { withFileTypes: true })) {
-        if (entry.name.startsWith('_')) continue;
-        cpSync(join(projectsRoot, entry.name), join(stageProjects, entry.name), {
-          recursive: true,
-          force: true,
-        });
-        haveProjects = true;
-      }
+    // Renovation source -> $SERVER/renovation-source/ (data source for the
+    // «Ремонт» DB seed, `--seed-renovation`). Static project pages are NOT
+    // deployed anymore: all projects live in the app (SQLite) and are served
+    // via the SPA at /projects/<slug>. The repo's projects/ folder is no
+    // longer mirrored into public_html/projects/.
+    const stageRenovationSource = join(staging, 'renovation-source');
+    let haveRenovationSource = false;
+    const renovationSource = join(ROOT, 'projects', 'renovation');
+    if (existsSync(renovationSource)) {
+      cpSync(renovationSource, stageRenovationSource, { recursive: true, force: true });
+      haveRenovationSource = true;
     }
 
     // 3) Create the archive
     const archive = join(staging, 'family-deploy.tar.gz');
     log('Creating deployment archive...');
     const tarArgs = ['-czf', archive, '-C', staging, 'frontend', 'backend'];
-    if (haveProjects) tarArgs.push('projects');
+    if (haveRenovationSource) tarArgs.push('renovation-source');
     run('tar', tarArgs);
 
     // Remote script (runs on the server)

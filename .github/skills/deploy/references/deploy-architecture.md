@@ -31,9 +31,10 @@
 2. **Стейджинг** в `mkdtemp`:
    - `frontend/` ← `frontend/dist` (содержимое: `index.html`, `assets/`…).
    - `backend/` ← `backend/dist` (сохраняя layout `dist/`, чтобы на сервере было `dist/app.cjs`) + `package.json` + `package-lock.json` + `backend/scripts/` (CLI, например `users.mjs` — управление пользователями авторизации прямо на сервере).
-   - `projects/` ← `projects/` без служебных записей `_*` (`_template` не деплоится).
+   - `renovation-source/` ← `projects/renovation` (источник данных для seed «Ремонта»; статичные
+     страницы проектов деплой НЕ зеркалирует — все проекты живут в приложении).
    - Если нет `frontend/dist` или `backend/dist` — ошибка: «Run `npm run build` first or drop `--no-build`».
-3. **Архив**: `tar -czf` (`frontend`, `backend`[, `projects`]).
+3. **Архив**: `tar -czf` (`frontend`, `backend`[, `renovation-source`]).
 4. **Загрузка**: `scp` архива в `/tmp/family-deploy.tar.gz` и remote-скрипта в `/tmp/family-deploy.sh`.
 5. **Выполнение** remote-скрипта через `ssh` (`bash /tmp/family-deploy.sh`).
 6. Очистка временного каталога.

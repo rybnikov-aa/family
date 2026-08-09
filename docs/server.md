@@ -7,20 +7,20 @@
 
 ## 1. Веб-приложение
 
-| Что                                               | Путь на сервере                                                |
-| ------------------------------------------------- | -------------------------------------------------------------- |
-| Фронтенд (статик-файлы, сборка Vite)              | `/var/www/family.rybnikov.su/public_html`                      |
-| Бэкенд (Express, рантайм + `node_modules`)        | `/var/www/family.rybnikov.su/server`                           |
-| SQLite-база VPS (runtime, не в git)               | `/var/www/family.rybnikov.su/server/data/vps.sqlite`           |
-| Отчёты по ремонту (проект «Ремонт»)               | `/var/www/family.rybnikov.su/public_html/projects/renovation/` |
-| Общие ассеты страниц проектов (стиль/тема/иконки) | `/var/www/family.rybnikov.su/public_html/projects/`            |
+| Что                                                | Путь на сервере                                                |
+| -------------------------------------------------- | -------------------------------------------------------------- |
+| Фронтенд (статик-файлы, сборка Vite)               | `/var/www/family.rybnikov.su/public_html`                      |
+| Бэкенд (Express, рантайм + `node_modules`)         | `/var/www/family.rybnikov.su/server`                           |
+| SQLite-база VPS и проектов (runtime, не в git)     | `/var/www/family.rybnikov.su/server/data/vps.sqlite`           |
+| Источник данных «Ремонта» (seed HTML)              | `/var/www/family.rybnikov.su/server/renovation-source/`        |
+| Статичный архив «Ремонта» (legacy, не обновляется) | `/var/www/family.rybnikov.su/public_html/projects/renovation/` |
 
 - Бэкенд слушает `127.0.0.1:3000` (не публичный порт), доступен только через nginx-прокси `/api/`.
 - Процесс бэкенда управляется **pm2**, имя приложения: `family-backend`.
   - pm2 не в PATH в неинтерактивной сессии, полный путь:
     `/home/rybnikov/.nvm/versions/node/v24.19.0/bin/pm2`
 - **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется вручную (SQL/клиентом) **или через форму добавления VPS в UI** (`POST /api/vps`), импорт из JSON (`POST /api/vps/import`), удаление — кнопка-корзина в детализации (`DELETE /api/vps/:name`). Путь задаётся через `DB_PATH` (по умолчанию `data/vps.sqlite`). При деплое папка `data/` **не удаляется** (как и `.env`); схема таблиц создаётся автоматически при первом обращении. В той же БД — таблицы авторизации `users` и `sessions` (см. ниже).
-- **Авторизация** — весь портал (SPA и API) закрыт входом: без действующей сессии API отвечает 401, фронтенд показывает экран входа. Вход/выход/текущий пользователь — `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Сессия — httpOnly `SameSite=Lax` cookie `sid` (в проде `Secure`), в БД хранится только SHA-256 от токена; срок жизни — `SESSION_TTL_HOURS`. Роли: `admin` (управление VPS + создание проектов) и `user` (чтение). **Первый администратор** создаётся при старте из `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей); дальнейшие учётки — CLI `npm run user -w backend` (`add`/`list`/`set-role`/`remove`), он пишет в ту же БД и использует тот же формат хэша scrypt. Скрипт `scripts/users.mjs` входит в деплой, поэтому на сервере его можно запускать прямо из каталога бэкенда: `cd /var/www/family.rybnikov.su/server && node scripts/users.mjs add <username> <name> <role>`. `/api/health` остаётся публичным (для диагностики). Статичные страницы проектов (`/projects/**`) раздаёт nginx напрямую — они вне авторизации (при необходимости закрыть — nginx `auth_basic` на соответствующие `location`).
+- **Авторизация** — весь портал (SPA и API) закрыт входом: без действующей сессии API отвечает 401, фронтенд показывает экран входа. Вход/выход/текущий пользователь — `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Сессия — httpOnly `SameSite=Lax` cookie `sid` (в проде `Secure`), в БД хранится только SHA-256 от токена; срок жизни — `SESSION_TTL_HOURS`. Роли: `admin` (управление VPS + создание проектов) и `user` (чтение). **Первый администратор** создаётся при старте из `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей); дальнейшие учётки — CLI `npm run user -w backend` (`add`/`list`/`set-role`/`remove`), он пишет в ту же БД и использует тот же формат хэша scrypt. Скрипт `scripts/users.mjs` входит в деплой, поэтому на сервере его можно запускать прямо из каталога бэкенда: `cd /var/www/family.rybnikov.su/server && node scripts/users.mjs add <username> <name> <role>`. `/api/health` остаётся публичным (для диагностики). Статичный архив «Ремонта» (`/projects/**`) раздаёт nginx напрямую — вне авторизации (при необходимости закрыть — nginx `auth_basic` на соответствующие `location`).
 - Для диагностики API, требующего авторизации, в curl нужна cookie сессии: `curl -c ck -X POST http://127.0.0.1:3000/api/auth/login -H 'Content-Type: application/json' -d '{"username":"…","password":"…"}'`, затем `curl -b ck http://127.0.0.1:3000/api/vps`.
 
 **Управление пользователями на сервере:**
@@ -36,14 +36,13 @@
   ```
 - Пароль запрашивается интерактивно (не эхонируется) либо через `--password <пароль>`.
 - Первый администратор: `AUTH_BOOTSTRAP_PASSWORD` в `server/.env` → создаётся при рестарте, если таблица `users` пуста; после входа переменную убрать.
-- **Проекты (раздел «Проекты»):** проект — подпапка `public_html/projects/<slug>/` с `index.html` (например, «Ремонт» — `public_html/projects/renovation/`). Список проектов отдаёт `GET /api/projects` (сканирует каталог из `PROJECTS_DIR`, по умолчанию `../public_html/projects`). Страницы проектов используют общий шаблон `projects/` (стиль + тема приложения): `projects/styles.css`, `projects/theme.js`, иконки — SVG-спрайт `projects/icon-sprite.svg` (эмодзи как иконки не используются); тема хранится в `localStorage['theme']` (общая для домена). Шаблон новой страницы — `projects/_template/index.html` в репозитории (на сервер не деплоится).
-- **Создание проектов** — через UI (кнопка «Создать проект» на странице «Проекты», admin) → `POST /api/projects` (JSON `{slug, title, description, accent?, icon?, order?}`); бэкенд создаёт подпапку `PROJECTS_DIR/<slug>/` с `index.html` из встроенного шаблона (`backend/src/services/projectsTemplate.ts`) — проект сразу появляется в `GET /api/projects` и открывается по `/projects/<slug>/`. Страница проекта использует общий каркас `/projects/styles.css` + `/projects/theme.js` и раздаётся nginx как статика.
+- **Проекты (раздел «Проекты»):** проект — запись в БД `projects` (созданные через UI) либо встроенный проект из реестра бэкенда (`config/appProjects.ts`, например «Ремонт»). Список отдаёт `GET /api/projects` (реестр + БД, без сканирования файловой системы). Страницы проектов — маршруты приложения (`#/projects/<slug>`), наследуют тему и стиль приложения.
+- **Создание/изменение/удаление проектов** — через UI (страница «Проекты», admin) → `POST`/`PATCH`/`DELETE /api/projects`; бэкенд пишет в БД `projects` (метаданные + markdown-контент), файлов и папок не создаёт. Созданный проект сразу появляется в `GET /api/projects` и открывается по `#/projects/<slug>`. Встроенные проекты (реестр) редактировать/удалять нельзя.
 - **Файл `.env` бэкенда** (`server/.env`) — конфигурация рантайма, при деплое **сохраняется** (не перезаписывается и не удаляется). Переменные:
   - `PORT` — порт API (по умолчанию `3000`);
   - `NODE_ENV` — в проде `production` (задаётся скриптом деплоя);
   - `CORS_ORIGIN` — в проде `https://family.rybnikov.su`;
-  - `DB_PATH` — путь к SQLite-базе (по умолчанию `data/vps.sqlite`);
-  - `PROJECTS_DIR` — каталог проектов (подпапки с `index.html`), по умолчанию `../public_html/projects` (рядом с каталогом бэкенда);
+  - `DB_PATH` — путь к SQLite-базе (по умолчанию `data/vps.sqlite`; в той же БД — таблица `projects`);
   - `AUTH_COOKIE_NAME` — имя cookie сессии (по умолчанию `sid`);
   - `SESSION_TTL_HOURS` — срок жизни сессии в часах (по умолчанию `168` = 7 суток);
   - `AUTH_BOOTSTRAP_PASSWORD` — пароль первого администратора (создаётся при старте, если в БД нет пользователей); после первого входа переменную можно убрать. Дополнительно: `AUTH_BOOTSTRAP_USERNAME` (`admin`), `AUTH_BOOTSTRAP_NAME` (`Администратор`).
@@ -82,11 +81,12 @@
 
   **Пересев БД «Ремонта» на сервере** (если нужно вернуть данные из HTML после ручных правок):
   `npm run deploy -- --seed-renovation` (сбрасывает `server/data/renovation.sqlite` — только по
-  явному запросу). Либо вручную, указывая явно путь к проекту (проекты лежат в
-  `public_html/projects/renovation`, а не в `server/../projects`):
+  явному запросу). Источник HTML деплой кладёт в `server/renovation-source/`
+  (папка `projects/renovation` репозитория; веб-рут `public_html/projects/` больше не
+  зеркалируется). Либо вручную:
 
   ```bash
-  cd /var/www/family.rybnikov.su/server && RENOVATION_PROJECTS_DIR=/var/www/family.rybnikov.su/public_html/projects/renovation /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/seed-renovation.mjs
+  cd /var/www/family.rybnikov.su/server && RENOVATION_PROJECTS_DIR=/var/www/family.rybnikov.su/server/renovation-source /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/seed-renovation.mjs
   ```
 
   Корневой `.env` (репозиторий) — это **другое** пространство переменных: только конфигурация деплоя (`DEPLOY_*`) для `scripts/deploy.mjs`.
