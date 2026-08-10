@@ -66,6 +66,8 @@ export interface ReportMaterialOrder {
   title: string;
   total: number | null;
   overhead: number | null;
+  /** URL исходного PDF (просмотр в приложении). */
+  pdfPath: string | null;
   items: {
     position: number | null;
     name: string;
@@ -200,6 +202,7 @@ export function buildMaterialsReport(): ReportMaterials {
     title: o.title,
     total: o.total,
     overhead: o.overhead,
+    pdfPath: o.pdfPath,
     items: o.items
       .filter((i) => i.kind === 'row')
       .map((i) => ({

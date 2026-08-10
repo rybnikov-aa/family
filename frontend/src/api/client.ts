@@ -24,6 +24,24 @@ async function errorMessage(res: Response, fallback: string): Promise<string> {
   return fallback;
 }
 
+/**
+ * Скачивает файл по серверному пути (для встроенного просмотра PDF).
+ * Для путей `/api/*` идёт через `apiFetch` (та же обработка 401 → вход);
+ * прочие пути (например статичный архив `/projects/...`) — обычным fetch.
+ */
+export async function fetchFileBytes(path: string): Promise<ArrayBuffer> {
+  if (path.startsWith('/api/')) {
+    const res = await apiFetch(path.slice('/api'.length));
+    if (!res.ok) {
+      throw new Error(await errorMessage(res, `Ошибка загрузки файла (${res.status})`));
+    }
+    return res.arrayBuffer();
+  }
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`Ошибка загрузки файла (${res.status})`);
+  return res.arrayBuffer();
+}
+
 export interface HealthResponse {
   status: string;
   uptime: number;
@@ -360,6 +378,8 @@ export interface RenovationOverview {
       date: string;
       title: string;
       totalWithOverhead: number | null;
+      /** URL исходного PDF (просмотр в приложении). */
+      pdfPath: string | null;
     }[];
   };
   materials: {
@@ -370,6 +390,8 @@ export interface RenovationOverview {
       date: string;
       title: string;
       total: number | null;
+      /** URL исходного PDF (просмотр в приложении). */
+      pdfPath: string | null;
     }[];
   };
   settlements: {
@@ -590,6 +612,8 @@ export interface RenovationMaterialsReport {
     title: string;
     total: number | null;
     overhead: number | null;
+    /** URL исходного PDF (просмотр в приложении). */
+    pdfPath: string | null;
     items: {
       position: number | null;
       name: string;

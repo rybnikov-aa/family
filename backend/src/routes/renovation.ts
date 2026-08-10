@@ -8,6 +8,7 @@ import {
   estimateVersionsController,
   materialsReportController,
   overviewController,
+  pdfFileController,
   settlementsController,
   uploadPdfController,
   workReportController,
@@ -26,6 +27,7 @@ renovationRouter.get('/', overviewController);
 renovationRouter.get('/estimate/versions', estimateVersionsController);
 renovationRouter.get('/estimate', estimateController);
 renovationRouter.get('/docs', docsController);
+renovationRouter.get('/docs/:file', pdfFileController);
 renovationRouter.get('/settlements', settlementsController);
 
 // Отчёты (этап 5).

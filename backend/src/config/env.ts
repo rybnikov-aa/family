@@ -21,6 +21,12 @@ export const env = {
    */
   RENOVATION_DB_PATH: process.env.RENOVATION_DB_PATH ?? 'data/renovation.sqlite',
   /**
+   * Каталог сохранения загруженных PDF «Ремонта» (импорт PDF). Относительно CWD
+   * бэкенда: в dev — `backend/docs/renovation`, на сервере — `server/docs/renovation`
+   * (CWD приложения под pm2 — `$SERVER`). Каталог сохраняется при деплое (как `data/`).
+   */
+  RENOVATION_DOCS_DIR: process.env.RENOVATION_DOCS_DIR ?? 'docs/renovation',
+  /**
    * Папка исходных HTML проекта «Ремонт» (для seed-импорта). По умолчанию
    * `../projects/renovation` относительно каталога бэкенда.
    */

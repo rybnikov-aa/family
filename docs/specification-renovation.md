@@ -112,7 +112,8 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
 - Эндпоинты (полная таблица и форматы — `docs/specification-api.md` §2.5/3.3):
   - `GET /api/renovation` — сводка (план/факт работ, % освоения, заказы, ведомости);
   - `GET /api/renovation/estimate/versions`, `GET /api/renovation/estimate?version=…`;
-  - `GET /api/renovation/docs?type=…`, `GET /api/renovation/settlements?type=…`.
+  - `GET /api/renovation/docs?type=…`, `GET /api/renovation/settlements?type=…`;
+  - `GET /api/renovation/docs/:file` — загруженный PDF (под авторизацией).
 - Фронтенд: `api/client.ts` (типы + `fetchRenovationOverview`), `hooks/useRenovationOverview.ts`,
   `utils/money.ts` (формат копеек/дат), страница `pages/RenovationPage.tsx` (Блок 1 Работы /
   Блок 2 Материалы + реквизиты), маршрут `#/projects/renovation` (`routes.ts`, `App.tsx`).
@@ -143,7 +144,42 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   → «Подтвердить импорт» → перезагрузка сводки.
 - **Ограничения автоматики:** на PDF без линий таблиц разбор построчный и может требовать
   ручной проверки (`needsReview`); fallback — навык `project-renovation-update-from-pdf`.
-  PDF-файлы на сервер пока не сохраняются (только данные в БД).
+
+### 5.1.1. Сохранение загруженных PDF и просмотр в приложении
+
+- **Хранение:** загруженный PDF при подтверждении импорта сохраняется в
+  `RENOVATION_DOCS_DIR` (по умолчанию `docs/renovation` относительно CWD бэкенда: dev —
+  `backend/docs/renovation`, сервер — `server/docs/renovation`, каталог **сохраняется** при
+  деплое, как `data/`). Сервис — `services/renovation/import/pdfStore.ts`:
+  - при загрузке (`POST /pdf`) файл кладётся как pending (`docs/.pending/<draftId>.pdf`) и
+    переносится в каталог документов при подтверждении (`finalizePdf`);
+  - имя файла — детерминированное по классификации (`pdfFileName`):
+    `settlement_<works|materials>_<дата>.pdf`, `work_act_<дата>[_<номер>].pdf`,
+    `material_order_<дата>[_<номер>].pdf`, `addendum_<дата>.pdf`;
+  - осиротевшие pending-файлы вычищаются по TTL (`cleanupPendingPdfs`), при ошибке сохранения
+    перенесённый файл удаляется (`discardPdf`).
+- **Раздача:** `GET /api/renovation/docs/:file` (под `requireAuth`) отдаёт PDF из каталога
+  документов; имя проверяется (только `[a-z0-9._-]`, без выхода за каталог — path traversal),
+  400 — некорректное имя, 404 — файл не найден. В БД пишется `pdf_path` =
+  `/api/renovation/docs/<file>` (заполняется при подтверждении: `insertRenovationDoc`,
+  `insertSettlementAct`, `insertAddendumVersion`).
+- **`pdf_path` у записей:** URL приложения `/api/renovation/docs/<file>` — как у
+  импортированных документов, так и у записей из seed (на сервере PDF, включая перенесённые
+  со статичного архива, лежат в `server/docs/renovation/`). Просмотрщик умеет и «прямые»
+  серверные пути (`/projects/...`) — они остались у записей, чьи файлы ещё не перенесены.
+- **Перенос существующих PDF (разовая операция на сервере):** файлы, на которые ссылался seed
+  через статичный архив (`public_html/projects/renovation/pdf/…`), переносятся в
+  `server/docs/renovation/` с именами по тем же правилам (акты/заказы/ведомости —
+  `pdfFileName`, смета — `estimate.pdf`, доп. соглашения — `addendum_<дата>_<id>.pdf`), а
+  `pdf_path` в БД переписывается на `/api/renovation/docs/<file>`. Статичный архив остаётся
+  только с файлами вне БД (дизайн-проект, фото, спецификации). ВНИМАНИЕ: повторный
+  `--seed-renovation` восстанавливает `pdf_path` из `.doc-sources` (URL статичного архива) —
+  после пересева перенос нужно применить заново.
+- **Просмотр:** фронтенд-компонент `components/PdfViewerModal.tsx` (pdf.js / `pdfjs-dist`,
+  ленивый чанк): скачивает файл через `fetchFileBytes` (`api/client.ts`; для `/api/*` — с
+  обработкой 401), рисует страницы на `<canvas>` с листанием, масштабом и индикатором страницы.
+  Ссылки-кнопки на исходные PDF: в «Блоке 2. Материалы» сводки (`RenovationPage.tsx`) и в
+  шапках заказов отчёта «Материалы» (`RenovationMaterialsReport.tsx`, `onOpenPdf`).
 
 ## 5.2. Применение доп. соглашений к смете (этап 4 — реализовано)
 
@@ -254,6 +290,13 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
       на странице «Ремонт» проверены в браузере.
 - [x] Карточка «Ремонт» в «Проектах» ведёт в `#/projects/renovation` (SPA), а не в статичный
       `projects/renovation/`; статичный архив доступен со страницы «Ремонт».
+- [x] Сохранение PDF: подтверждённый импорт кладёт файл в `docs/renovation/<тип>_<дата>.pdf`
+      и пишет `pdf_path = /api/renovation/docs/<file>`; `GET /api/renovation/docs/:file` отдаёт
+      файл (200, `application/pdf`), без сессии — 401, некорректное имя — 400, отсутствующий —
+      404 (проверено curl).
+- [x] Просмотр PDF (pdf.js): «Отчёт №N» в «Блоке 2. Материалы» и в отчёте «Материалы» — ссылки,
+      по клику открывается просмотрщик (страницы на canvas, листание, масштаб) — проверено в
+      браузере.
 - [x] `npm run typecheck` проходит.
 - [x] Документация актуализирована (этот файл, README, AGENTS.md, `.env.example`, server.md).
 

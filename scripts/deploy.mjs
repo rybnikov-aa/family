@@ -226,9 +226,10 @@ if [ -d /tmp/family-deploy/renovation-source ]; then
 fi
 
 # 3. Replace backend files (server).
-#    The folder itself is kept; .env and data/ (SQLite DB) are preserved.
+#    The folder itself is kept; .env, data/ (SQLite DB) and docs/
+#    (uploaded renovation PDFs) are preserved.
 mkdir -p "$SERVER"
-find "$SERVER" -maxdepth 1 -mindepth 1 ! -name '.env' ! -name 'data' -exec rm -rf {} +
+find "$SERVER" -maxdepth 1 -mindepth 1 ! -name '.env' ! -name 'data' ! -name 'docs' -exec rm -rf {} +
 cp -a /tmp/family-deploy/backend/. "$SERVER"/
 
 # 4. Install production dependencies

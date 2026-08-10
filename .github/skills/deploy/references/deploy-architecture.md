@@ -44,8 +44,13 @@
 1. **Node/npm/pm2**: если `DEPLOY_NODE_PATH` задан — добавить в PATH; иначе подключить профили (`~/.profile`, `~/.bashrc`, `nvm.sh`) и проверить типовые пути (`~/.nvm/versions/node/*/bin`, `/usr/local/bin`, …). Если npm не найден — ошибка (нужно установить Node или задать `DEPLOY_NODE_PATH`).
 2. **Распаковка**: `/tmp/family-deploy` (каталог пересоздаётся).
 3. **Фронтенд** → `$PUBLIC`: удаляются только файлы верхнего уровня (`find -maxdepth 1 -type f -delete`) и `assets/`; прочие подпапки (`.well-known`) сохраняются. Сам каталог не удаляется.
-4. **Проекты** → `$PUBLIC/projects`: папка `projects/` репозитория зеркалится 1:1 — перезаписываются только записи из репозитория (резервная копия не создаётся); записи, которых нет в репо, на сервере не удаляются. И подпапки проектов (`renovation/` и т.п.), и общие файлы (`styles.css`, `theme.js`, `icon-sprite.svg`) копируются в `public_html/projects/`; страницы проектов обслуживаются по `/projects/<slug>/` (например, `/projects/renovation/`, см. `docs/server.md`).
-5. **Бэкенд** → `$SERVER`: каталог сохраняется, содержимое заменяется, кроме `.env` и `data/` (SQLite).
+4. **Источник «Ремонта»** → `$SERVER/renovation-source`: если в архиве есть `renovation-source/`
+   (← `projects/renovation`), каталог копируется в `$SERVER/renovation-source` (пересоздаётся).
+   Это источник данных для seed БД «Ремонта» (`--seed-renovation`), **не веб-контент**: статичные
+   страницы проектов деплой НЕ зеркалирует (все проекты живут в приложении). Существующий
+   статичный архив `public_html/projects/` на сервере не удаляется и больше не обновляется.
+5. **Бэкенд** → `$SERVER`: каталог сохраняется, содержимое заменяется, кроме `.env`, `data/`
+   (SQLite) и `docs/` (загруженные PDF «Ремонта»).
 6. `npm install --omit=dev` в `$SERVER`.
 7. **Рестарт pm2** (если не `--no-restart`): найти/установить pm2; `export NODE_ENV=production`; если приложение есть — `pm2 restart family-backend --update-env`, иначе `pm2 start dist/app.cjs --name family-backend --cwd $SERVER`; затем `pm2 save`.
 8. Очистка временных файлов.
@@ -56,7 +61,7 @@
 - **`NODE_ENV=production` обязателен**: под pm2 `app.listen` гейтится в `app.ts`; argv-проверка даёт `false` (pm2 запускает скрипт через свой враппер), поэтому основной сигнал — `NODE_ENV`. Деплой-скрипт ставит его при `pm2 restart --update-env`.
 - **nginx `proxy_pass`** в `location /api/` должен быть `http://127.0.0.1:3000;` БЕЗ завершающего слэша — иначе срезается `/api` → 404 («бэкенд оффлайн» в UI).
 - **502**: сначала локально `curl -i http://127.0.0.1:3000/api/health` (200 → проблема в nginx/прокси), `ss -ltnp | grep 3000`, `pm2 logs family-backend --lines 50 --nostream`.
-- **Деплой не обновляет**: `server/.env` и `server/data/` сохраняются намеренно — конфигурацию/БД не «перезаливать» деплоем.
+- **Деплой не обновляет**: `server/.env`, `server/data/` и `server/docs/` сохраняются намеренно — конфигурацию/БД/PDF не «перезаливать» деплоем.
 - **Флаги npm**: использовать `npm run deploy -- --no-build` (с `--`), иначе флаг уйдёт самому npm.
 - Второй хост `itg-ru-gw.rybnikov.su`: SSL — letsencrypt (`/etc/letsencrypt/live/itg-ru-gw.rybnikov.su/`), у пользователя `rybnikov` есть passwordless `sudo`.
 

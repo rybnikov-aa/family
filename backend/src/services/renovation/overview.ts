@@ -47,6 +47,8 @@ export interface RenovationOverview {
       date: string;
       title: string;
       totalWithOverhead: number | null;
+      /** URL исходного PDF (просмотр в приложении). */
+      pdfPath: string | null;
     }[];
   };
   materials: {
@@ -57,6 +59,8 @@ export interface RenovationOverview {
       date: string;
       title: string;
       total: number | null;
+      /** URL исходного PDF (просмотр в приложении). */
+      pdfPath: string | null;
     }[];
   };
   settlements: {
@@ -138,6 +142,7 @@ export function buildOverview(): RenovationOverview {
         date: a.date,
         title: a.title,
         totalWithOverhead: a.totalWithOverhead,
+        pdfPath: a.pdfPath,
       })),
     },
     materials: {
@@ -148,6 +153,7 @@ export function buildOverview(): RenovationOverview {
         date: o.date,
         title: o.title,
         total: o.total,
+        pdfPath: o.pdfPath,
       })),
     },
     settlements: {

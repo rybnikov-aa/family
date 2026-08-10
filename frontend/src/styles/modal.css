@@ -28,6 +28,98 @@
 .modal--wide {
   max-width: 780px;
 }
+/* Модалка просмотра PDF: шире, меньше отступы (место под страницу) */
+.modal--pdf {
+  max-width: min(1080px, 96vw);
+  padding: var(--space-4);
+}
+
+/* ── Просмотр PDF (pdf.js): тулбар + сцена со страницей ── */
+.pdf-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.pdf-viewer__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.pdf-viewer__toolbar--bottom {
+  justify-content: flex-end;
+}
+.pdf-viewer__toolbar-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.pdf-viewer__file {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pdf-viewer__zoom,
+.pdf-viewer__pages {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  min-width: 44px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.pdf-viewer__btn {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+.pdf-viewer__btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.pdf-viewer__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.pdf-viewer__hint {
+  padding: var(--space-8) 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+.pdf-viewer__error {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--color-danger-strong);
+  font-size: var(--font-size-sm);
+}
+.pdf-viewer__stage {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: auto;
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  min-height: 55vh;
+  max-height: 68vh;
+}
+.pdf-viewer__stage canvas {
+  background: #fff;
+  box-shadow: var(--shadow-container);
+}
 .modal__head {
   display: flex;
   align-items: center;
@@ -346,4 +438,3 @@ a.modal__service-name:hover {
   border-radius: var(--radius-pill);
   white-space: nowrap;
 }
-

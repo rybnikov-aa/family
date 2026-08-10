@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import type { Request, Response } from 'express';
 import {
   applyAddendumVersion,
@@ -26,6 +27,15 @@ import { classifyPdf } from '../services/renovation/import/classify';
 import { buildDraft, type RenovationDraft } from '../services/renovation/import/draft';
 import { getDraft, storeDraft } from '../services/renovation/import/draftStore';
 import { extractPdf } from '../services/renovation/import/pdfExtractor';
+import {
+  cleanupPendingPdfs,
+  discardPdf,
+  finalizePdf,
+  pdfFileName,
+  pdfUrl,
+  resolveStoredPdf,
+  savePendingPdf,
+} from '../services/renovation/import/pdfStore';
 import type {
   RenovationDoc,
   RenovationDocItem,
@@ -78,6 +88,27 @@ export function settlementsController(req: Request, res: Response): void {
   res.json({ acts: listSettlementActs(type) });
 }
 
+/**
+ * Загруженный PDF «Ремонта»: `GET /api/renovation/docs/:file` (под авторизацией).
+ * Отдаёт сохранённый при импорте документ из `RENOVATION_DOCS_DIR`; имя файла
+ * проверяется (только `[a-z0-9._-]`, без выхода за каталог) — защита от
+ * path traversal. 400 — некорректное имя, 404 — файл не найден.
+ */
+export function pdfFileController(req: Request, res: Response): void {
+  const name = String(req.params.file);
+  const filePath = resolveStoredPdf(name);
+  if (!filePath) {
+    res.status(400).json({ message: 'Некорректное имя файла' });
+    return;
+  }
+  if (!existsSync(filePath)) {
+    res.status(404).json({ message: 'Файл не найден' });
+    return;
+  }
+  res.type('application/pdf');
+  res.sendFile(filePath);
+}
+
 // ── Импорт PDF (этап 3): POST /pdf → draft, POST /pdf/:id/confirm ───────────
 
 function draftSummary(d: RenovationDraft) {
@@ -99,6 +130,22 @@ function draftSummary(d: RenovationDraft) {
 }
 
 /**
+ * Переносит pending-файл черновика в каталог документов (однократно) и
+ * возвращает URL PDF (`/api/renovation/docs/<file>`), либо `null`.
+ * `finalized.name` запоминает имя файла — для отката при ошибке сохранения.
+ */
+function finalizeDraftPdf(
+  draft: RenovationDraft,
+  finalized: { name: string | null },
+): string | null {
+  if (finalized.name) return pdfUrl(finalized.name);
+  if (!draft.pendingPdf) return null;
+  const name = finalizePdf(draft.pendingPdf, pdfFileName(draft.cls));
+  if (name) finalized.name = name;
+  return name ? pdfUrl(name) : null;
+}
+
+/**
  * Импорт PDF → черновик: `POST /api/renovation/pdf` (multipart, admin).
  * Извлекает содержимое (pdfplumber), определяет тип/дату, строит черновик
  * и возвращает его сводку для подтверждения. Ответ — 201 `{ draft }`.
@@ -116,6 +163,11 @@ export function uploadPdfController(req: Request, res: Response): void {
     .then((extraction) => {
       const cls = classifyPdf(extraction.text, fileName);
       const draft = buildDraft(fileName, extraction, cls);
+      // Сохраняем загруженный PDF как pending-файл (переносится в каталог
+      // документов при подтверждении импорта). Осиротевшие pending-файлы
+      // вычищаются по TTL — см. cleanupPendingPdfs.
+      draft.pendingPdf = savePendingPdf(file.buffer, draft.id);
+      cleanupPendingPdfs();
       storeDraft(draft);
       res.status(201).json({ draft: draftSummary(draft) });
     })
@@ -136,6 +188,7 @@ export function confirmPdfController(req: Request, res: Response): void {
     return;
   }
   const cls = draft.cls;
+  const finalized: { name: string | null } = { name: null };
 
   try {
     if (cls.type === 'settlement') {
@@ -153,12 +206,13 @@ export function confirmPdfController(req: Request, res: Response): void {
         res.status(409).json({ message: 'Ведомость этого типа с такой датой уже импортирована' });
         return;
       }
+      const pdfPath = finalizeDraftPdf(draft, finalized);
       const act: SettlementAct = {
         id: 0,
         type: cls.subtype,
         date: cls.date,
         sourcePath: null,
-        pdfPath: null,
+        pdfPath,
         rows: draft.settlementRows.map((r): SettlementRow => ({
           position: r.position,
           kind: r.kind,
@@ -193,6 +247,7 @@ export function confirmPdfController(req: Request, res: Response): void {
         sum: i.sum,
         kind: 'row',
       }));
+      const pdfPath = finalizeDraftPdf(draft, finalized);
       const doc: RenovationDoc = {
         id: 0,
         type: cls.type,
@@ -203,7 +258,7 @@ export function confirmPdfController(req: Request, res: Response): void {
         overhead: null,
         totalWithOverhead: cls.type === 'work_act' ? draft.total : null,
         sourcePath: null,
-        pdfPath: null,
+        pdfPath,
         items,
       };
       const id = insertRenovationDoc(doc);
@@ -220,10 +275,12 @@ export function confirmPdfController(req: Request, res: Response): void {
         res.status(409).json({ message: 'Доп. соглашение с такой датой уже импортировано' });
         return;
       }
+      const pdfPath = finalizeDraftPdf(draft, finalized);
       const id = insertAddendumVersion({
         date: cls.date,
         label: cls.label || 'Дополнительное соглашение',
         total: draft.total,
+        pdfPath,
         items: draft.items.map((i) => ({
           position: i.position,
           section: '',
@@ -241,6 +298,9 @@ export function confirmPdfController(req: Request, res: Response): void {
 
     res.status(400).json({ message: 'Тип документа не распознан' });
   } catch (err) {
+    // При ошибке сохранения удаляем уже перенесённый PDF, чтобы не оставлять
+    // «осиротевшие» файлы без записи в БД.
+    if (finalized.name) discardPdf(finalized.name);
     const message = err instanceof Error ? err.message : 'Ошибка сохранения';
     res.status(500).json({ message });
   }

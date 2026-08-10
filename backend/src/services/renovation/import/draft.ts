@@ -43,6 +43,11 @@ export interface RenovationDraft {
   total: number | null;
   needsReview: boolean;
   warnings: string[];
+  /**
+   * Абсолютный путь к pending-файлу PDF (сохранён при загрузке в
+   * `docs/.pending/`; при подтверждении переносится в каталог документов).
+   */
+  pendingPdf: string | null;
 }
 
 const ITEM_TYPES = new Set(['work_act', 'material_order']);
@@ -423,5 +428,6 @@ export function buildDraft(
     total,
     needsReview,
     warnings,
+    pendingPdf: null,
   };
 }

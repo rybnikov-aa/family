@@ -53,7 +53,9 @@ function resolvePython(): string {
 }
 
 function resolveScript(): string {
-  return env.RENOVATION_EXTRACT_SCRIPT ?? resolve(process.cwd(), 'scripts/extract_pdf.py');
+  // `||` (а не `??`): env.RENOVATION_EXTRACT_SCRIPT по умолчанию — пустая строка,
+  // и `??` на пустой строке не срабатывает (пустой путь → python получает CWD).
+  return env.RENOVATION_EXTRACT_SCRIPT || resolve(process.cwd(), 'scripts/extract_pdf.py');
 }
 
 function runPython(args: string[]): Promise<Buffer> {

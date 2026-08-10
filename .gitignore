@@ -70,3 +70,6 @@ temp/
 *.db
 *.db-shm
 *.db-wal
+
+# Uploaded renovation PDFs (runtime data, not source; сервер — server/docs/, сохраняется при деплое)
+backend/docs/

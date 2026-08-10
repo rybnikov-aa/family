@@ -90,10 +90,11 @@
 - Список — `GET /api/projects` (кэша сканирования нет; `?refresh=1` принимается для совместимости).
 - PDF-файлы проекта («Ремонт») — исходный материал для конвертации PDF → HTML. Конвертация
   выполняется Python-библиотеками (`pdfplumber` для таблиц, `PyMuPDF` для текста/картинок) через
-  навыки `.github/skills/parse-pdf/` и `.github/skills/project-renovation-update-from-pdf/`. PDF.js
-  в проекте не используется: он предназначен для интерактивного просмотра PDF в браузере (canvas),
-  а не для извлечения данных/таблиц и пакетной конвертации; если такой просмотрщик понадобится —
-  это отдельная фича, подход к конвертации он не меняет.
+  навыки `.github/skills/parse-pdf/` и `.github/skills/project-renovation-update-from-pdf/`. Это
+  НЕ связано с интерактивным просмотром PDF в приложении: загруженные при импорте PDF
+  сохраняются в `RENOVATION_DOCS_DIR` (`server/docs/renovation/`) и просматриваются в браузере
+  через pdf.js (`components/PdfViewerModal.tsx`, ссылки «Отчёт №N» в «Ремонте») — подход к
+  конвертации/извлечению данных он не меняет.
 - **Data-слой «Ремонта» (этапы 1–5 выполнены)** — отчётность проекта `projects/renovation/`
   переносится в отдельную БД `data/renovation.sqlite` (`RENOVATION_DB_PATH`, не путать с `DB_PATH`):
   домен `backend/src/services/renovation/domain/`, seed-импорт `npm run seed:renovation -w backend`

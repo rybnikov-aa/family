@@ -412,6 +412,8 @@ export function insertAddendumVersion(input: {
   date: string;
   label: string;
   total: number | null;
+  /** URL сохранённого PDF доп. соглашения (или null). */
+  pdfPath: string | null;
   items: EstimateItem[];
 }): number {
   const db = getRenovationDb();
@@ -419,9 +421,10 @@ export function insertAddendumVersion(input: {
   try {
     const res = db
       .prepare(
-        `INSERT INTO estimate_versions (kind, date, label, total) VALUES ('addendum', ?, ?, ?)`,
+        `INSERT INTO estimate_versions (kind, date, label, total, pdf_path)
+         VALUES ('addendum', ?, ?, ?, ?)`,
       )
-      .run(input.date, input.label, input.total);
+      .run(input.date, input.label, input.total, input.pdfPath);
     const versionId = Number(res.lastInsertRowid);
     const ins = db.prepare(
       `INSERT INTO estimate_items (version_id, position, section, name, unit, price, qty, sum, change)

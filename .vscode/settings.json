@@ -2,5 +2,19 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "js/ts.tsdk.path": "node_modules/typescript/lib",
-  "sqltools.useNodeRuntime": true
+  "sqltools.useNodeRuntime": true,
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "database": "${workspaceFolder:family}/backend/data/vps.sqlite",
+      "name": "vps"
+    },
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "database": "${workspaceFolder:family}/backend/data/renovation.sqlite",
+      "name": "renovation"
+    }
+  ]
 }

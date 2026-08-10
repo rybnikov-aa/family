@@ -10,6 +10,8 @@ interface ModalProps {
   children: ReactNode;
   /** Расширенная ширина (сетка детализации в 2 столбца). */
   wide?: boolean;
+  /** Дополнительный класс модалки (например `modal--pdf` для просмотрщика PDF). */
+  className?: string;
   /** Дополнительные кнопки-иконки справа от заголовка. */
   actions?: ReactNode;
   /** Не закрывать по Escape (обработчик задан снаружи). */
@@ -30,6 +32,7 @@ function Modal({
   onClose,
   children,
   wide = false,
+  className,
   actions,
   closeOnEscape = true,
   closeOnBackdrop = true,
@@ -96,7 +99,7 @@ function Modal({
     <div className="modal-backdrop" onClick={closeOnBackdrop ? onClose : undefined}>
       <div
         ref={dialogRef}
-        className={`modal${wide ? ' modal--wide' : ''}`}
+        className={`modal${wide ? ' modal--wide' : ''}${className ? ` ${className}` : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

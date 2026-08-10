@@ -117,20 +117,29 @@ CSS: `.icon-btn`, модификаторы `--sm/--xs/--plain/--danger/--active/
 
 Базовая модалка: подложка + карточка с заголовком и закрытием. Использует `useEscapeClose`.
 
-| Проп              | Тип          | По умолчанию | Описание                               |
-| ----------------- | ------------ | ------------ | -------------------------------------- |
-| `title`           | `string`     | —            | Заголовок (`aria-labelledby`)          |
-| `onClose`         | `() => void` | —            | Закрытие (крестик/подложка/Escape)     |
-| `wide`            | `boolean`    | `false`      | Расширенная ширина (сетка детализации) |
-| `actions`         | `ReactNode`  | —            | Кнопки-иконки справа от заголовка      |
-| `closeOnEscape`   | `boolean`    | `true`       | Закрытие по Escape                     |
-| `closeOnBackdrop` | `boolean`    | `true`       | Закрытие по клику на подложку          |
+| Проп              | Тип          | По умолчанию | Описание                                   |
+| ----------------- | ------------ | ------------ | ------------------------------------------ |
+| `title`           | `string`     | —            | Заголовок (`aria-labelledby`)              |
+| `onClose`         | `() => void` | —            | Закрытие (крестик/подложка/Escape)         |
+| `wide`            | `boolean`    | `false`      | Расширенная ширина (сетка детализации)     |
+| `className`       | `string`     | —            | Доп. класс модалки (например `modal--pdf`) |
+| `actions`         | `ReactNode`  | —            | Кнопки-иконки справа от заголовка          |
+| `closeOnEscape`   | `boolean`    | `true`       | Закрытие по Escape                         |
+| `closeOnBackdrop` | `boolean`    | `true`       | Закрытие по клику на подложку              |
 
 Доступность: диалог получает фокус при открытии, `aria-labelledby` на заголовок, фокус ловится
 внутри (Tab/Shift+Tab) и возвращается элементу, открывшему модалку; прокрутка страницы блокируется
 (`body { overflow: hidden }`).
 
-CSS: `.modal-backdrop`, `.modal`, `.modal--wide`, `.modal__head`, `.modal__head-actions`.
+CSS: `.modal-backdrop`, `.modal`, `.modal--wide`, `.modal--pdf`, `.modal__head`, `.modal__head-actions`.
+
+### Просмотр PDF (`components/PdfViewerModal.tsx`)
+
+Встроенный просмотр PDF (pdf.js / `pdfjs-dist`, ленивый чанк через `React.lazy`): открывается по
+клику на ссылку-кнопку документа «Ремонта» (`renov-link`). Скачивает файл через `fetchFileBytes`
+(`api/client.ts`), рисует страницы на `<canvas>` с листанием, масштабом и индикатором страницы.
+Использует `Modal` с `className="modal--pdf"` (шире и компактнее). Воркер pdf.js подключается
+через `import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'`.
 
 ### `useEscapeClose` (`hooks/useEscapeClose.ts`)
 

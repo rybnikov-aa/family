@@ -12,6 +12,8 @@
 | Фронтенд (статик-файлы, сборка Vite)               | `/var/www/family.rybnikov.su/public_html`                      |
 | Бэкенд (Express, рантайм + `node_modules`)         | `/var/www/family.rybnikov.su/server`                           |
 | SQLite-база VPS и проектов (runtime, не в git)     | `/var/www/family.rybnikov.su/server/data/vps.sqlite`           |
+| БД «Ремонта» (runtime, не в git)                   | `/var/www/family.rybnikov.su/server/data/renovation.sqlite`    |
+| Загруженные PDF «Ремонта» (runtime, не в git)      | `/var/www/family.rybnikov.su/server/docs/renovation/`          |
 | Источник данных «Ремонта» (seed HTML)              | `/var/www/family.rybnikov.su/server/renovation-source/`        |
 | Статичный архив «Ремонта» (legacy, не обновляется) | `/var/www/family.rybnikov.su/public_html/projects/renovation/` |
 
@@ -19,7 +21,7 @@
 - Процесс бэкенда управляется **pm2**, имя приложения: `family-backend`.
   - pm2 не в PATH в неинтерактивной сессии, полный путь:
     `/home/rybnikov/.nvm/versions/node/v24.19.0/bin/pm2`
-- **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется вручную (SQL/клиентом) **или через форму добавления VPS в UI** (`POST /api/vps`), импорт из JSON (`POST /api/vps/import`), удаление — кнопка-корзина в детализации (`DELETE /api/vps/:name`). Путь задаётся через `DB_PATH` (по умолчанию `data/vps.sqlite`). При деплое папка `data/` **не удаляется** (как и `.env`); схема таблиц создаётся автоматически при первом обращении. В той же БД — таблицы авторизации `users` и `sessions` (см. ниже).
+- **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется вручную (SQL/клиентом) **или через форму добавления VPS в UI** (`POST /api/vps`), импорт из JSON (`POST /api/vps/import`), удаление — кнопка-корзина в детализации (`DELETE /api/vps/:name`). Путь задаётся через `DB_PATH` (по умолчанию `data/vps.sqlite`). При деплое папки `data/` и `docs/` **не удаляются** (как и `.env`); схема таблиц создаётся автоматически при первом обращении. В той же БД — таблицы авторизации `users` и `sessions` (см. ниже).
 - **Авторизация** — весь портал (SPA и API) закрыт входом: без действующей сессии API отвечает 401, фронтенд показывает экран входа. Вход/выход/текущий пользователь — `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Сессия — httpOnly `SameSite=Lax` cookie `sid` (в проде `Secure`), в БД хранится только SHA-256 от токена; срок жизни — `SESSION_TTL_HOURS`. Роли: `admin` (управление VPS + создание проектов) и `user` (чтение). **Первый администратор** создаётся при старте из `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей); дальнейшие учётки — CLI `npm run user -w backend` (`add`/`list`/`set-role`/`remove`), он пишет в ту же БД и использует тот же формат хэша scrypt. Скрипт `scripts/users.mjs` входит в деплой, поэтому на сервере его можно запускать прямо из каталога бэкенда: `cd /var/www/family.rybnikov.su/server && node scripts/users.mjs add <username> <name> <role>`. `/api/health` остаётся публичным (для диагностики). Статичный архив «Ремонта» (`/projects/**`) раздаёт nginx напрямую — вне авторизации (при необходимости закрыть — nginx `auth_basic` на соответствующие `location`).
 - Для диагностики API, требующего авторизации, в curl нужна cookie сессии: `curl -c ck -X POST http://127.0.0.1:3000/api/auth/login -H 'Content-Type: application/json' -d '{"username":"…","password":"…"}'`, затем `curl -b ck http://127.0.0.1:3000/api/vps`.
 
@@ -46,7 +48,8 @@
   - `AUTH_COOKIE_NAME` — имя cookie сессии (по умолчанию `sid`);
   - `SESSION_TTL_HOURS` — срок жизни сессии в часах (по умолчанию `168` = 7 суток);
   - `AUTH_BOOTSTRAP_PASSWORD` — пароль первого администратора (создаётся при старте, если в БД нет пользователей); после первого входа переменную можно убрать. Дополнительно: `AUTH_BOOTSTRAP_USERNAME` (`admin`), `AUTH_BOOTSTRAP_NAME` (`Администратор`).
-  - Модуль «Ремонт»: `RENOVATION_DB_PATH` (по умолчанию `data/renovation.sqlite` — отдельная БД, сохраняется в `data/`), `RENOVATION_PYTHON` и `RENOVATION_EXTRACT_SCRIPT` (импорт PDF, этап 3).
+  - Модуль «Ремонт»: `RENOVATION_DB_PATH` (по умолчанию `data/renovation.sqlite` — отдельная БД, сохраняется в `data/`), `RENOVATION_DOCS_DIR` (по умолчанию `docs/renovation` относительно CWD бэкенда → `server/docs/renovation`; каталог **сохраняется при деплое**, как `data/`), `RENOVATION_PYTHON` и `RENOVATION_EXTRACT_SCRIPT` (импорт PDF, этап 3).
+  - **Загруженные PDF** («Ремонт», импорт): при подтверждении импорта файл кладётся в `RENOVATION_DOCS_DIR` (на сервере — `server/docs/renovation/`, имя `material_order_2026-07-17.pdf` и т.п.), в БД пишется `pdf_path = /api/renovation/docs/<file>`. Раздаёт их бэкенд (`GET /api/renovation/docs/:file`, под авторизацией); просмотр на фронте — pdf.js (`PdfViewerModal`). Существующие PDF со статичного архива (`public_html/projects/renovation/pdf/`) перенесены в `server/docs/renovation/` (смета — `estimate.pdf`, доп. соглашения — `addendum_<дата>_<id>.pdf`, остальное — по правилам `pdfFileName`), их `pdf_path` переписан на `/api/renovation/docs/...`. В статичном архиве остались только файлы вне БД (дизайн-проект, фото, спецификации).
 
   **Импорт PDF («Ремонт», этап 3):** парсер — `pdfplumber` (Python), Node-бэкенд запускает
   `server/scripts/extract_pdf.py` как subprocess. **Деплой готовит сервер автоматически**
@@ -122,6 +125,12 @@ DEPLOY_PM2_APP=family-backend
 ### Структура конфига (основные блоки)
 
 - `location /` — раздача статики фронтенда (`try_files $uri $uri/ =404`).
+- **MIME-тип `.mjs`** — обязателен для pdf.js-воркера (сборка Vite отдаёт `pdf.worker.min-*.mjs`,
+  который подгружается динамическим `import()`; если `.mjs` отдаётся как
+  `application/octet-stream` — браузер отклоняет модуль с ошибкой
+  «Setting up fake worker failed: Failed to fetch dynamically imported module»). В
+  `/etc/nginx/mime.types` добавлено `application/javascript mjs;` (рядом с `js;`) — при
+  пересборке/переустановке nginx проверять, что `mjs` снова на месте.
 - `location /api/` — прокси на бэкенд:
   `proxy_pass http://127.0.0.1:3000;` — **без** завершающего слэша (иначе срезается `/api` → 404).
 - Для импорта PDF в «Ремонт» (`POST /api/renovation/pdf`) в `location /api/` задан `client_max_body_size 20m` (дефолт nginx — 1 МБ, без этого загрузка упадёт с 413).

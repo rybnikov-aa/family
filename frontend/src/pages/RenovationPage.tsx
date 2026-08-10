@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import PageLayout from '../components/PageLayout';
 import { RenovationIcon, RefreshIcon, UploadIcon } from '../components/icons';
 import Button from '../components/Button';
@@ -12,6 +12,15 @@ import { useAuth } from '../hooks/useAuth';
 import { formatDateIso, formatKopecks } from '../utils/money';
 
 type Tab = 'summary' | 'work' | 'materials';
+
+// Просмотрщик PDF (pdfjs) — тяжёлый чанк, грузится только при открытии документа.
+const PdfViewerModal = lazy(() => import('../components/PdfViewerModal'));
+
+/** Документ для просмотра: серверный путь к PDF + заголовок. */
+interface ViewPdfDoc {
+  url: string;
+  title: string;
+}
 
 /**
  * Страница «Ремонт» (этапы 2–5): сводка (Блок 1 Работы / Блок 2 Материалы) из
@@ -28,6 +37,7 @@ function RenovationPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [addendumOpen, setAddendumOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('summary');
+  const [viewPdf, setViewPdf] = useState<ViewPdfDoc | null>(null);
 
   const meta = overview?.meta;
   const works = overview?.works;
@@ -38,6 +48,9 @@ function RenovationPage() {
     setTab(t);
     if (t !== 'summary') void reports.load();
   };
+
+  /** Открыть PDF документа во встроенном просмотрщике. */
+  const openPdf = (url: string, title: string) => setViewPdf({ url, title });
 
   return (
     <PageLayout>
@@ -125,11 +138,31 @@ function RenovationPage() {
                   <div className="renov-divider" />
                   <div className="renov-line">
                     <span className="renov-label">Акты выполненных работ</span>
-                    <span className="renov-value">
+                    <span className="renov-value renov-value--list">
                       {works && works.acts.length > 0
-                        ? works.acts
-                            .map((a) => `Акт ${a.number ?? ''} (${formatDateIso(a.date)})`)
-                            .join(', ')
+                        ? works.acts.map((a, i) => (
+                            <span key={a.id}>
+                              {i > 0 ? ', ' : ''}
+                              {a.pdfPath ? (
+                                <button
+                                  type="button"
+                                  className="renov-link"
+                                  onClick={() =>
+                                    openPdf(
+                                      a.pdfPath!,
+                                      `Акт ${a.number ?? ''} (${formatDateIso(a.date)})`,
+                                    )
+                                  }
+                                >
+                                  Акт {a.number ?? ''} ({formatDateIso(a.date)})
+                                </button>
+                              ) : (
+                                <>
+                                  Акт {a.number ?? ''} ({formatDateIso(a.date)})
+                                </>
+                              )}
+                            </span>
+                          ))
                         : '—'}
                     </span>
                   </div>
@@ -198,7 +231,24 @@ function RenovationPage() {
                       {materials.orders.map((o) => (
                         <div className="renov-line renov-line--sub" key={o.id}>
                           <span className="renov-label">
-                            Отчёт №{o.number ?? '—'} от {formatDateIso(o.date)}
+                            {o.pdfPath ? (
+                              <button
+                                type="button"
+                                className="renov-link"
+                                onClick={() =>
+                                  openPdf(
+                                    o.pdfPath!,
+                                    `Отчёт №${o.number ?? '—'} от ${formatDateIso(o.date)}`,
+                                  )
+                                }
+                              >
+                                Отчёт №{o.number ?? '—'} от {formatDateIso(o.date)}
+                              </button>
+                            ) : (
+                              <>
+                                Отчёт №{o.number ?? '—'} от {formatDateIso(o.date)}
+                              </>
+                            )}
                           </span>
                           <span className="renov-value">{formatKopecks(o.total, true)}</span>
                         </div>
@@ -271,7 +321,9 @@ function RenovationPage() {
             </div>
 
             {tab === 'work' && <RenovationWorkReport reports={reports} />}
-            {tab === 'materials' && <RenovationMaterialsReport reports={reports} />}
+            {tab === 'materials' && (
+              <RenovationMaterialsReport reports={reports} onOpenPdf={openPdf} />
+            )}
 
             <div className="renov-note">
               <a href="/projects/renovation/" target="_blank" rel="noopener">
@@ -287,6 +339,15 @@ function RenovationPage() {
       )}
       {addendumOpen && (
         <AddendumModal onClose={() => setAddendumOpen(false)} onApplied={() => reload()} />
+      )}
+      {viewPdf && (
+        <Suspense fallback={null}>
+          <PdfViewerModal
+            url={viewPdf.url}
+            title={viewPdf.title}
+            onClose={() => setViewPdf(null)}
+          />
+        </Suspense>
       )}
     </PageLayout>
   );

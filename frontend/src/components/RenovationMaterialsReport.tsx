@@ -3,10 +3,12 @@ import { formatDateIso, formatKopecks } from '../utils/money';
 
 interface Props {
   reports: ReturnType<typeof useRenovationReports>;
+  /** Открыть PDF документа (url, заголовок) во встроенном просмотрщике. */
+  onOpenPdf?: (url: string, title: string) => void;
 }
 
 /** «Материалы»: заказы материалов с позициями и итогами (агрегировано из БД). */
-function MaterialsReportView({ reports }: Props) {
+function MaterialsReportView({ reports, onOpenPdf }: Props) {
   const { materials, loading, error } = reports;
 
   if (loading && !materials) return <div className="news-empty">Загружаем отчёт…</div>;
@@ -31,7 +33,21 @@ function MaterialsReportView({ reports }: Props) {
         <div className="renov-rp__order" key={o.id}>
           <div className="renov-rp__order-head">
             <span>
-              Отчёт №{o.number ?? '—'} · {formatDateIso(o.date)}
+              {o.pdfPath ? (
+                <button
+                  type="button"
+                  className="renov-link"
+                  onClick={() =>
+                    onOpenPdf?.(o.pdfPath!, `Отчёт №${o.number ?? '—'} · ${formatDateIso(o.date)}`)
+                  }
+                >
+                  Отчёт №{o.number ?? '—'} · {formatDateIso(o.date)}
+                </button>
+              ) : (
+                <>
+                  Отчёт №{o.number ?? '—'} · {formatDateIso(o.date)}
+                </>
+              )}
             </span>
             <span>
               Итого <strong>{formatKopecks(o.total, true)}</strong>
