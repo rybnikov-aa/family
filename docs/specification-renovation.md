@@ -122,8 +122,9 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   узких окон — друг под другом). Карточка реквизитов (`.renov-meta__card`): сетка 2×2 — «Договор»/
   «Площадь» и «Подрядчик»/«Начало работ» (дата старта, карандаш — `.renov-edit-object`, admin,
   `components/RenovationStartDateModal.tsx`). Карточка «Прошло времени от старта»
-  (`.renov-meta__start`): календарные дни от старта к сроку, срок ≈ ×1,4 календарных,
-  `utils/date.ts::calendarDaysBetween`, без карандаша (дата правится через «Начало работ»); ниже
+  (`.renov-meta__start`): сверху даты «старт → сегодня», полоса, подпись «N из ~M дн.» и % справа
+  (календарные дни от старта к сроку, срок ≈ ×1,4 календарных,
+  `utils/date.ts::calendarDaysBetween`, без карандаша — дата правится через «Начало работ»); ниже
   разделитель и ссылки «Дизайн-проект» и «Смета» (статичный архив `/projects/renovation/`).
   Адрес из `meta.object` — в подзаголовке страницы (карандаш admin,
   `components/RenovationAddressModal.tsx`). Сохраняется через `PUT /api/renovation/meta`

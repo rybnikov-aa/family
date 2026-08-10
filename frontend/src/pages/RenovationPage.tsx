@@ -291,9 +291,8 @@ function RenovationPage() {
 
                 {meta.startDate && startProgress && (
                   <div className="renov-meta__start">
-                    <div className="renov-meta__progress-top">
-                      <span className="renov-meta__progress-label">Прошло времени от старта</span>
-                      <strong>{startProgress.percent.toLocaleString('ru-RU')}%</strong>
+                    <div className="renov-meta__progress-label">
+                      {formatDateIso(meta.startDate)} → {formatDateIso(todayIso())}
                     </div>
                     <div className="renov-meta__progress-track">
                       <div
@@ -303,9 +302,11 @@ function RenovationPage() {
                         }}
                       />
                     </div>
-                    <div className="renov-meta__progress-sub">
-                      {formatDateIso(meta.startDate)} → {formatDateIso(todayIso())} ·{' '}
-                      {startProgress.elapsed} из ~{startProgress.total} дн.
+                    <div className="renov-meta__progress-caption">
+                      <span>
+                        {startProgress.elapsed} из ~{startProgress.total} дн.
+                      </span>
+                      <span>{startProgress.percent.toLocaleString('ru-RU')}%</span>
                     </div>
                     <div className="renov-meta__divider" />
                     <div className="renov-meta__links">

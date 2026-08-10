@@ -85,35 +85,26 @@
 .renov-meta__divider {
   height: 1px;
   background: var(--border);
+  margin: var(--space-3) 0;
 }
 /* «Старт» — карточка «Прошло времени от старта» (макет отчёта, стили дизайн-системы) */
 .renov-meta__start {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-1xl);
 }
-.renov-meta__progress-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  font-size: var(--font-size-sm);
-  color: var(--text-muted);
-}
 .renov-meta__progress-label {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
   white-space: nowrap;
-}
-.renov-meta__progress-top strong {
+  font-size: var(--font-size-sm);
   color: var(--text-strong);
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
+  margin-bottom: var(--space-3);
 }
 .renov-meta__progress-track {
   height: 8px;
@@ -127,7 +118,11 @@
   background: var(--color-accent-orange);
   transition: width 0.3s ease;
 }
-.renov-meta__progress-sub {
+.renov-meta__progress-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
   font-size: var(--font-size-caption);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
