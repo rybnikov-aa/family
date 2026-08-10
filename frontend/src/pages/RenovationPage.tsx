@@ -1,8 +1,9 @@
 import { lazy, Suspense, useState, type ReactNode } from 'react';
 import PageLayout from '../components/PageLayout';
-import { RenovationIcon, RefreshIcon, UploadIcon } from '../components/icons';
+import { EditIcon, RenovationIcon, RefreshIcon, UploadIcon } from '../components/icons';
 import Button from '../components/Button';
 import AddendumModal from '../components/AddendumModal';
+import RenovationAddressModal from '../components/RenovationAddressModal';
 import RenovationPdfModal from '../components/RenovationPdfModal';
 import RenovationWorkReport from '../components/RenovationWorkReport';
 import RenovationMaterialsReport from '../components/RenovationMaterialsReport';
@@ -41,6 +42,7 @@ function RenovationPage() {
   const isAdmin = user?.role === 'admin';
   const [importOpen, setImportOpen] = useState(false);
   const [addendumOpen, setAddendumOpen] = useState(false);
+  const [addressOpen, setAddressOpen] = useState(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
   // Открытый отчёт («Работы»/«Материалы») — в модальном окне.
   const [report, setReport] = useState<'work' | 'materials' | null>(null);
@@ -196,7 +198,22 @@ function RenovationPage() {
           </span>
           <div>
             <h2>Ремонт квартиры</h2>
-            {meta?.object ? <div className="page__sub">{meta.object}</div> : null}
+            {meta?.object ? (
+              <div className="page__sub">
+                {meta.object}
+                {isAdmin && (
+                  <button
+                    type="button"
+                    className="renov-edit-object"
+                    title="Изменить адрес объекта"
+                    aria-label="Изменить адрес объекта"
+                    onClick={() => setAddressOpen(true)}
+                  >
+                    <EditIcon />
+                  </button>
+                )}
+              </div>
+            ) : null}
           </div>
           {isAdmin && (
             <div className="page__head-actions">
@@ -385,6 +402,13 @@ function RenovationPage() {
       )}
       {addendumOpen && (
         <AddendumModal onClose={() => setAddendumOpen(false)} onApplied={() => reload()} />
+      )}
+      {addressOpen && meta && (
+        <RenovationAddressModal
+          object={meta.object}
+          onClose={() => setAddressOpen(false)}
+          onSaved={() => reload()}
+        />
       )}
       {budgetOpen && (
         <MaterialsBudgetModal

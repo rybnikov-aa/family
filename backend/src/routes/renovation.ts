@@ -11,6 +11,7 @@ import {
   pdfFileController,
   settlementsController,
   updateMaterialsBudgetController,
+  updateMetaController,
   uploadPdfController,
   workReportController,
 } from '../controllers/renovationController';
@@ -45,3 +46,6 @@ renovationRouter.post('/estimate/addendum/confirm', requireAdmin, addendumConfir
 
 // Бюджет на материалы: настройка (admin).
 renovationRouter.put('/materials-budget', requireAdmin, updateMaterialsBudgetController);
+
+// Реквизиты проекта: адрес объекта (admin).
+renovationRouter.put('/meta', requireAdmin, updateMetaController);

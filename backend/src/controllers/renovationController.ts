@@ -14,6 +14,7 @@ import {
   listEstimateVersions,
   listRenovationDocs,
   listSettlementActs,
+  updateRenovationMetaObject,
 } from '../db/renovationRepository';
 import {
   buildAddendumProposal,
@@ -50,6 +51,21 @@ import type {
 /** Сводка «Ремонта» (Работы / Материалы): `GET /api/renovation`. */
 export function overviewController(_req: Request, res: Response): void {
   res.json(buildOverview());
+}
+
+/**
+ * Обновить адрес объекта «Ремонта»: `PUT /api/renovation/meta`.
+ * Тело — `{ object: string }` (непустая строка без обрамляющих пробелов).
+ * Ответ — `{ meta }` — актуальные реквизиты проекта.
+ */
+export function updateMetaController(req: Request, res: Response): void {
+  const body = (req.body ?? {}) as { object?: unknown };
+  const object = typeof body.object === 'string' ? body.object.trim() : '';
+  if (!object) {
+    res.status(400).json({ message: 'Адрес объекта не может быть пустым' });
+    return;
+  }
+  res.json({ meta: updateRenovationMetaObject(object) });
 }
 
 /**

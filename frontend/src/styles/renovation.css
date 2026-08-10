@@ -7,6 +7,31 @@
   width: 36px;
   height: 36px;
 }
+/* Карандаш редактирования адреса в подзаголовке шапки */
+.renov-edit-object {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 2px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  vertical-align: middle;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+.renov-edit-object svg {
+  width: 15px;
+  height: 15px;
+}
+.renov-edit-object:hover {
+  color: var(--text-strong);
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+}
 
 /* Страница «Ремонт»: сводка */
 .renov-grid {

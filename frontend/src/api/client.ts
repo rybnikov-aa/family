@@ -440,6 +440,22 @@ export async function fetchRenovationOverview(): Promise<RenovationOverview> {
 }
 
 /**
+ * Обновить адрес объекта «Ремонта»: `PUT /api/renovation/meta`.
+ * Адрес показывается в подзаголовке страницы «Ремонт» и в реквизитах проекта.
+ */
+export async function updateRenovationMetaObject(
+  object: string,
+): Promise<{ meta: RenovationOverview['meta'] }> {
+  const res = await apiFetch('/renovation/meta', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ object }),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ meta: RenovationOverview['meta'] }>;
+}
+
+/**
  * Обновить бюджет на материалы (admin): `PUT /api/renovation/materials-budget`.
  * В режиме `percent` бюджет = % от сметы на работы (пересчитывается при её
  * изменении); в режиме `amount` — явная сумма в копейках.

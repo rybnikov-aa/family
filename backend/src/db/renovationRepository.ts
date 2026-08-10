@@ -104,6 +104,18 @@ export function getRenovationMeta(): RenovationMeta | null {
   };
 }
 
+/** Обновить адрес объекта «Ремонта» (поле `object` в `renovation_meta`, id=1). */
+export function updateRenovationMetaObject(object: string): RenovationMeta {
+  const db = getRenovationDb();
+  db.prepare(
+    `INSERT INTO renovation_meta (id, object) VALUES (1, ?)
+     ON CONFLICT(id) DO UPDATE SET object = excluded.object`,
+  ).run(object);
+  const meta = getRenovationMeta();
+  if (!meta) throw new Error('Реквизиты «Ремонта» не инициализированы');
+  return meta;
+}
+
 /** Значение настройки модуля «Ремонт» (`renovation_settings`) или null. */
 export function getRenovationSetting(key: string): string | null {
   const db = getRenovationDb();
