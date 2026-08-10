@@ -341,7 +341,11 @@ function RenovationPage() {
                 <StatRow
                   label={
                     <>
-                      <button type="button" className="renov-link" onClick={() => openReport('work')}>
+                      <button
+                        type="button"
+                        className="renov-link"
+                        onClick={() => openReport('work')}
+                      >
                         Ход работ
                       </button>
                       {works && works.acts.length > 0 && (
