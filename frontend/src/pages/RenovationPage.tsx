@@ -505,7 +505,18 @@ function RenovationPage() {
       )}
       {report && (
         <Modal
-          title={report === 'work' ? 'Отчет о ходе работ' : 'Отчет по материалам'}
+          title={
+            report === 'work' ? (
+              <>
+                Отчет о ходе работ
+                {reports.work?.asOf && (
+                  <span className="renov-pill">{formatDateIso(reports.work.asOf)}</span>
+                )}
+              </>
+            ) : (
+              'Отчет по материалам'
+            )
+          }
           onClose={() => setReport(null)}
           className="modal--report"
         >

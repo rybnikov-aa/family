@@ -138,6 +138,11 @@
   color: var(--text-strong);
   letter-spacing: -0.01em;
 }
+/* Pill-дата в заголовке модалки (например, «Отчет о ходе работ 08.08.2026») */
+.modal__head h3 .renov-pill {
+  margin-left: var(--space-2);
+  vertical-align: middle;
+}
 .modal__head-actions {
   display: inline-flex;
   align-items: center;

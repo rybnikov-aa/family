@@ -153,8 +153,11 @@ export function buildWorkReport(): ReportWork {
     });
   }
 
-  const planSum = items.reduce((s, i) => s + (i.sum ?? 0), 0);
-  const factSum = [...factByKey.values()].reduce((s, f) => s + f.sum, 0);
+  // Итоги шапки — с накладными, как в сводке (overview.ts): план = итог сметы
+  // (total включает накладные), факт = сумма итогов актов с накладными. Позиции
+  // ниже — без накладных (накладные не привязаны к отдельным строкам).
+  const planSum = current?.total ?? items.reduce((s, i) => s + (i.sum ?? 0), 0);
+  const factSum = acts.reduce((s, a) => s + (a.totalWithOverhead ?? 0), 0);
   const counts = { done: 0, partial: 0, notdone: 0 };
   for (const s of sections) {
     for (const r of s.rows) counts[r.status] += 1;

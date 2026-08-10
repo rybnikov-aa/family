@@ -58,12 +58,18 @@ function MaterialsReportView({ reports, onOpenPdf }: Props) {
               )}
             </span>
           </div>
-          <table className="renov-rp__table">
+          <table className="renov-rp__table renov-rp__table--fixed renov-rp__table--materials">
+            <colgroup>
+              <col className="renov-rp__col-num" />
+              <col />
+              <col className="renov-rp__col-price" />
+              <col className="renov-rp__col-qty" />
+              <col className="renov-rp__col-sum" />
+            </colgroup>
             <thead>
               <tr>
                 <th>№</th>
                 <th className="renov-rp__th-left">Наименование</th>
-                <th className="renov-rp__th-num">Ед.</th>
                 <th className="renov-rp__th-num">Цена</th>
                 <th className="renov-rp__th-num">Кол-во</th>
                 <th className="renov-rp__th-num">Сумма</th>
@@ -74,9 +80,11 @@ function MaterialsReportView({ reports, onOpenPdf }: Props) {
                 <tr key={i}>
                   <td>{it.position ?? ''}</td>
                   <td className="renov-rp__left">
-                    <span className="renov-rp__name">{it.name}</span>
+                    <span className="renov-rp__name">
+                      <span className="renov-rp__name-text">{it.name}</span>
+                      {it.unit && <span className="renov-rp__unit">{it.unit}</span>}
+                    </span>
                   </td>
-                  <td className="renov-rp__num">{it.unit || '—'}</td>
                   <td className="renov-rp__num">{formatKopecks(it.price, false)}</td>
                   <td className="renov-rp__num">{formatKopecks(it.qty, false)}</td>
                   <td className="renov-rp__num">{formatKopecks(it.sum, true)}</td>

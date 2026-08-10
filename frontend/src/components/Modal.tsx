@@ -3,8 +3,8 @@ import IconButton from './IconButton';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 
 interface ModalProps {
-  /** Заголовок модалки (aria-labelledby). */
-  title: string;
+  /** Заголовок модалки (aria-labelledby); можно передавать ReactNode (например, с pill-датой). */
+  title: ReactNode;
   /** Закрыть модалку (крестик/подложка/Escape). */
   onClose: () => void;
   children: ReactNode;
