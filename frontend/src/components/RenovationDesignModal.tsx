@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchRenovationDesignDocs, type RenovationDesignDoc } from '../api/client';
 import Modal from './Modal';
-import { DocIcon } from './icons';
+import PdfLink from './PdfLink';
 
 interface RenovationDesignModalProps {
   /** Закрыть модалку. */
@@ -51,14 +51,15 @@ function RenovationDesignModal({ onClose, onOpenPdf }: RenovationDesignModalProp
           <ul className="design-modal__list">
             {docs.map((d) => (
               <li key={d.fileName}>
-                <button
-                  type="button"
-                  className="renov-link design-modal__link"
-                  onClick={() => onOpenPdf(d.url, d.title, true)}
+                <PdfLink
+                  url={d.url}
+                  title={d.title}
+                  onOpenPdf={onOpenPdf}
+                  fitToWidth
+                  className="design-modal__link"
                 >
-                  <DocIcon />
                   {d.title}
-                </button>
+                </PdfLink>
               </li>
             ))}
           </ul>

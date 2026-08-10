@@ -1,4 +1,5 @@
 import StatRow from './StatRow';
+import PdfLink from './PdfLink';
 import { formatDateIso, formatKopecks } from '../utils/money';
 
 interface RenovationSettlementProps {
@@ -54,13 +55,9 @@ function RenovationSettlement({
         label={
           <>
             {pdfPath ? (
-              <button
-                type="button"
-                className="renov-link"
-                onClick={() => onOpenPdf?.(pdfPath, fullTitle)}
-              >
+              <PdfLink url={pdfPath} title={fullTitle} onOpenPdf={onOpenPdf}>
                 {title}
-              </button>
+              </PdfLink>
             ) : (
               title
             )}

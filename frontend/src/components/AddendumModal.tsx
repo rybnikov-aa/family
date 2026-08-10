@@ -10,7 +10,8 @@ import {
 import { formatDateIso, formatKopecks } from '../utils/money';
 import Modal from './Modal';
 import Button from './Button';
-import { CheckIcon, RefreshIcon } from './icons';
+import ModalDone from './ModalDone';
+import { RefreshIcon } from './icons';
 
 interface AddendumModalProps {
   /** Закрыть модалку. */
@@ -131,17 +132,7 @@ function AddendumModal({ onClose, onApplied }: AddendumModalProps) {
     <Modal title="Применить доп. соглашение" onClose={onClose} wide>
       <div className="addendum">
         {done ? (
-          <div className="addendum__done">
-            <span className="addendum__done-icon">
-              <CheckIcon width="2rem" height="2rem" />
-            </span>
-            <div>{done}</div>
-            <div className="addendum__actions">
-              <Button variant="primary" onClick={onClose}>
-                Закрыть
-              </Button>
-            </div>
-          </div>
+          <ModalDone message={done} onClose={onClose} />
         ) : (
           <>
             <label className="addendum__select">

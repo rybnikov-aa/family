@@ -5,7 +5,8 @@ import { formatDateIso, formatKopecks } from '../utils/money';
 import Modal from './Modal';
 import Button from './Button';
 import AddendumModal from './AddendumModal';
-import { DocIcon, RefreshIcon } from './icons';
+import PdfLink from './PdfLink';
+import { RefreshIcon } from './icons';
 
 interface RenovationEstimateModalProps {
   /** Закрыть модалку. */
@@ -36,20 +37,11 @@ function VersionRow({
       <span className="est-doc-date">{version.date ? formatDateIso(version.date) : ''}</span>
       <span className="est-doc-name">
         {pdf ? (
-          <button
-            type="button"
-            className="renov-link"
-            onClick={() => onOpenPdf(pdf, title)}
-            title="Открыть исходный документ (PDF)"
-          >
-            <DocIcon />
+          <PdfLink url={pdf} title={title} onOpenPdf={onOpenPdf}>
             {version.label}
-          </button>
+          </PdfLink>
         ) : (
-          <span className="est-doc-name-plain">
-            <DocIcon />
-            {version.label}
-          </span>
+          version.label
         )}
       </span>
       <span className="est-doc-total">{formatKopecks(version.total, true)}</span>
@@ -59,10 +51,11 @@ function VersionRow({
 
 /**
  * Модалка «Смета»: версии сметы из БД (`GET /api/renovation/estimate/versions`) —
- * актуальная смета и доп. соглашения, с суммами и ссылками на исходные PDF
- * (просмотр во встроенном просмотрщике). Для admin — кнопка «Доп. соглашение»
- * (применение соглашения, `AddendumModal`), перенесённая сюда с шапки страницы.
- * Заменяет прямую ссылку на статичную `estimates.html`.
+ * исходная смета (версия `seed`, дата/сумма/PDF исходной сметы) и доп. соглашения,
+ * с суммами и ссылками на исходные PDF (просмотр во встроенном просмотрщике).
+ * Для admin — кнопка «Доп. соглашение» (применение соглашения, `AddendumModal`),
+ * перенесённая сюда с шапки страницы. Заменяет прямую ссылку на статичную
+ * `estimates.html`.
  */
 function RenovationEstimateModal({ onClose, onOpenPdf, onApplied }: RenovationEstimateModalProps) {
   const { user } = useAuth();
@@ -85,7 +78,7 @@ function RenovationEstimateModal({ onClose, onOpenPdf, onApplied }: RenovationEs
     load();
   }, [load]);
 
-  const current = versions.find((v) => v.kind === 'current') ?? null;
+  const seed = versions.find((v) => v.kind === 'seed') ?? null;
   const addenda = versions.filter((v) => v.kind === 'addendum');
 
   return (
@@ -104,11 +97,11 @@ function RenovationEstimateModal({ onClose, onOpenPdf, onApplied }: RenovationEs
         ) : (
           <>
             <section className="est-modal__block">
-              <div className="est-modal__title">Актуальная смета</div>
-              {current ? (
-                <VersionRow version={current} onOpenPdf={onOpenPdf} />
+              <div className="est-modal__title">Исходная смета</div>
+              {seed ? (
+                <VersionRow version={seed} onOpenPdf={onOpenPdf} />
               ) : (
-                <div className="est-modal__muted">Актуальная смета не найдена</div>
+                <div className="est-modal__muted">Исходная смета не найдена</div>
               )}
             </section>
 

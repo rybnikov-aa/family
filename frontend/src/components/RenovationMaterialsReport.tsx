@@ -1,4 +1,5 @@
 import type { useRenovationReports } from '../hooks/useRenovationReports';
+import PdfLink from './PdfLink';
 import { formatDateIso, formatKopecks } from '../utils/money';
 
 interface Props {
@@ -34,15 +35,13 @@ function MaterialsReportView({ reports, onOpenPdf }: Props) {
           <div className="renov-rp__order-head">
             <span>
               {o.pdfPath ? (
-                <button
-                  type="button"
-                  className="renov-link"
-                  onClick={() =>
-                    onOpenPdf?.(o.pdfPath!, `Отчёт №${o.number ?? '—'} · ${formatDateIso(o.date)}`)
-                  }
+                <PdfLink
+                  url={o.pdfPath}
+                  title={`Отчёт №${o.number ?? '—'} · ${formatDateIso(o.date)}`}
+                  onOpenPdf={onOpenPdf}
                 >
                   Отчёт №{o.number ?? '—'} · {formatDateIso(o.date)}
-                </button>
+                </PdfLink>
               ) : (
                 <>
                   Отчёт №{o.number ?? '—'} · {formatDateIso(o.date)}

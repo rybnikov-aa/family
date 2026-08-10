@@ -7,6 +7,7 @@ import {
 import { formatDateIso, formatKopecks } from '../utils/money';
 import Modal from './Modal';
 import Button from './Button';
+import ModalDone from './ModalDone';
 import { UploadIcon, CheckIcon } from './icons';
 
 interface RenovationPdfModalProps {
@@ -84,17 +85,7 @@ function RenovationPdfModal({ onClose, onImported }: RenovationPdfModalProps) {
     <Modal title="Импорт PDF в «Ремонт»" onClose={onClose}>
       <div className="renov-pdf">
         {phase === 'done' ? (
-          <div className="renov-pdf__done">
-            <span className="renov-pdf__done-icon">
-              <CheckIcon width="2rem" height="2rem" />
-            </span>
-            <div>{result}</div>
-            <div className="renov-pdf__actions">
-              <Button variant="primary" onClick={onClose}>
-                Закрыть
-              </Button>
-            </div>
-          </div>
+          <ModalDone message={result} onClose={onClose} />
         ) : (
           <>
             <label className="renov-pdf__file">

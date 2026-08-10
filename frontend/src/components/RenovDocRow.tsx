@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { formatDateIso, formatKopecks } from '../utils/money';
 import { CheckIcon } from './icons';
+import PdfLink from './PdfLink';
 
 interface RenovDocRowProps {
   /** Дата документа (ISO `YYYY-MM-DD`) — левая колонка. */
@@ -39,9 +40,9 @@ function RenovDocRow({
       <span className="renov-doc-date">{formatDateIso(date)}</span>
       <span className="renov-doc-name">
         {pdfPath ? (
-          <button type="button" className="renov-link" onClick={() => onOpenPdf?.(pdfPath, title)}>
+          <PdfLink url={pdfPath} title={title} onOpenPdf={onOpenPdf}>
             {name}
-          </button>
+          </PdfLink>
         ) : (
           name
         )}

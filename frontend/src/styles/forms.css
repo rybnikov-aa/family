@@ -23,7 +23,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-icon-gap);
   padding: 9px 16px;
   font: inherit;
   font-size: var(--font-size-sm);
