@@ -29,7 +29,6 @@ user-invocable: true
 - `npm run deploy -- --no-build` — без локальной сборки (нужен уже собранный `dist`).
 - `npm run deploy -- --no-restart` — файлы обновятся, pm2 не перезапустится.
 - `npm run deploy -- --no-pdf-setup` — не готовить сервер к импорту PDF (по умолчанию деплой сам ставит `python3-venv` + `~/renov-venv` с pdfplumber и дописывает `RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT` в `server/.env`, создавая файл при его отсутствии; идемпотентно, не роняет деплой). На Python 3.8 последний pdfplumber не ставится (нужен Python>=3.9) — деплой откатывается на `pdfplumber==0.11.0` и предупреждает.
-- `npm run deploy -- --seed-renovation` — пересев БД «Ремонта» из задеплоенного источника (`server/renovation-source`, куда деплой копирует `projects/renovation`). **ВНИМАНИЕ: сбрасывает `server/data/renovation.sqlite`** — стирает импортированное через приложение. Только по явному запросу.
 
 **Рестарт pm2 в деплое — обычный (`pm2 restart`, без `--update-env`):** приложение само читает `server/.env` через dotenv при старте, а `--update-env` в неинтерактивных SSH-сессиях падает с `env: 'node': No such file or directory` (node не в PATH) — рестарт не происходит. Если вручную правили `server/.env` и рестартите вне деплоя — `export PATH=".../bin:$PATH"` и `pm2 restart family-backend` (см. `docs/server.md`).
 

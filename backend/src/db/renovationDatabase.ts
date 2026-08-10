@@ -8,9 +8,8 @@ import { env } from '../config/env';
  *
  * Это **не** `DB_PATH` (`data/vps.sqlite`) — у модуля своя БД
  * `data/renovation.sqlite` (путь `RENOVATION_DB_PATH`). Обе БД сохраняются
- * при деплое (`server/data/`). Первичное наполнение — `npm run seed:renovation
- * -w backend` (`scripts/seed-renovation.mjs`); схема задана там (блок `SCHEMA`)
- * и дублируется здесь — это единый источник для рантайма приложения.
+ * при деплое (`server/data/`). Наполняется штатно — через импорт PDF в
+ * приложении (POST /api/renovation/pdf); схема задана здесь, в этом файле.
  *
  * Конвенции: WAL, foreign_keys, busy_timeout; строки — Record<string, ...>
  * (двойной каст в репозитории); `db.transaction()` не реализован → ручные

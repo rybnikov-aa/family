@@ -23,33 +23,33 @@ graph TD
 │   ├── agents/               # агенты (специализированные роли, выбор в чате)
 │   │   ├── frontend-dev.agent.md     # фронтенд-разработчик (React/TS/Vite)
 │   │   ├── backend-dev.agent.md      # бэкенд-разработчик (Express/SQLite)
-│   │   ├── fullstack-dev.agent.md    # сквозные фичи (бэкенд + фронтенд)
-│   │   ├── projects-dev.agent.md     # «Ремонт»: источник данных (projects/**)
-│   │   └── projects-explorer.agent.md # read-only исследование проектов
+│   │   └── fullstack-dev.agent.md    # сквозные фичи (бэкенд + фронтенд)
 │   └── skills/               # скиллы (загружаются по запросу)
+│       # Навыки project-renovation-* архивированы: projects/skills-archive/ (история)
 │       ├── vps/              # VPS-мониторинг: SKILL.md, справочник, scripts/list-vps.mjs
 │       ├── deploy/           # деплой и диагностика сервера: SKILL.md, справочник
 │       ├── project-import/   # создание проекта (через UI/БД, не статика)
-│       ├── project-renovation-update-from-pdf/ # PDF → HTML-документы ремонта
-│       ├── project-renovation-build-reports/   # отчётность по ремонту (projects/renovation)
 │       └── parse-pdf/        # конвертация PDF → HTML (общий, для любых проектов)
+│       # Навыки project-renovation-* архивированы: projects/skills-archive/ (история)
 ├── README.md
 ├── docs/                     # спецификация и справочники (см. «Документация»)
 │   ├── specification.md      # общая спецификация (SDD) + модульные specification-{vps,projects,auth}.md
 │   └── server.md             # справочник по серверу/nginx/SSL/деплою
 │
-├── projects/                 # источник данных «Ремонта» + общие ассеты статичного архива
-│   ├── styles.css            # общий дизайн/тема страниц проектов
-│   ├── theme.js              # тема (light/dark/system) для страниц проектов
-│   ├── icon-sprite.svg       # общий SVG-спрайт иконок проектов
-│   └── renovation/           # «Ремонт»: источник данных (смета, акты, заказы) → server/renovation-source/
-│       ├── index.html        # главная страница статичного архива (сводка: Работы/Материалы + Примечания)
-│       ├── estimate_seed.html # исходная смета (никогда не меняется)
-│       ├── estimate.html     # актуальная смета (обновляется по доп. соглашениям)
-│       ├── estimate_*.html   # исторические копии сметы (по датам доп. соглашений)
-│       ├── Reports/          # отчёты: report_work, report_materials (итоговый — на index.html)
-│       ├── Materials/        # заказы материалов (report_*.html) + взаиморасчёты по материалам
-│       └── Works/            # акты работ (act_*.html) + взаиморасчёты по работам
+├── projects/                 # история «Ремонта» + архивированные навыки/агенты (приложением не используется)
+│   ├── styles.css            # общий дизайн/тема статичных страниц проектов (история)
+│   ├── theme.js              # тема (light/dark/system) для статичных страниц проектов (история)
+│   ├── icon-sprite.svg       # общий SVG-спрайт иконок (история)
+│   ├── renovation/           # статичный архив «Ремонта»: сметы, акты, заказы (история)
+│   │   ├── index.html        # главная страница статичного архива (сводка: Работы/Материалы + Примечания)
+│   │   ├── estimate_seed.html # исходная смета (никогда не меняется)
+│   │   ├── estimate.html     # актуальная смета (обновляется по доп. соглашениям)
+│   │   ├── estimate_*.html   # исторические копии сметы (по датам доп. соглашений)
+│   │   ├── Reports/          # отчёты: report_work, report_materials (итоговый — на index.html)
+│   │   ├── Materials/        # заказы материалов (report_*.html) + взаиморасчёты по материалам
+│   │   └── Works/            # акты работ (act_*.html) + взаиморасчёты по работам
+│   ├── skills-archive/       # архивированные навыки project-renovation-* (история)
+│   └── agents-archive/       # архивированные агенты Projects Dev/Explorer (история)
 │
 ├── frontend/                 # React + TypeScript + Vite
 │   ├── package.json
@@ -72,7 +72,7 @@ graph TD
     ├── tsconfig.json
     ├── vite.config.ts        # dev-порт 3000, HMR через vite-plugin-node
     ├── .env.example
-    ├── scripts/              # CLI: users.mjs, seed-renovation.mjs (данные «Ремонта»)
+    ├── scripts/              # CLI: users.mjs (учётки), extract_pdf.py (импорт PDF «Ремонта»)
     └── src/
         ├── app.ts            # Express-приложение (экспорт app + автостарт при прямом запуске)
         ├── config/           # конфигурация окружения + типы VPS
@@ -93,17 +93,16 @@ npm install
 
 ## Запуск
 
-| Команда                              | Описание                                                                                           |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| `npm run dev`                        | Запуск фронтенда и бэкенда одновременно                                                            |
-| `npm run dev:frontend`               | Только фронтенд (http://localhost:5173)                                                            |
-| `npm run dev:backend`                | Только бэкенд (http://localhost:3000)                                                              |
-| `npm run build`                      | Сборка фронтенда и бэкенда                                                                         |
-| `npm start`                          | Запуск собранного бэкенда (`backend/dist/app.cjs`)                                                 |
-| `npm run typecheck`                  | Проверка типов во всех воркспейсах                                                                 |
-| `npm run format`                     | Форматирование кода через Prettier                                                                 |
-| `npm run user -w backend`            | Управление пользователями авторизации (`add`, `list`, `set-role`, `remove`)                        |
-| `npm run seed:renovation -w backend` | Импорт данных «Ремонта» из `projects/renovation/` в `data/renovation.sqlite` (с верификацией сумм) |
+| Команда                   | Описание                                                                    |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `npm run dev`             | Запуск фронтенда и бэкенда одновременно                                     |
+| `npm run dev:frontend`    | Только фронтенд (http://localhost:5173)                                     |
+| `npm run dev:backend`     | Только бэкенд (http://localhost:3000)                                       |
+| `npm run build`           | Сборка фронтенда и бэкенда                                                  |
+| `npm start`               | Запуск собранного бэкенда (`backend/dist/app.cjs`)                          |
+| `npm run typecheck`       | Проверка типов во всех воркспейсах                                          |
+| `npm run format`          | Форматирование кода через Prettier                                          |
+| `npm run user -w backend` | Управление пользователями авторизации (`add`, `list`, `set-role`, `remove`) |
 
 ## Как это работает
 
@@ -111,7 +110,7 @@ npm install
 - **Бэкенд** запускается через Vite c плагином `vite-plugin-node` — Express-приложение получает горячую перезагрузку при изменении кода. Приложение экспортируется из `src/app.ts`; при прямом запуске собранного `dist/app.cjs` (`npm start`) оно само стартует сервер на порту из `PORT`.
 - **Хранилище VPS** — SQLite (встроенный `node:sqlite`, без новых зависимостей). Файл БД — `backend/data/vps.sqlite` (путь через `DB_PATH`), наполняется вручную, через форму добавления VPS в UI (`POST /api/vps`), импортом из JSON-файла структуры `vps.json` (`POST /api/vps/import`) или удаляется через кнопку-корзину в детализации (`DELETE /api/vps/:name`); схема таблиц создаётся автоматически при первом обращении. В git не попадает, при деплое не затирается.
 - **Раздел «Проекты»** — все проекты прикладные (`kind: 'app'`): встроенный реестр `backend/src/config/appProjects.ts` («Ремонт») + записи БД `projects` (созданные через UI). Список динамический: `GET /api/projects` = реестр + БД (без сканирования файловой системы). Страницы проектов — маршруты приложения (`#/projects/<slug>`), наследуют стиль и тему приложения.
-- **Данные «Ремонта» (этапы 1–5)** — отчётность проекта `projects/renovation/` переносится в отдельную БД `backend/data/renovation.sqlite` (путь — `RENOVATION_DB_PATH`, не путать с `DB_PATH` — это базы разных модулей; обе сохраняются при деплое). Домен — `backend/src/services/renovation/domain/` (чистые типы + деньги в копейках). Наполнение — `npm run seed:renovation -w backend` (`backend/scripts/seed-renovation.mjs`): парсит HTML проекта и **верифицирует** суммы (позиции ↔ итоги документов, разделы сметы ↔ «Итого по всем разделам», накопленный баланс ведомостей). Просмотр — read-API `/api/renovation/*` и страница `#/projects/renovation` (сводка Работы /
+- **Данные «Ремонта» (этапы 1–7)** — отчётность в отдельной БД `backend/data/renovation.sqlite` (путь — `RENOVATION_DB_PATH`, не путать с `DB_PATH` — это базы разных модулей; обе сохраняются при деплое). Домен — `backend/src/services/renovation/domain/` (чистые типы + деньги в копейках). Наполнение — **штатное, через импорт PDF в приложении** (`POST /api/renovation/pdf` → черновик → подтверждение); seed из статичных HTML убран. Просмотр — read-API `/api/renovation/*` и страница `#/projects/renovation` (сводка Работы /
   Материалы + отчёты по ссылкам «Ход работ»/«Закупка материалов» — открываются в модальном окне). Импорт PDF (этап 3) — кнопка «Импорт PDF» на странице «Ремонт» (admin): `pdfplumber` через Python-subprocess, черновик → подтверждение; подтверждённый PDF сохраняется в `RENOVATION_DOCS_DIR` (по умолчанию `docs/renovation`, на сервере — `server/docs/renovation`, сохраняется при деплое) и раздаётся через `GET /api/renovation/docs/:file`; «Отчёт №N» в «Блоке 2. Материалы» и в отчёте «Материалы» — ссылки на исходные PDF, просмотр — встроенный pdf.js (`PdfViewerModal`). Доп. соглашения (этап 4) — кнопка «Доп. соглашение» (admin): дифф по наименованиям (было/стало, добавление/удаление), подтверждение → старая смета `current` замораживается как `history`, создаётся новая `current` с пересчитанными итогами (см. `docs/specification-renovation.md`).
 - **Создание/изменение/удаление проектов** — на странице «Проекты» (admin): «Создать проект» → `POST /api/projects` (JSON `{slug, title, description, accent?, icon?, order?, content?}`); редактирование и удаление — `PATCH`/`DELETE /api/projects/:slug` (кнопки на карточке/странице, только для созданных через UI). Бэкенд пишет в БД `projects` (метаданные + markdown-контент), **файлов и папок не создаёт** — проект сразу появляется в списке и открывается по `#/projects/<slug>`, без деплоя. Встроенные проекты (реестр) редактировать/удалять нельзя.
 - **Авторизация** — весь портал (SPA и API) закрыт входом: без сессии фронтенд показывает экран входа, API отвечает 401. Учётные записи хранятся в SQLite (таблицы `users` + `sessions`), пароли — только хэши scrypt; вход/выход по httpOnly `SameSite=Lax` cookie (`sid`, в проде `Secure`). Роли: `admin` (управление VPS, создание проектов, управление пользователями) и `user` (чтение). Первый администратор создаётся при старте из `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей), дальнейшие учётки — `npm run user -w backend` или админ-панель в приложении (по клику на бейдж «админ» в шапке). CLI входит в деплой (`server/scripts/users.mjs`), поэтому учётками можно управлять и прямо на сервере. Эндпоинты: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`, `PATCH /api/auth/profile`, админ-эндпоинты `/api/auth/admin/users*`. Имя и пароль своей учётки пользователь меняет сам на странице «Профиль» (по клику на имя в шапке).
@@ -161,7 +160,7 @@ cd /var/www/family.rybnikov.su/server
 | `frontend/.env` | Vite (только `VITE_*`)                      | `VITE_API_BASE_URL`                                                                                                            |
 
 - **Корневой `.env` / `.env.example`** — конфигурация **деплоя** (SSH-хост, пользователь, пути на сервере, имя pm2-приложения). Загружается `scripts/deploy.mjs` собственным мини-загрузчиком. Шаблон — `.env.example` в корне.
-- **`backend/.env.example`** — конфигурация **рантайма бэкенда**: порт API (`PORT`), разрешённый CORS-origin (`CORS_ORIGIN`), окружение (`NODE_ENV`), путь к SQLite-базе (`DB_PATH`, по умолчанию `data/vps.sqlite`; в той же БД — таблица `projects`), а также авторизация: `AUTH_COOKIE_NAME` (имя cookie сессии, `sid`), `SESSION_TTL_HOURS` (срок жизни сессии, 168 ч), `AUTH_BOOTSTRAP_PASSWORD`/`AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME` (создание первого администратора при старте, если в БД нет пользователей). Модуль «Ремонт» — `RENOVATION_DB_PATH`/`RENOVATION_DOCS_DIR` (каталог загруженных PDF)/`RENOVATION_PROJECTS_DIR`/`RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT`. В dev подхватывается `dotenv` из `backend/.env`; в проде — из `server/.env`, который сохраняется при деплое. Переменной `PROJECTS_DIR` больше нет — проекты хранятся в БД.
+- **`backend/.env.example`** — конфигурация **рантайма бэкенда**: порт API (`PORT`), разрешённый CORS-origin (`CORS_ORIGIN`), окружение (`NODE_ENV`), путь к SQLite-базе (`DB_PATH`, по умолчанию `data/vps.sqlite`; в той же БД — таблица `projects`), а также авторизация: `AUTH_COOKIE_NAME` (имя cookie сессии, `sid`), `SESSION_TTL_HOURS` (срок жизни сессии, 168 ч), `AUTH_BOOTSTRAP_PASSWORD`/`AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME` (создание первого администратора при старте, если в БД нет пользователей). Модуль «Ремонт» — `RENOVATION_DB_PATH`/`RENOVATION_DOCS_DIR` (каталог загруженных PDF)/`RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT`. В dev подхватывается `dotenv` из `backend/.env`; в проде — из `server/.env`, который сохраняется при деплое. Переменной `PROJECTS_DIR` больше нет — проекты хранятся в БД.
 - **`frontend/.env.example`** — конфигурация **фронтенда**: только переменные с префиксом `VITE_`. `VITE_API_BASE_URL` задаёт базовый URL API (пусто → Vite dev-прокси `/api` → `:3000`), используется в `src/api/client.ts`.
 
 Общее правило: `.env.example` — документированный шаблон в git; реальный `.env` — локальный/серверный, в git не попадает (см. `.gitignore`).
@@ -203,7 +202,7 @@ cd /var/www/family.rybnikov.su/server
 
 - `/var/www/family.rybnikov.su/public_html` — сама папка **никогда не удаляется**. При деплое удаляются только файлы верхнего уровня (`index.html` и т.п.) и подпапка `assets/` (результат сборки Vite), а прочие подпапки (например `.well-known`) сохраняются.
 - `/var/www/family.rybnikov.su/server` — папка не удаляется, содержимое очищается, **`.env`, `data/` (SQLite-базы) и `docs/` (загруженные PDF «Ремонта») сохраняются** (не перезаписываются и не удаляются).
-- **Источник «Ремонта»** (`projects/renovation/` репозитория): копируется в `server/renovation-source/` на сервере — это источник данных для seed БД «Ремонта» (`--seed-renovation`), не веб-контент. Статичные страницы проектов деплой НЕ зеркалирует (все проекты живут в приложении); существующий статичный архив в `public_html/projects/` на сервере не удаляется и больше не обновляется.
+- **`projects/` репозитория** (история «Ремонта» + архивированные навыки) на сервер не копируется; `server/renovation-source/` и seed «Ремонта» упразднены. Статичные страницы проектов деплой не зеркалирует (все проекты живут в приложении); статичный архив `public_html/projects/` на сервере удалён.
 
 Посмотреть, что именно выполняется на сервере, без деплоя:
 

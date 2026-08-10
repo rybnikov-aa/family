@@ -10,12 +10,12 @@
 
 ## 0. Контекст
 
-Статичные страницы `projects/renovation/` содержат всю отчётность ремонта (смета, акты работ,
-заказы материалов, взаиморасчёты, отчёты). Их «логика» сейчас живёт в HTML-файлах как данных и в
-навыках-промптах (`.github/skills/project-renovation-update-from-pdf`,
-`project-renovation-build-reports`). Цель модуля — перенести эти данные в **отдельную БД
-`data/renovation.sqlite`** и, далее (этапы 2+), перевести просмотр и расчёт в приложение
-(React + Express). Статичные страницы при этом остаются read-only архивом.
+Статичные страницы `projects/renovation/` содержали всю отчётность ремонта (смета, акты работ,
+заказы материалов, взаиморасчёты, отчёты). Цель модуля — перенести эти данные в **отдельную БД
+`data/renovation.sqlite`** и перевести просмотр и расчёт в приложение (React + Express).
+Статичные HTML и старые навыки `project-renovation-*` теперь — только история (архив `projects/`
+и `projects/skills-archive/`), приложение с ними не работает; наполнение БД — через импорт PDF
+в приложении.
 
 Текущий статус — **этапы 1–7 выполнены**: домен, отдельная БД, seed-импорт с верификацией;
 read-API `/api/renovation/*`, страница приложения `#/projects/renovation` (сводка
@@ -35,11 +35,10 @@ PDF во встроенном просмотрщике); кнопка «Доп. 
 - 20.1 Данные ремонта живут в отдельной БД `data/renovation.sqlite` (путь — `RENOVATION_DB_PATH`,
   по умолчанию `data/renovation.sqlite` рядом с `backend/`). Это **не** `DB_PATH`
   (`data/vps.sqlite`) — базы разных модулей. Обе сохраняются при деплое (`server/data/`).
-- 20.2 Первичное наполнение — из статичных HTML `projects/renovation/` скриптом
-  `npm run seed:renovation -w backend` (`backend/scripts/seed-renovation.mjs`). Скрипт
-  идемпотентен (очищает таблицы модуля и наполняет заново) и **верифицирует** импорт:
-  суммы позиций сходятся с итогами документов, пораздельные итоги сметы — с
-  «Итого по всем разделам», накопленный баланс ведомостей — с итогом.
+- 20.2 Наполнение — **штатное, через импорт PDF в приложении** (admin): `POST /api/renovation/pdf`
+  → черновик → подтверждение; идемпотентность тип+дата → 409. Seed из статичных HTML убран
+  (скрипт `seed-renovation.mjs` и команда `seed:renovation` удалены; первичные данные внесены
+  исторически этим скриптом).
 - 20.3 Денежные и количественные значения хранятся **целыми копейками (×100)**, каноническая
   логика — `backend/src/services/renovation/domain/money.ts` (`parseDecimal`, `parseKopecks`,
   `sumKopecks`, `overheadOf`, `formatKopecks`). Причина: REAL в SQLite неточен, а сверка
@@ -65,8 +64,8 @@ PDF во встроенном просмотрщике); кнопка «Доп. 
 
 ## 3. Схема БД (`data/renovation.sqlite`)
 
-Схема задана в `backend/scripts/seed-renovation.mjs` (блок `SCHEMA`, `CREATE TABLE IF NOT EXISTS`)
-и является источником для `db/renovationDatabase.ts` на этапе API. Таблицы:
+Схема задана в `backend/src/db/renovationDatabase.ts` (блок `SCHEMA`, `CREATE TABLE IF NOT EXISTS`).
+Таблицы:
 
 - `renovation_meta` — реквизиты (одна строка, `id=1`).
 - `estimate_versions` + `estimate_items` — версии сметы и позиции (снапшот на версию).
@@ -84,34 +83,22 @@ PDF во встроенном просмотрщике); кнопка «Доп. 
 - `estimate_versions`: `total_no_overhead`/`overhead`/`total` из блока `doc-summary`; у
   доп. соглашений (`addendum`) — только `total` (= `total-big`).
 
-## 4. Seed-импорт
+## 4. Наполнение БД (штатное)
 
-- Скрипт: `backend/scripts/seed-renovation.mjs` (ESM, `node:sqlite`, без сборки — как
-  `scripts/users.mjs`). Запуск: `npm run seed:renovation -w backend` (или
-  `node scripts/seed-renovation.mjs` из `backend/`).
-- Источник: `RENOVATION_PROJECTS_DIR` (по умолчанию `../projects/renovation` относительно
-  `backend/`). Обрабатываются: `estimate*.html` (кроме `estimates.html` — навигация),
-  `Works/*.html`, `Materials/*.html` (акты/заказы/ведомости).
-- Классификация файлов: `estimate_seed` → seed; `estimate_add_*` → addendum; `estimate_*` →
-  history; `estimate.html` → current; `Works/act_*_settlement.html` → ведомость по работам;
-  `Materials/report_*_settlement.html` → ведомость по материалам; `Works/act_*.html` →
-  work_act; `Materials/report_*.html` → material_order.
-- Парсинг HTML — регулярками по регулярной разметке документов (секции `.section`/`.section-title`,
-  классы колонок `col-*`, блоки `doc-summary`, `totals-block`, `doc-sources`); шапки таблиц
-  (`<th>`) пропускаются.
-- **Верификация** (встроена в скрипт, печатает ✓/✗ по каждому файлу):
-  - смета: сумма позиций раздела = итог раздела; сумма всех позиций = «Итого по всем разделам»;
-    «Итого по всем разделам» + накладные = «Итого»; grand = «Итого»;
-  - акт работ: сумма позиций = «Итого по всем разделам»; итого + накладные = итого с накладными;
-  - заказ материалов: накладная = итог − сумма позиций; ожидаемая накладная — 0% или ровно 10%
-    (иначе — предупреждение на ручную проверку);
-  - ведомость: накопленный баланс строк = балансу каждой строки и строке «Всего»
-    (строка-подсумма «Подотчетные прораба» уменьшает баланс).
+- Данные в `data/renovation.sqlite` ведутся **в приложении** — через импорт PDF (admin):
+  `POST /api/renovation/pdf` (pdfplumber → черновик) → `POST /pdf/:id/confirm` (запись в БД);
+  идемпотентность тип+дата → 409. Доп. соглашения применяются к смете через
+  `POST /estimate/addendum/confirm` (версионирование). Ведомости взаиморасчётов — кумулятивные
+  (правило 20.5).
+- **Seed из статичных HTML убран**: скрипт `seed-renovation.mjs`, команда `seed:renovation`,
+  переменная `RENOVATION_PROJECTS_DIR`, деплой-флаг `--seed-renovation` и каталог
+  `server/renovation-source/` удалены. Повторная инициализация с нуля — только загрузкой PDF
+  через приложение.
 
 ## 5. Read-API и страница приложения (этап 2 — реализовано)
 
-- Бэкенд: `db/renovationDatabase.ts` (синглтон + схема из `SCHEMA` seed-скрипта),
-  `db/renovationRepository.ts` (чтение), `services/renovation/overview.ts` (сводка),
+- Бэкенд: `db/renovationDatabase.ts` (синглтон + схема), `db/renovationRepository.ts` (чтение),
+  `services/renovation/overview.ts` (сводка),
   `controllers/renovationController.ts`, `routes/renovation.ts`; монтирование —
   `app.use('/api/renovation', requireAuth, renovationRouter)`.
 - Эндпоинты (полная таблица и форматы — `docs/specification-api.md` §2.5/3.3):
@@ -206,7 +193,7 @@ PDF во встроенном просмотрщике); кнопка «Доп. 
   «Ремонт»): выбор PDF → загрузка → предпросмотр черновика (тип/дата/позиции/итог/предупреждения)
   → «Подтвердить импорт» → перезагрузка сводки.
 - **Ограничения автоматики:** на PDF без линий таблиц разбор построчный и может требовать
-  ручной проверки (`needsReview`); fallback — навык `project-renovation-update-from-pdf`.
+  ручной проверки (`needsReview`).
 
 ### 5.1.1. Сохранение загруженных PDF и просмотр в приложении
 
@@ -235,9 +222,8 @@ PDF во встроенном просмотрщике); кнопка «Доп. 
   `server/docs/renovation/` с именами по тем же правилам (акты/заказы/ведомости —
   `pdfFileName`, смета — `estimate.pdf`, доп. соглашения — `addendum_<дата>_<id>.pdf`), а
   `pdf_path` в БД переписан на `/api/renovation/docs/<file>` (все таблицы: `estimate_versions`,
-  `renovation_docs`, `settlement_acts`). ВНИМАНИЕ: повторный
-  `--seed-renovation` восстанавливает `pdf_path` из `.doc-sources` (URL статичного архива) —
-  после пересева перенос нужно применить заново.
+  `renovation_docs`, `settlement_acts`). Статичный архив `public_html/projects/` на сервере удалён;
+  оставшиеся PDF и фотографии сохранены в `server/docs/renovation/legacy/`.
 - **Документы дизайн-проекта** — подпапка `design/` каталога документов
   (`docs/renovation/design/`; имена файлов — безопасные `[a-z0-9._-]`, человекочитаемые
   заголовки — карта `DESIGN_TITLES` в `pdfStore.ts`). Список — `GET /api/renovation/design`
@@ -345,9 +331,10 @@ PDF во встроенном просмотрщике); кнопка «Доп. 
   `server/.env` (см. `docs/server.md`); БД `data/renovation.sqlite` сохраняется при деплое
   (как и `data/vps.sqlite`). Деплой — `npm run deploy` (см. `scripts/deploy.mjs`).
 
-## 6. Критерии приёмки (этапы 1–6)
+## 6. Критерии приёмки (этапы 1–7)
 
-- [x] `npm run seed:renovation -w backend`: по каждому файлу ✓, «Верификация: все суммы сходятся ✓».
+- [x] Данные внесены штатно: импорт PDF через приложение (`POST /api/renovation/pdf` → черновик →
+      подтверждение) пишет записи в БД и сохраняет PDF в `docs/renovation/` (проверено curl + браузер).
 - [x] В `data/renovation.sqlite`: 6 версий сметы, 5 документов (1 акт + 4 заказа), 3 ведомости;
       `renovation_meta` заполнена (объект, договор, подрядчик, дата старта).
 - [x] Суммы в БД (копейки) совпадают с HTML: итоги сметы (`2 040 010,48` у `current`),
@@ -394,8 +381,8 @@ PDF во встроенном просмотрщике); кнопка «Доп. 
 грабли, зафиксированные при импорте:
 
 - **Копейки (×100).** REAL в SQLite неточен; сверка «суммы сходятся» и пересчёт накладных должны
-  быть детерминированными. Канон — `domain/money.ts`; в seed-скрипте логика продублирована без
-  сборки (как `scripts/users.mjs`).
+  быть детерминированными. Канон — `domain/money.ts` (используется импортом PDF, отчётами и
+  доп. соглашениями).
 - **Оба десятичных разделителя.** В PDF/HTML встречаются и запятая (`141 127,88`), и точка
   (`134 407.50`); разделитель тысяч — пробел/неразрывный пробел. Нормализация — в `parseDecimal`.
 - **Минус — U+2212 (`−`), не ASCII.** В PDF/HTML отрицательные суммы записаны символом U+2212
@@ -418,10 +405,11 @@ PDF во встроенном просмотрщике); кнопка «Доп. 
   соглашениях — обычный `<div>` + `.section-title`. Парсер `parseTablesWithSections` находит
   таблицы и назначает им ближайший предшествующий `section-title`. Шапки таблиц (`<th>`) в данные
   не идут.
-- **HTML-парсинг — только в seed-скрипте.** После наполнения БД новые данные попадают через
-  приложение (импорт PDF, `pdfplumber`), а не из HTML. Источник истины — БД, а не HTML.
-- **Репозиторий на этап API.** `db/renovationDatabase.ts`/`db/renovationRepository.ts` создаются
-  на этапе 2 (read-API), схема — из блока `SCHEMA` seed-скрипта (единый источник).
+- **Наполнение — только через приложение.** Источник истины — БД `data/renovation.sqlite`;
+  новые данные попадают в неё только через импорт PDF (`pdfplumber`, `POST /api/renovation/pdf`).
+  HTML-парсинг из статичного архива (seed) удалён вместе со скриптом `seed-renovation.mjs`.
+- **Репозиторий и схема.** `db/renovationDatabase.ts`/`db/renovationRepository.ts` — схема задана
+  в `db/renovationDatabase.ts` (единый источник, блок `SCHEMA`).
 - **Prettier на Windows.** `npm run format` = `prettier --write .` переписывает все файлы CRLF→LF,
   создавая шум в `git status` (M без содержательных изменений). Форматировать только изменяемые
   файлы. `.prettierignore` исключает `.venv/`, `dist/`, `node_modules/`, `temp/` (иначе локальный
@@ -440,3 +428,25 @@ PDF во встроенном просмотрщике); кнопка «Доп. 
 - **Версионирование транзакцией.** `applyAddendumVersion` выполняет UPDATE старой `current` +
   перезапись её позиций + INSERT новой `current` + позиций в одном BEGIN/COMMIT (ROLLBACK при
   ошибке) — старое и новое состояние никогда не видны «наполовину».
+
+## 8. Устаревший статичный поток (история)
+
+Раньше «Ремонт» вёл отчётность как **статичные HTML** (`projects/renovation/`): PDF распознавался
+вручную/навыком `project-renovation-update-from-pdf` в HTML-документ (смета, акты, заказы,
+ведомости), затем навык `project-renovation-build-reports` строил HTML-отчёты. Этот поток
+**упразднён**; его роль полностью выполняет приложение:
+
+- **Разбор PDF** → `services/renovation/import/*` (`pdfExtractor`, `classify`, `draft`, `draftStore`)
+  через `POST /api/renovation/pdf` (тип по ключевым словам, дата из имени/строк, черновик).
+- **Классификация документов** (акт работ / заказ материалов / ведомость / доп. соглашение) —
+  `services/renovation/import/classify.ts`.
+- **Отчётность** (план vs факт, материалы, взаиморасчёты) — `services/renovation/reports.ts`
+  (`buildWorkReport`, `buildMaterialsReport`) и `services/renovation/overview.ts` (сводка).
+- **Доп. соглашения** — `services/renovation/addendum.ts` (дифф по `normalizeName`, версионирование).
+- **Деньги/количество** — `domain/money.ts` (копейки ×100); доменные правила (кумулятивные
+  ведомости, разметка версий) — разделы 1–2.
+
+Архивные артефакты (только история, не использовать): статичные HTML `projects/renovation/`,
+общие ассеты `projects/styles.css`/`theme.js`/`icon-sprite.svg`, навыки `project-renovation-*`
+(`projects/skills-archive/`). На сервере статичный архив `public_html/projects/` удалён; оставшиеся
+PDF и фотографии — в `server/docs/renovation/legacy/`.

@@ -4,7 +4,8 @@ import type { EstimateItem, EstimateVersion } from './domain/types';
 /**
  * Применение доп. соглашения к смете (этап 4).
  *
- * Модель (из навыка `project-renovation-update-from-pdf`):
+ * Модель (из архивного навыка `project-renovation-update-from-pdf`,
+ * `projects/skills-archive/`):
  * - позиции доп. соглашения сопоставляются с позициями актуальной сметы по
  *   нормализованному наименованию: точное совпадение → «обновить» (changed),
  *   отсутствие → «новая» (new); позиции сметы, не затронутые соглашением, по

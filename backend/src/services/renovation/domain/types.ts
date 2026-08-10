@@ -7,8 +7,8 @@
  * (количество тоже ×100), см. `domain/money.ts`.
  *
  * Источник данных — отдельная БД `data/renovation.sqlite` (см.
- * `docs/specification-renovation.md`); первичное наполнение — из статичных
- * HTML `projects/renovation/` скриптом `backend/scripts/seed-renovation.mjs`.
+ * `docs/specification-renovation.md`); наполняется штатно — через импорт PDF
+ * в приложении (POST /api/renovation/pdf).
  */
 
 /** Тип версии сметы (соответствует файлам `estimate*.html`). */

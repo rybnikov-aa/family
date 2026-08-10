@@ -6,23 +6,22 @@
 
 ## Команды
 
-| Команда                              | Что делает                                                                                                          |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`                        | Фронтенд + бэкенд одновременно (concurrently)                                                                       |
-| `npm run build`                      | Сборка frontend (`tsc --noEmit && vite build`) + backend (`vite build`)                                             |
-| `npm run typecheck`                  | `tsc --noEmit` во всех воркспейсах — **единственный статический gate** (lint/тестов нет)                            |
-| `npm run format`                     | Prettier (`.prettierrc.json`: singleQuote, semi, printWidth 100, trailingComma all)                                 |
-| `npm run start -w backend`           | Запуск собранного бэкенда (`node dist/app.cjs`) — `start` есть только в backend-воркспейсе                          |
-| `npm run deploy`                     | `node scripts/deploy.mjs`; флаги: `--no-build`, `--no-restart`, `--print-script`, `--print-config`                  |
-| `npm run seed:renovation -w backend` | Импорт данных «Ремонта» из `projects/renovation/` в `data/renovation.sqlite` (этап 1 переноса; с верификацией сумм) |
+| Команда                    | Что делает                                                                                         |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
+| `npm run dev`              | Фронтенд + бэкенд одновременно (concurrently)                                                      |
+| `npm run build`            | Сборка frontend (`tsc --noEmit && vite build`) + backend (`vite build`)                            |
+| `npm run typecheck`        | `tsc --noEmit` во всех воркспейсах — **единственный статический gate** (lint/тестов нет)           |
+| `npm run format`           | Prettier (`.prettierrc.json`: singleQuote, semi, printWidth 100, trailingComma all)                |
+| `npm run start -w backend` | Запуск собранного бэкенда (`node dist/app.cjs`) — `start` есть только в backend-воркспейсе         |
+| `npm run deploy`           | `node scripts/deploy.mjs`; флаги: `--no-build`, `--no-restart`, `--print-script`, `--print-config` |
 
 ## Архитектура (кратко)
 
 - **Backend** (`backend/src/`): `app.ts` экспортирует `app` (Express); роуты `/api/health`, `/api/auth`, `/api/vps`, `/api/projects`, `/api/renovation` → контроллеры → сервисы. Хранилище VPS — SQLite (`node:sqlite`): `db/database.ts` (синглтон `getDb()`, WAL + foreign_keys), `db/vpsRepository.ts`. Проверка доступности — `services/vpsChecker.ts` (кэш 30с + in-flight dedup, `?refresh=1` форсирует). **Live-binding:** после INSERT/DELETE VPS всегда вызывать `reloadVpsEntries()` (`config/vps.ts` перечитывает список из БД; работает и в ESM, и в CJS-бандле).
 - **Авторизация** — весь портал закрыт входом (SPA + API). Пользователи/сессии — SQLite (`users`/`sessions`), пароли — только scrypt; токен в БД — SHA-256, клиенту — httpOnly `SameSite=Lax` cookie `sid`. `requireAuth` на роутах `/api/vps` и `/api/projects`, `requireAdmin` — на мутациях (POST/DELETE VPS, импорт, создание проекта); `/api/health` и `POST /api/auth/login` — публичны. Bootstrap-админ из `AUTH_BOOTSTRAP_PASSWORD` (при пустой `users`); учётки — `npm run user -w backend` (`backend/scripts/users.mjs`). Фронт: `hooks/useAuth.tsx` + `pages/LoginPage.tsx` + гейт в `App.tsx`; роль `admin` гейтит UI (VPS CRUD, создание проекта).
 - **Frontend** (`frontend/src/`): `createHashRouter` (react-router-dom v7) — **hash-роутинг обязателен** (nginx `try_files ... =404`, нет SPA-fallback). HTTP-клиент `api/client.ts` (`VITE_API_BASE_URL ?? '/api'`; dev-прокси `/api`→`:3000`; на 401 рассылает `auth:unauthorized` → `useAuth` показывает вход). Тема light/dark/system — `hooks/useTheme.ts` + CSS-переменные в `styles/tokens.css` + инлайн-скрипт в `index.html` (без «мигания»). Стили разбиты на модули `frontend/src/styles/*.css` (`tokens/base/layout/pages/modal/forms/content/responsive/login/renovation`), точка входа — `index.css` с `@import`; новые правила — в соответствующий модуль, без инлайн-`<style>` в компонентах. Тяжёлые страницы (`RenovationPage`, `AdminUsersPage`, `ProfilePage`) грузятся лениво — `React.lazy` + `Suspense` в `App.tsx` (отдельные чанки). **Кликабельная карточка с вложенной кнопкой** (паттерн карточки VPS): `<div role="button" tabIndex={0}>`; вложенная кнопка вызывает `event.stopPropagation()`, чтобы не открывать карточку.
-- **Проекты** (`projects/`): источник данных «Ремонта» + общие ассеты его статичного архива. Раздел «Проекты» — **прикладной**: встроенный реестр `backend/src/config/appProjects.ts` (например, «Ремонт`) + записи БД `projects`(созданные через UI),`kind: 'app'`. `listProjects`объединяет реестр и БД (скан файловой системы отсутствует). Создание/изменение/удаление —`POST`/`PATCH`/`DELETE /api/projects`(admin): запись в БД (метаданные + markdown-контент), файлы/папки не создаются; встроенные проекты (реестр) — read-only. Страницы проектов — SPA-маршруты`#/projects/<slug>` (`ProjectPage`рендерит markdown). Деплой статичные страницы проектов не зеркалирует;`projects/renovation/`копируется в`server/renovation-source/` как источник seed «Ремонта».
-- **Модуль «Ремонт» (`renovation`) — этапы 1–7 (data-слой + read-API + импорт PDF + доп. соглашения + отчёты + переключение карточки + модалки документов):** отчётность `projects/renovation/` переносится в отдельную БД `data/renovation.sqlite` (`RENOVATION_DB_PATH`, не путать с `DB_PATH`). Домен — `services/renovation/domain/` (`types.ts` — модели, `money.ts` — деньги/количество в копейках). Наполнение — `npm run seed:renovation -w backend` (`scripts/seed-renovation.mjs`, ESM без сборки): парсит HTML проекта и верифицирует суммы. Схема БД задана в скрипте (блок `SCHEMA`) — источник для `db/renovationDatabase.ts`. Read-API — `routes/renovation.ts` + `controllers/renovationController.ts` + `db/renovationRepository.ts` + `services/renovation/overview.ts` (сводка); страница `#/projects/renovation` (`pages/RenovationPage.tsx`, `hooks/useRenovationOverview.ts`, `utils/money.ts`). Импорт PDF (этап 3): `pdfplumber` через subprocess (`scripts/extract_pdf.py`, `services/renovation/import/*`: `pdfExtractor`/`classify`/`draft`/`draftStore`), `POST /api/renovation/pdf` → черновик → `POST /pdf/:id/confirm` (идемпотентность тип+дата → 409); модалка `components/RenovationPdfModal.tsx`. Сохранение загруженных PDF — `services/renovation/import/pdfStore.ts` (каталог `RENOVATION_DOCS_DIR`, по умолчанию `docs/renovation`; сохраняется при деплое), раздача — `GET /api/renovation/docs/:file` (под авторизацией), просмотр — `components/PdfViewerModal.tsx` (pdf.js, ленивый чанк); «Отчёт №N» в «Материалы» и в отчёте «Материалы» — ссылки на исходные PDF. Документы дизайн-проекта (этап 7) — подпапка `design/` каталога документов (`listDesignDocs`/`designPdfUrl`/`resolveStoredDesignPdf` в `pdfStore.ts`), список — `GET /api/renovation/design`, раздача — `GET /api/renovation/docs/design/:file`; кнопки «Дизайн-проект» (`components/RenovationDesignModal.tsx`) и «Смета» (`components/RenovationEstimateModal.tsx`, версии из БД + «Доп. соглашение» для admin) на странице «Ремонт» открывают модальные окна вместо прямых ссылок на статичный архив. Доп. соглашения (этап 4): движок диффа `services/renovation/addendum.ts` (`normalizeName`/`buildAddendumProposal`/`newItemsAfter`/`historyItemsAfter`/`totalsAfter`, накладные 5%), `POST /estimate/addendum` → предложение, `POST /estimate/addendum/confirm` → версионирование (`applyAddendumVersion` в транзакции: старая `current` → `history` с датой соглашения, удалённые строки — `removed`); модалка `components/AddendumModal.tsx`. Отчёты (этап 5): `services/renovation/reports.ts` (`buildWorkReport` — план vs факт по `normalizeName`, `buildMaterialsReport`), `GET /reports/work` + `GET /reports/materials`, ссылки «Ход работ»/«Закупка материалов» в карточках «Работы»/«Материалы» (открытие отчёта в модальном окне `Modal`) (`components/RenovationWorkReport.tsx`, `RenovationMaterialsReport.tsx`, `hooks/useRenovationReports.ts`). Переключение карточки (этап 6): прикладные (SPA) проекты — из реестра `backend/src/config/appProjects.ts` (`kind: 'app'`, `url` = внутренний маршрут без `#`); карточка «Ремонт» ведёт в `#/projects/renovation` (SPA), а не в статику. Подробно — `docs/specification-renovation.md`.
+- **Проекты** (`projects/`): источник данных «Ремонта» + общие ассеты его статичного архива. Раздел «Проекты» — **прикладной**: встроенный реестр `backend/src/config/appProjects.ts` (например, «Ремонт`) + записи БД `projects`(созданные через UI),`kind: 'app'`. `listProjects`объединяет реестр и БД (скан файловой системы отсутствует). Создание/изменение/удаление —`POST`/`PATCH`/`DELETE /api/projects`(admin): запись в БД (метаданные + markdown-контент), файлы/папки не создаются; встроенные проекты (реестр) — read-only. Страницы проектов — SPA-маршруты`#/projects/<slug>` (`ProjectPage`рендерит markdown). Локальная папка `projects/`— только история (статичный архив «Ремонта» + архивированные навыки`projects/skills-archive/`); деплой её не зеркалирует и seed из неё не делает.
+- **Модуль «Ремонт» (`renovation`) — этапы 1–7 (data-слой + read-API + импорт PDF + доп. соглашения + отчёты + переключение карточки + модалки документов):** отчётность `projects/renovation/` переносится в отдельную БД `data/renovation.sqlite` (`RENOVATION_DB_PATH`, не путать с `DB_PATH`). Домен — `services/renovation/domain/` (`types.ts` — модели, `money.ts` — деньги/количество в копейках). БД `data/renovation.sqlite` наполняется штатно — через импорт PDF в приложении (`POST /api/renovation/pdf` → черновик → подтверждение); seed из статичных HTML убран. Схема БД — в `db/renovationDatabase.ts`. Read-API — `routes/renovation.ts` + `controllers/renovationController.ts` + `db/renovationRepository.ts` + `services/renovation/overview.ts` (сводка); страница `#/projects/renovation` (`pages/RenovationPage.tsx`, `hooks/useRenovationOverview.ts`, `utils/money.ts`). Импорт PDF (этап 3): `pdfplumber` через subprocess (`scripts/extract_pdf.py`, `services/renovation/import/*`: `pdfExtractor`/`classify`/`draft`/`draftStore`), `POST /api/renovation/pdf` → черновик → `POST /pdf/:id/confirm` (идемпотентность тип+дата → 409); модалка `components/RenovationPdfModal.tsx`. Сохранение загруженных PDF — `services/renovation/import/pdfStore.ts` (каталог `RENOVATION_DOCS_DIR`, по умолчанию `docs/renovation`; сохраняется при деплое), раздача — `GET /api/renovation/docs/:file` (под авторизацией), просмотр — `components/PdfViewerModal.tsx` (pdf.js, ленивый чанк); «Отчёт №N» в «Материалы» и в отчёте «Материалы» — ссылки на исходные PDF. Документы дизайн-проекта (этап 7) — подпапка `design/` каталога документов (`listDesignDocs`/`designPdfUrl`/`resolveStoredDesignPdf` в `pdfStore.ts`), список — `GET /api/renovation/design`, раздача — `GET /api/renovation/docs/design/:file`; кнопки «Дизайн-проект» (`components/RenovationDesignModal.tsx`) и «Смета» (`components/RenovationEstimateModal.tsx`, версии из БД + «Доп. соглашение» для admin) на странице «Ремонт» открывают модальные окна вместо прямых ссылок на статичный архив. Доп. соглашения (этап 4): движок диффа `services/renovation/addendum.ts` (`normalizeName`/`buildAddendumProposal`/`newItemsAfter`/`historyItemsAfter`/`totalsAfter`, накладные 5%), `POST /estimate/addendum` → предложение, `POST /estimate/addendum/confirm` → версионирование (`applyAddendumVersion` в транзакции: старая `current` → `history` с датой соглашения, удалённые строки — `removed`); модалка `components/AddendumModal.tsx`. Отчёты (этап 5): `services/renovation/reports.ts` (`buildWorkReport` — план vs факт по `normalizeName`, `buildMaterialsReport`), `GET /reports/work` + `GET /reports/materials`, ссылки «Ход работ»/«Закупка материалов» в карточках «Работы»/«Материалы» (открытие отчёта в модальном окне `Modal`) (`components/RenovationWorkReport.tsx`, `RenovationMaterialsReport.tsx`, `hooks/useRenovationReports.ts`). Переключение карточки (этап 6): прикладные (SPA) проекты — из реестра `backend/src/config/appProjects.ts` (`kind: 'app'`, `url` = внутренний маршрут без `#`); карточка «Ремонт» ведёт в `#/projects/renovation` (SPA), а не в статику. Подробно — `docs/specification-renovation.md`.
 
 Подробно: [README.md](README.md) (структура, .env, деплой) · [docs/specification.md](docs/specification.md) (общая спецификация + модульные `specification-{api,vps,projects,auth,renovation}.md`) · [docs/server.md](docs/server.md) (nginx, SSL, сервер, диагностика).
 
@@ -30,13 +29,11 @@
 
 Специализированные роли — выбор в пикере чата. В локальном хранилище сессий интерактивные сессии пишутся как `GitHub Copilot Chat` (факт выбора агента в истории не виден), а реального «спавна» субагентов в этом окружении нет — «делегирование» означает ручной выбор в пикере.
 
-| Задача                                                          | Агент             |
-| --------------------------------------------------------------- | ----------------- |
-| Бэкенд (`backend/**`): API, SQLite, VPS-проверки, конфиг        | Backend Dev       |
-| Фронтенд (`frontend/**`): UI, хуки, тема, маршруты              | Frontend Dev      |
-| Сквозные фичи (бэкенд + фронтенд + синхронизация документации)  | Fullstack Dev     |
-| «Ремонт»: источник данных (`projects/**`), отчётность, PDF→HTML | Projects Dev      |
-| Read-only исследование проектов                                 | Projects Explorer |
+| Задача                                                         | Агент         |
+| -------------------------------------------------------------- | ------------- |
+| Бэкенд (`backend/**`): API, SQLite, VPS-проверки, конфиг       | Backend Dev   |
+| Фронтенд (`frontend/**`): UI, хуки, тема, маршруты             | Frontend Dev  |
+| Сквозные фичи (бэкенд + фронтенд + синхронизация документации) | Fullstack Dev |
 
 Fullstack Dev — **владелец контракта и координатор** сквозных фич: определяет API-контракт первым, сводит типы/хуки/контроллеры, гоняет `typecheck`, синхронно обновляет `docs/`. Для маленького монорепо он **делает работу напрямую** (исторически все сквозные фичи выполнены так, успешно и задеплоены) — субагентов задействовать **точечно**, только для изолированных суб-частей с жёстко заданным контрактом; его инструменты (`edit`/`execute`) не ограничивать.
 
@@ -70,21 +67,21 @@ Fullstack Dev — **владелец контракта и координато�
 5. **`app.listen` гейтится** в `app.ts`: слушать при `NODE_ENV=production` ЛИБО прямом запуске. Под pm2 `process.argv[1]` — враппер pm2 (не скрипт) → argv-проверка даёт `false`; основной сигнал — `NODE_ENV=production` (ставит деплой-скрипт). В dev Vite монтирует `app` сам — слушать нельзя.
    - Импорт PDF (этап 3): python-скрипт (`extract_pdf.py`) на Windows пишет в stdout в консольную кодировку (cp1251) — принудительно `sys.stdout.reconfigure(encoding='utf-8')`, иначе Node читает «кракозябры». JS `\b` не считает кириллицу word-char: `/\bитого\b/i` не матчит «Итого» — использовать без `\b`.
 6. **Язык.** Комментарии в коде и строки UI — на русском. Иконки — инлайн SVG-компоненты (`stroke=currentColor`) в `frontend/src/components/icons.tsx`.
-7. **Проект «Ремонт» (`projects/renovation/**`): работа начинается с загрузки навыков**
-   `project-renovation-update-from-pdf` и `project-renovation-build-reports` (`.github/skills/`).
-   - Строго соблюдать этапы: сначала PDF → HTML (навык `project-renovation-update-from-pdf`),
-     затем отчёты — **только из исходных HTML** (навык `project-renovation-build-reports`).
-     Не обновлять отчёты одновременно с распознаванием PDF.
-   - **Уже импортированные PDF повторно не распознавать** — сверять по типу и дате с
-     существующими `estimate*.html`, `Works/*.html`, `Materials/*.html`, `*_settlement.html`;
-     повторное распознавание только по явному запросу пользователя.
-   - Каждый исходный HTML обязан содержать блок `.doc-sources` со ссылкой на исходный PDF.
-8. **Конфиденциальность на публикуемых страницах ремонта (`projects/renovation/**`).**
-   - Не публиковать персональные данные заказчика: ФИО — ни в тексте, ни в `<title>`, ни в
-     подписях; в ролевых блоках — только роль («Заказчик», «Подрядчик») без имени.
-   - Не выводить блоки подписей (`signatures`, `approval`) — они бессмысленны в HTML.
-   - Имена PDF-файлов на сервере (`projects/renovation/pdf/**`) не должны содержать ФИО
-     заказчика; при обнаружении — переименовать и обновить ссылки.
+7. **Модуль «Ремонт» (`renovation`): данные ведутся в приложении, seed из статичных HTML убран.**
+   - Новые документы добавляются через импорт PDF (admin, модалка «Импорт PDF»):
+     `POST /api/renovation/pdf` → черновик → подтверждение; идемпотентность тип+дата → 409.
+     PDF, уже сохранённые в БД (тип+дата), повторно не импортировать.
+   - Документы сметы и дизайн-проекта — модалки «Смета»/«Дизайн-проект» (данные из БД и
+     хранилища `docs/renovation/`); просмотр PDF — встроенным просмотрщиком `PdfViewerModal`.
+   - Статичные HTML `projects/renovation/**` и старые навыки `project-renovation-*` — только
+     история: архив `projects/skills-archive/`; не использовать, не править, не загружать как навыки.
+8. **Конфиденциальность в документах «Ремонта».**
+   - Не публиковать персональные данные заказчика: ФИО — ни в тексте документов, ни в
+     заголовках, ни в подписях; в ролевых блоках — только роль («Заказчик», «Подрядчик»)
+     без имени.
+   - Блоки подписей (`signatures`, `approval`) не выводить — они бессмысленны в электронном виде.
+   - Имена PDF-файлов в хранилище документов (`server/docs/renovation/**`) не должны содержать
+     ФИО заказчика; при обнаружении — переименовать и обновить ссылки в БД.
 9. **Многошаговые задачи.** При сериях команд со ссылками на пункты («выполни пункт N»,
    «далее…», «после этого…») фиксировать план в todo-списке и сверяться с ним на каждом шаге.
    Перед откатом/возвратом «как было» показать, что именно будет изменено, и подтвердить.
@@ -128,7 +125,7 @@ Fullstack Dev — **владелец контракта и координато�
 
 ## Деплой (кратко)
 
-`scripts/deploy.mjs`: сборка → tar → scp → remote-скрипт (nginx не трогает). На сервере сохраняются: `server/.env`, `server/data/` (SQLite), `server/docs/` (загруженные PDF «Ремонта»), `.well-known/`. Статичные страницы проектов не зеркалируются (все проекты в приложении); папка `projects/renovation/` репозитория копируется в `server/renovation-source/` как источник seed «Ремонта» (`--seed-renovation`). Бэкап папок проектов не выполняется. Детали — в [README.md](README.md) «Деплой» и [docs/server.md](docs/server.md).
+`scripts/deploy.mjs`: сборка → tar → scp → remote-скрипт (nginx не трогает). На сервере сохраняются: `server/.env`, `server/data/` (SQLite), `server/docs/` (загруженные PDF «Ремонта»), `.well-known/`. Статичные страницы проектов не зеркалируются, `projects/` репозитория на сервер не копируется (папка — история; seed «Ремонта» убран). Бэкап папок проектов не выполняется. Детали — в [README.md](README.md) «Деплой» и [docs/server.md](docs/server.md).
 
 ## Типичные грабли
 

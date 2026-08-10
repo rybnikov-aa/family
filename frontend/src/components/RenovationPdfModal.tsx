@@ -35,8 +35,7 @@ function typeLabel(draft: RenovationDraftSummary): string {
 /**
  * Импорт PDF в модуль «Ремонт» (этап 3, admin):
  * загрузка → черновик (тип/дата/позиции/итог) → подтверждение записи в БД.
- * Если автоматический разбор неполный (`needsReview`) — показываем предупреждение;
- * fallback для сложных PDF — навык `project-renovation-update-from-pdf`.
+ * Если автоматический разбор неполный (`needsReview`) — показываем предупреждение.
  */
 function RenovationPdfModal({ onClose, onImported }: RenovationPdfModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);

@@ -9,8 +9,6 @@
  *   4. On the server: extract to
  *        - /var/www/family.rybnikov.su/public_html  (frontend)
  *        - /var/www/family.rybnikov.su/server       (backend)
- *      Renovation source: the repo's projects/renovation folder (source HTML
- *      for the «Ремонт» DB seed) is copied to $SERVER/renovation-source.
  *      Static project pages are NOT deployed anymore — all projects live in
  *      the app (SQLite) and are served via the SPA at /projects/<slug>.
  *   5. Install production deps (npm install --omit=dev)
@@ -21,7 +19,6 @@
  *   npm run deploy -- --no-build    # skip local build
  *   npm run deploy -- --no-restart  # skip pm2 restart
  *   npm run deploy -- --no-pdf-setup      # skip provisioning python+pdfplumber for PDF import
- *   npm run deploy -- --seed-renovation   # re-seed «Ремонт» DB from deployed HTML (RESETS it)
  *
  * Configuration via env vars (all optional):
  *   DEPLOY_HOST          default: family.rybnikov.su
@@ -104,9 +101,6 @@ const cfg = {
   // + RENOVATION_* в server/.env. Отключить: --no-pdf-setup или DEPLOY_PDF_SETUP=0.
   pdfSetup:
     !process.argv.includes('--no-pdf-setup') && (process.env.DEPLOY_PDF_SETUP ?? '1') !== '0',
-  // Пересев БД «Ремонта» из задеплоенных HTML. ВНИМАНИЕ: сбрасывает data/renovation.sqlite
-  // (стирает данные, импортированные через приложение). Только по явному флагу.
-  seedRenovation: process.argv.includes('--seed-renovation'),
 };
 
 const target = `${cfg.user}@${cfg.host}`;
@@ -214,16 +208,6 @@ mkdir -p "$PUBLIC"
 find "$PUBLIC" -maxdepth 1 -type f -delete
 rm -rf "$PUBLIC/assets"
 cp -a /tmp/family-deploy/frontend/. "$PUBLIC"/
-
-# 2b. Copy the «Ремонт» source (projects/renovation) into the backend dir.
-#     It is the data source for the renovation DB seed (--seed-renovation), not
-#     web content: static project pages are no longer deployed — all projects
-#     live in the app (SQLite) and are served via the SPA at /projects/<slug>.
-if [ -d /tmp/family-deploy/renovation-source ]; then
-  rm -rf "$SERVER/renovation-source"
-  cp -a /tmp/family-deploy/renovation-source "$SERVER/renovation-source"
-  echo "[deploy] Renovation source copied to $SERVER/renovation-source"
-fi
 
 # 3. Replace backend files (server).
 #    The folder itself is kept; .env, data/ (SQLite DB) and docs/
@@ -338,17 +322,6 @@ else
   echo "[deploy] restart skipped (--no-restart)"
 fi
 
-# 5b. Опциональный пересев БД «Ремонта» из задеплоенного источника HTML
-#     ($SERVER/renovation-source). ВНИМАНИЕ: seed сбрасывает data/renovation.sqlite
-#     (стирает импортированное через приложение). Только явно: npm run deploy -- --seed-renovation.
-if ${cfg.seedRenovation ? 'true' : 'false'}; then
-  echo "[deploy] Re-seeding renovation DB from $SERVER/renovation-source ..."
-  cd "$SERVER"
-  RENOVATION_PROJECTS_DIR="$SERVER/renovation-source" \\
-    node scripts/seed-renovation.mjs || \\
-    echo "[deploy] WARN: seed-renovation failed — run manually (см. docs/server.md)"
-fi
-
 # 6. Cleanup temp files
 rm -f "${REMOTE_TAR}" ${REMOTE_SCRIPT_PATH}
 rm -rf /tmp/family-deploy
@@ -366,7 +339,6 @@ function main() {
   console.log(`  build       : ${cfg.build ? 'yes' : 'no (--no-build)'}`);
   console.log(`  restart     : ${cfg.restart ? 'yes' : 'no (--no-restart)'}`);
   console.log(`  pdf setup   : ${cfg.pdfSetup ? 'yes' : 'no'}`);
-  console.log(`  seed renov  : ${cfg.seedRenovation ? 'yes (resets DB)' : 'no'}`);
 
   // Just print the resolved config and exit (no deployment)
   if (process.argv.includes('--print-config')) {
@@ -434,24 +406,10 @@ function main() {
       cpSync(backendScripts, join(stageBackend, 'scripts'), { recursive: true, force: true });
     }
 
-    // Renovation source -> $SERVER/renovation-source/ (data source for the
-    // «Ремонт» DB seed, `--seed-renovation`). Static project pages are NOT
-    // deployed anymore: all projects live in the app (SQLite) and are served
-    // via the SPA at /projects/<slug>. The repo's projects/ folder is no
-    // longer mirrored into public_html/projects/.
-    const stageRenovationSource = join(staging, 'renovation-source');
-    let haveRenovationSource = false;
-    const renovationSource = join(ROOT, 'projects', 'renovation');
-    if (existsSync(renovationSource)) {
-      cpSync(renovationSource, stageRenovationSource, { recursive: true, force: true });
-      haveRenovationSource = true;
-    }
-
     // 3) Create the archive
     const archive = join(staging, 'family-deploy.tar.gz');
     log('Creating deployment archive...');
     const tarArgs = ['-czf', archive, '-C', staging, 'frontend', 'backend'];
-    if (haveRenovationSource) tarArgs.push('renovation-source');
     run('tar', tarArgs);
 
     // Remote script (runs on the server)

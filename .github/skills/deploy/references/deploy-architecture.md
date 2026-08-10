@@ -31,10 +31,8 @@
 2. **Стейджинг** в `mkdtemp`:
    - `frontend/` ← `frontend/dist` (содержимое: `index.html`, `assets/`…).
    - `backend/` ← `backend/dist` (сохраняя layout `dist/`, чтобы на сервере было `dist/app.cjs`) + `package.json` + `package-lock.json` + `backend/scripts/` (CLI, например `users.mjs` — управление пользователями авторизации прямо на сервере).
-   - `renovation-source/` ← `projects/renovation` (источник данных для seed «Ремонта»; статичные
-     страницы проектов деплой НЕ зеркалирует — все проекты живут в приложении).
    - Если нет `frontend/dist` или `backend/dist` — ошибка: «Run `npm run build` first or drop `--no-build`».
-3. **Архив**: `tar -czf` (`frontend`, `backend`[, `renovation-source`]).
+3. **Архив**: `tar -czf` (`frontend`, `backend`).
 4. **Загрузка**: `scp` архива в `/tmp/family-deploy.tar.gz` и remote-скрипта в `/tmp/family-deploy.sh`.
 5. **Выполнение** remote-скрипта через `ssh` (`bash /tmp/family-deploy.sh`).
 6. Очистка временного каталога.
@@ -44,16 +42,12 @@
 1. **Node/npm/pm2**: если `DEPLOY_NODE_PATH` задан — добавить в PATH; иначе подключить профили (`~/.profile`, `~/.bashrc`, `nvm.sh`) и проверить типовые пути (`~/.nvm/versions/node/*/bin`, `/usr/local/bin`, …). Если npm не найден — ошибка (нужно установить Node или задать `DEPLOY_NODE_PATH`).
 2. **Распаковка**: `/tmp/family-deploy` (каталог пересоздаётся).
 3. **Фронтенд** → `$PUBLIC`: удаляются только файлы верхнего уровня (`find -maxdepth 1 -type f -delete`) и `assets/`; прочие подпапки (`.well-known`) сохраняются. Сам каталог не удаляется.
-4. **Источник «Ремонта»** → `$SERVER/renovation-source`: если в архиве есть `renovation-source/`
-   (← `projects/renovation`), каталог копируется в `$SERVER/renovation-source` (пересоздаётся).
-   Это источник данных для seed БД «Ремонта» (`--seed-renovation`), **не веб-контент**: статичные
-   страницы проектов деплой НЕ зеркалирует (все проекты живут в приложении). Существующий
-   статичный архив `public_html/projects/` на сервере не удаляется и больше не обновляется.
-5. **Бэкенд** → `$SERVER`: каталог сохраняется, содержимое заменяется, кроме `.env`, `data/`
-   (SQLite) и `docs/` (загруженные PDF «Ремонта»).
-6. `npm install --omit=dev` в `$SERVER`.
-7. **Рестарт pm2** (если не `--no-restart`): найти/установить pm2; `export NODE_ENV=production`; если приложение есть — `pm2 restart family-backend --update-env`, иначе `pm2 start dist/app.cjs --name family-backend --cwd $SERVER`; затем `pm2 save`.
-8. Очистка временных файлов.
+4. **Бэкенд** → `$SERVER`: каталог сохраняется, содержимое заменяется, кроме `.env`, `data/`
+   (SQLite) и `docs/` (загруженные PDF «Ремонта»). Seed «Ремонта» и `renovation-source`
+   упразднены; статичный архив `public_html/projects/` на сервере удалён.
+5. `npm install --omit=dev` в `$SERVER`.
+6. **Рестарт pm2** (если не `--no-restart`): найти/установить pm2; `export NODE_ENV=production`; если приложение есть — `pm2 restart family-backend --update-env`, иначе `pm2 start dist/app.cjs --name family-backend --cwd $SERVER`; затем `pm2 save`.
+7. Очистка временных файлов.
 
 ## Грабли (проверять при проблемах)
 

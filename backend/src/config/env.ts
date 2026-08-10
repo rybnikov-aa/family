@@ -17,7 +17,7 @@ export const env = {
   /**
    * Путь к отдельной БД отчётности «Ремонта». Это НЕ `DB_PATH` (база VPS) —
    * у модуля своя БД. По умолчанию `data/renovation.sqlite` рядом с backend.
-   * Наполняется `npm run seed:renovation -w backend`.
+   * Наполняется штатно — через импорт PDF в приложении (POST /api/renovation/pdf).
    */
   RENOVATION_DB_PATH: process.env.RENOVATION_DB_PATH ?? 'data/renovation.sqlite',
   /**
@@ -26,11 +26,6 @@ export const env = {
    * (CWD приложения под pm2 — `$SERVER`). Каталог сохраняется при деплое (как `data/`).
    */
   RENOVATION_DOCS_DIR: process.env.RENOVATION_DOCS_DIR ?? 'docs/renovation',
-  /**
-   * Папка исходных HTML проекта «Ремонт» (для seed-импорта). По умолчанию
-   * `../projects/renovation` относительно каталога бэкенда.
-   */
-  RENOVATION_PROJECTS_DIR: process.env.RENOVATION_PROJECTS_DIR ?? '../projects/renovation',
   /**
    * Интерпретатор Python с pdfplumber (импорт PDF, этап 3). Пусто → по умолчанию
    * `<repo>/.venv/Scripts/python.exe` (Windows) либо `python`.

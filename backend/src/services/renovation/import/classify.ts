@@ -1,8 +1,9 @@
 /**
  * Определение типа PDF-документа «Ремонта» по содержимому (текст/шапка).
  *
- * Правила — из навыка `project-renovation-update-from-pdf` (`.github/skills/`).
- * Тип определяется по ключевым словам; дата — из шапки; номер — по «№N».
+ * Правила — из архивного навыка `project-renovation-update-from-pdf`
+ * (`projects/skills-archive/`). Тип определяется по ключевым словам; дата — из
+ * шапки; номер — по «№N».
  */
 
 export type PdfDocType = 'work_act' | 'material_order' | 'settlement' | 'addendum' | null;
