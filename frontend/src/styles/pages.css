@@ -43,7 +43,7 @@
   color: var(--text-strong);
 }
 .profile__card-sub {
-  font-size: var(--font-size-sm2);
+  font-size: var(--font-size-caption);
   color: var(--text-muted);
 }
 .profile__meta {
@@ -51,11 +51,11 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 18px;
-  font-size: var(--font-size-sm2);
+  font-size: var(--font-size-caption);
   color: var(--text-muted);
 }
 .profile__hint {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-caption);
   color: var(--text-faint);
   margin-top: 12px;
 }
@@ -141,7 +141,7 @@
   white-space: nowrap;
 }
 .admin__hint {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-caption);
   color: var(--text-faint);
   margin-top: 12px;
 }
@@ -287,4 +287,3 @@
     transform: rotate(360deg);
   }
 }
-

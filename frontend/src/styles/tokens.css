@@ -47,6 +47,9 @@
   --focus-ring: 2px solid var(--link-hover);
   --focus-ring-soft: 0 0 0 3px color-mix(in srgb, var(--link-hover) 12%, transparent);
 
+  /* ── Дизайн-система: бумага документов (просмотр PDF) — белая в обеих темах ── */
+  --color-paper: #ffffff;
+
   /* ── Дизайн-система: семантические цвета статусов (одинаковы для обеих тем) ── */
   --color-success: #22c55e;
   --color-success-strong: #16a34a;
@@ -76,6 +79,8 @@
   --color-accent-sky: #0ea5e9;
   --color-accent-orange: #e8872e;
   --color-accent-orange-strong: #d97706;
+  /* Текст поверх акцентного оранжевого (активная вкладка) — тёмный: контраст WCAG AA */
+  --on-accent-orange: #0a0a0a;
 
   /* ── Дизайн-система: шкала радиусов ── */
   --radius-xs: 5px;
@@ -102,18 +107,14 @@
   --space-10: 40px;
   --space-12: 48px;
 
-  /* ── Дизайн-система: типографика (размеры шрифта) ── */
-  --font-size-2xs: 0.7rem;
-  --font-size-xs: 0.8rem;
-  --font-size-sm: 0.9rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.2rem;
-  --font-size-xl: 1.8rem;
-  --font-size-2xl: 2.6rem;
-  /* Дополнительные шаги мелкого текста (капс-подписи, таблицы, подсказки) */
-  --font-size-3xs: 0.6875rem;
-  --font-size-caption: 0.75rem;
-  --font-size-sm2: 0.85rem;
+  /* ── Дизайн-система: типографика (7 шагов; 3xs/xs/sm2 консолидированы) ── */
+  --font-size-2xs: 0.6875rem; /* микро: бейджи, мини-подписи */
+  --font-size-caption: 0.8rem; /* подписи, таблицы, под-строки */
+  --font-size-sm: 0.9rem; /* вторичный текст */
+  --font-size-md: 1rem; /* основной текст */
+  --font-size-lg: 1.2rem; /* заголовки секций/карточек */
+  --font-size-xl: 1.8rem; /* заголовки страниц */
+  --font-size-2xl: 2.6rem; /* display (hero) */
 }
 
 [data-theme='dark'] {
@@ -148,4 +149,3 @@
   --toggle-icon-moon: #818cf8;
   --toggle-icon-system: #9ca3af;
 }
-

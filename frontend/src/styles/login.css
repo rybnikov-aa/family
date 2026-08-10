@@ -58,7 +58,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 24px;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-caption);
   color: var(--text-faint);
 }
 .login__footer svg {
@@ -110,4 +110,3 @@
     height: 40px;
   }
 }
-

@@ -83,7 +83,7 @@
   margin: 0 var(--space-4);
 }
 .user__name {
-  font-size: var(--font-size-sm2);
+  font-size: var(--font-size-caption);
   font-weight: 500;
   color: var(--text-muted);
   max-width: 140px;
@@ -102,4 +102,3 @@
   flex-shrink: 0;
   display: block;
 }
-

@@ -104,6 +104,24 @@ export function getRenovationMeta(): RenovationMeta | null {
   };
 }
 
+/** Значение настройки модуля «Ремонт» (`renovation_settings`) или null. */
+export function getRenovationSetting(key: string): string | null {
+  const db = getRenovationDb();
+  const row = db
+    .prepare('SELECT value FROM renovation_settings WHERE key = ?')
+    .get(key) as unknown as { value: string } | undefined;
+  return row?.value ?? null;
+}
+
+/** Сохранить настройку модуля «Ремонт» (upsert по ключу). */
+export function setRenovationSetting(key: string, value: string): void {
+  const db = getRenovationDb();
+  db.prepare(
+    `INSERT INTO renovation_settings (key, value) VALUES (?, ?)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+  ).run(key, value);
+}
+
 /** Сводки версий сметы (без позиций), отсортированные по дате/порядку. */
 export function listEstimateVersions(): EstimateVersion[] {
   const db = getRenovationDb();

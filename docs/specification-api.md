@@ -88,6 +88,7 @@
 | POST  | `/api/renovation/pdf/:id/confirm`           | Подтверждение импорта черновика (admin)                                 | —; ответ — `{id, type, date}` (201); 409 — документ типа+даты уже есть; 400 — тип/дата не определены; 404 — черновик истёк                                                                              |
 | POST  | `/api/renovation/estimate/addendum`         | Предложение применения доп. соглашения (admin)                          | тело — `{addendumId}`; ответ — `{proposal}` (дифф + новый итог); 404 — соглашение/смета не найдены                                                                                                      |
 | POST  | `/api/renovation/estimate/addendum/confirm` | Применение доп. соглашения (admin)                                      | тело — `{addendumId, removeKeys?: string[]}`; ответ — `{currentId, total, totalNoOverhead, overhead, itemsCount}` (201); 400 — нет даты; 404 — не найдено                                               |
+| PUT   | `/api/renovation/materials-budget`          | Обновить бюджет на материалы (admin)                                    | тело — `{mode: 'percent'\|'amount', percent?, amount?}` (сумма — копейки); ответ — `{budget: MaterialsBudget}` (настройка + действующий `value`); 403 — не admin                                        |
 | GET   | `/api/renovation/reports/work`              | Отчёт «Ход работ»: план vs факт по позициям сметы                       | —; ответ — `{work: ReportWork}` (секции/строки со статусами, итоги, `asOf`, взаиморасчёты)                                                                                                              |
 | GET   | `/api/renovation/reports/materials`         | Отчёт «Материалы»: заказы с позициями и итогами                         | —; ответ — `{materials: ReportMaterials}` (заказы + сводка)                                                                                                                                             |
 
@@ -147,7 +148,10 @@
 
 Все суммы/количество — **целые копейки (×100)**. Поля: `meta`, `estimate`, `works`
 (`planTotal`/`factTotal`/`percent`/`acts[]`), `materials` (`ordersTotal`/`orders[]`),
-`settlements` (`works`/`materials` — последний акт на тип, `null` если нет).
+`settlements` (`works`/`materials` — последний акт на тип, `null` если нет; каждый объект
+содержит `pdfPath` — URL исходного PDF ведомости для ссылки-просмотра), `materialsBudget`
+(настройка бюджета на материалы: `mode` `percent`/`amount`, `percent`/`amount`, и
+действующий `value` — `percent`% от актуальной сметы либо явная сумма).
 
 ```json
 {
@@ -194,8 +198,26 @@
     ]
   },
   "settlements": {
-    "works": { "date": "2026-07-26", "paidIn": 30187600, "used": 14112780, "balance": 16074820 },
-    "materials": { "date": "2026-08-06", "paidIn": 40000000, "used": 42283280, "balance": -2283280 }
+    "works": {
+      "date": "2026-07-26",
+      "paidIn": 30187600,
+      "used": 14112780,
+      "balance": 16074820,
+      "pdfPath": "/projects/renovation/pdf/Взаиморасчеты/6124 - ВВ работы.pdf"
+    },
+    "materials": {
+      "date": "2026-08-06",
+      "paidIn": 40000000,
+      "used": 42283280,
+      "balance": -2283280,
+      "pdfPath": "/projects/renovation/pdf/Взаиморасчеты/6124 - ВВ материалы 2026-08-06.pdf"
+    }
+  },
+  "materialsBudget": {
+    "mode": "percent",
+    "percent": 100,
+    "amount": null,
+    "value": 204001048
   }
 }
 ```

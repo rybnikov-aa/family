@@ -48,7 +48,7 @@
   letter-spacing: -0.01em;
 }
 .card p {
-  font-size: var(--font-size-sm2);
+  font-size: var(--font-size-caption);
   color: var(--text-muted);
   font-weight: 400;
   line-height: 1.4;
@@ -282,7 +282,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 12px 24px;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-caption);
   color: var(--text-fainter);
 }
 .footer a {
@@ -360,7 +360,7 @@
   background: transparent;
   border-radius: var(--radius-pill);
   padding: 6px 12px;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-caption);
   font-weight: 500;
   font-family: inherit;
   color: var(--text-faint);

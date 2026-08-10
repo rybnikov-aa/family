@@ -318,6 +318,12 @@ const SCHEMA = `
     balance  INTEGER
   );
   CREATE INDEX IF NOT EXISTS idx_settlement_rows_act ON settlement_rows(act_id);
+
+  -- Настройки модуля (ключ-значение): бюджет на материалы и т.п.
+  CREATE TABLE IF NOT EXISTS renovation_settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 `;
 
 // ── Обход файлов и классификация ─────────────────────────────────────────────

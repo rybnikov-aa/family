@@ -23,6 +23,7 @@ import {
 } from '../services/renovation/addendum';
 import { buildMaterialsReport, buildWorkReport } from '../services/renovation/reports';
 import { buildOverview } from '../services/renovation/overview';
+import { updateMaterialsBudget } from '../services/renovation/budget';
 import { classifyPdf } from '../services/renovation/import/classify';
 import { buildDraft, type RenovationDraft } from '../services/renovation/import/draft';
 import { getDraft, storeDraft } from '../services/renovation/import/draftStore';
@@ -37,6 +38,7 @@ import {
   savePendingPdf,
 } from '../services/renovation/import/pdfStore';
 import type {
+  MaterialsBudgetSetting,
   RenovationDoc,
   RenovationDocItem,
   RenovationDocType,
@@ -48,6 +50,21 @@ import type {
 /** Сводка «Ремонта» (Блок 1 Работы / Блок 2 Материалы): `GET /api/renovation`. */
 export function overviewController(_req: Request, res: Response): void {
   res.json(buildOverview());
+}
+
+/**
+ * Обновить бюджет на материалы (admin): `PUT /api/renovation/materials-budget`.
+ * `mode` — `percent` (по умолчанию 100% от сметы) или `amount` (явная сумма,
+ * копейки). Ответ — `{budget}` — действующий бюджет (настройка + значение).
+ */
+export function updateMaterialsBudgetController(req: Request, res: Response): void {
+  const body = (req.body ?? {}) as Partial<MaterialsBudgetSetting>;
+  const budget = updateMaterialsBudget({
+    mode: body.mode === 'amount' ? 'amount' : 'percent',
+    percent: typeof body.percent === 'number' ? body.percent : 100,
+    amount: typeof body.amount === 'number' ? body.amount : 0,
+  });
+  res.json({ budget });
 }
 
 /** Список версий сметы (сводки): `GET /api/renovation/estimate/versions`. */

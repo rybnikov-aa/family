@@ -5,7 +5,7 @@
   gap: 14px;
 }
 .vps-form__note {
-  font-size: var(--font-size-sm2);
+  font-size: var(--font-size-caption);
   color: var(--text-muted);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -69,14 +69,29 @@
   gap: 6px;
 }
 .field__label {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-caption);
   font-weight: 500;
   color: var(--text-muted);
 }
 /* Подсказка под полем (например, формат slug в форме создания проекта) */
 .field__hint {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-caption);
   color: var(--text-faint);
+}
+/* Радио-вариант в форме (например, способ задания бюджета на материалы) */
+.field__radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  color: var(--text);
+  cursor: pointer;
+}
+.field__radio input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
 /* Поле с нижним отступом (в блочных формах, напр. профиль) */
 .field--block {
@@ -122,7 +137,7 @@ select.input {
 
 /* ── Примитив: алерт/уведомление (успех/ошибка/предупреждение) ── */
 .alert {
-  font-size: var(--font-size-sm2);
+  font-size: var(--font-size-caption);
   padding: 8px 12px;
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
@@ -150,7 +165,7 @@ select.input {
 /* ── Примитив: бейдж-пилюля (роль, статус) ── */
 .badge {
   display: inline-block;
-  font-size: var(--font-size-3xs);
+  font-size: var(--font-size-2xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -231,7 +246,7 @@ select.input {
   border-radius: var(--radius-2xl);
   background: var(--surface);
   border: 1px solid var(--border);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-caption);
   color: var(--text);
 }
 .vps-services__chip-name {
@@ -244,7 +259,7 @@ select.input {
 }
 .vps-services__empty {
   flex: 1;
-  font-size: var(--font-size-sm2);
+  font-size: var(--font-size-caption);
   color: var(--text-faint);
 }
 .vps-services__edit {
@@ -291,7 +306,7 @@ select.input {
   color: var(--text-strong);
 }
 .services-editor__empty {
-  font-size: var(--font-size-sm2);
+  font-size: var(--font-size-caption);
   color: var(--text-faint);
 }
 .services-editor__list {

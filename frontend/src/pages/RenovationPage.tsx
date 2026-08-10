@@ -6,6 +6,12 @@ import AddendumModal from '../components/AddendumModal';
 import RenovationPdfModal from '../components/RenovationPdfModal';
 import RenovationWorkReport from '../components/RenovationWorkReport';
 import RenovationMaterialsReport from '../components/RenovationMaterialsReport';
+import RenovationSummaryCard from '../components/RenovationSummaryCard';
+import MaterialsBudgetModal from '../components/MaterialsBudgetModal';
+import RenovDocRow from '../components/RenovDocRow';
+import RenovationSettlement from '../components/RenovationSettlement';
+import StatRow from '../components/StatRow';
+import Tabs from '../components/Tabs';
 import { useRenovationOverview } from '../hooks/useRenovationOverview';
 import { useRenovationReports } from '../hooks/useRenovationReports';
 import { useAuth } from '../hooks/useAuth';
@@ -36,6 +42,7 @@ function RenovationPage() {
   const isAdmin = user?.role === 'admin';
   const [importOpen, setImportOpen] = useState(false);
   const [addendumOpen, setAddendumOpen] = useState(false);
+  const [budgetOpen, setBudgetOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('summary');
   const [viewPdf, setViewPdf] = useState<ViewPdfDoc | null>(null);
 
@@ -43,6 +50,46 @@ function RenovationPage() {
   const works = overview?.works;
   const materials = overview?.materials;
   const est = overview?.estimate;
+  // Даты последних ведомостей взаиморасчётов — для пометки «учтён в ведомости».
+  const worksSettledAt = overview?.settlements.works?.date ?? null;
+  const materialsSettledAt = overview?.settlements.materials?.date ?? null;
+  // Прогресс освоения бюджета (факт по актам из плана сметы) — для прогресс-бара.
+  const worksProgress =
+    works && est && est.total != null && works.factTotal != null && est.total !== 0
+      ? {
+          percent: works.percent ?? Math.round((works.factTotal / est.total) * 1000) / 10,
+          done: works.factTotal,
+          total: est.total,
+        }
+      : null;
+
+  // Прогресс «Блока 2. Материалы»: сумма по заказам из бюджета на материалы.
+  // Подпись — как у «Блока 1. Работы» («сумма из бюджет» + %), бюджет — ссылка.
+  const materialsBudget = overview?.materialsBudget ?? null;
+  const materialsBudgetValue = materialsBudget?.value ?? null;
+  const materialsProgress =
+    materials && materialsBudgetValue != null && materials.ordersTotal != null
+      ? {
+          percent:
+            materialsBudgetValue !== 0
+              ? Math.round((materials.ordersTotal / materialsBudgetValue) * 1000) / 10
+              : 0,
+          done: materials.ordersTotal,
+          total: materialsBudgetValue,
+          totalLabel: isAdmin ? (
+            <button
+              type="button"
+              className="renov-link"
+              title="Бюджет на материалы — изменить"
+              onClick={() => setBudgetOpen(true)}
+            >
+              {formatKopecks(materialsBudgetValue, true)}
+            </button>
+          ) : (
+            formatKopecks(materialsBudgetValue, true)
+          ),
+        }
+      : null;
 
   const switchTab = (t: Tab) => {
     setTab(t);
@@ -117,208 +164,113 @@ function RenovationPage() {
 
             <div className="renov-grid">
               {/* Блок 1. Работы */}
-              <div className="card renov-card">
-                <div className="renov-card__head">
-                  <span className="renov-card__title">Блок 1. Работы</span>
-                  {works?.percent != null && (
-                    <span className="renov-card__percent">
-                      {works.percent.toLocaleString('ru-RU')}%
-                    </span>
-                  )}
-                </div>
-                <div className="renov-card__body">
-                  <div className="renov-line">
-                    <span className="renov-label">Смета (план)</span>
-                    <span className="renov-value">{formatKopecks(est?.total, true)}</span>
+              <RenovationSummaryCard title="Блок 1. Работы" progress={worksProgress}>
+                <div className="renov-divider" />
+                <StatRow
+                  label={
+                    works && works.acts.length > 0 ? (
+                      <>
+                        Акты выполненных работ
+                        <span className="renov-pill">{works.acts.length}</span>
+                      </>
+                    ) : (
+                      'Акты выполненных работ'
+                    )
+                  }
+                />
+                {works && works.acts.length > 0 && (
+                  <>
+                    {works.acts.map((a, i) => (
+                      <RenovDocRow
+                        key={a.id}
+                        date={a.date}
+                        name={`Акт №${a.number ?? i + 1}`}
+                        sum={a.totalWithOverhead}
+                        accounted={worksSettledAt != null && a.date <= worksSettledAt}
+                        pdfPath={a.pdfPath}
+                        pdfTitle={`Акт №${a.number ?? i + 1} (${formatDateIso(a.date)})`}
+                        onOpenPdf={openPdf}
+                      />
+                    ))}
+                  </>
+                )}
+                {overview.settlements.works ? (
+                  <RenovationSettlement
+                    title="Взаиморасчёты (работы)"
+                    date={overview.settlements.works.date}
+                    pdfPath={overview.settlements.works.pdfPath}
+                    onOpenPdf={openPdf}
+                    paidInLabel="Внесено заказчиком"
+                    paidIn={overview.settlements.works.paidIn}
+                    usedLabel="Использовано"
+                    used={overview.settlements.works.used}
+                    balance={overview.settlements.works.balance}
+                  />
+                ) : (
+                  <div className="renov-section">
+                    <div className="renov-divider" />
+                    <StatRow label="Взаиморасчёты (работы)" value="—" />
                   </div>
-                  <div className="renov-line">
-                    <span className="renov-label">Выполнено по актам</span>
-                    <span className="renov-value">{formatKopecks(works?.factTotal, true)}</span>
-                  </div>
-                  <div className="renov-divider" />
-                  <div className="renov-line">
-                    <span className="renov-label">Акты выполненных работ</span>
-                    <span className="renov-value renov-value--list">
-                      {works && works.acts.length > 0
-                        ? works.acts.map((a, i) => (
-                            <span key={a.id}>
-                              {i > 0 ? ', ' : ''}
-                              {a.pdfPath ? (
-                                <button
-                                  type="button"
-                                  className="renov-link"
-                                  onClick={() =>
-                                    openPdf(
-                                      a.pdfPath!,
-                                      `Акт ${a.number ?? ''} (${formatDateIso(a.date)})`,
-                                    )
-                                  }
-                                >
-                                  Акт {a.number ?? ''} ({formatDateIso(a.date)})
-                                </button>
-                              ) : (
-                                <>
-                                  Акт {a.number ?? ''} ({formatDateIso(a.date)})
-                                </>
-                              )}
-                            </span>
-                          ))
-                        : '—'}
-                    </span>
-                  </div>
-                  <div className="renov-divider" />
-                  {overview.settlements.works ? (
-                    <>
-                      <div className="renov-line">
-                        <span className="renov-label">
-                          Взаиморасчёты (работы), от{' '}
-                          {formatDateIso(overview.settlements.works.date)}
-                        </span>
-                        <span className="renov-value" />
-                      </div>
-                      <div className="renov-line renov-line--sub">
-                        <span className="renov-label">Внесено заказчиком</span>
-                        <span className="renov-value renov-value--blue">
-                          {formatKopecks(overview.settlements.works.paidIn, true)}
-                        </span>
-                      </div>
-                      <div className="renov-line renov-line--sub">
-                        <span className="renov-label">Использовано</span>
-                        <span className="renov-value">
-                          {formatKopecks(overview.settlements.works.used, true)}
-                        </span>
-                      </div>
-                      <div className="renov-line renov-line--sub">
-                        <span className="renov-label">Остаток</span>
-                        <span
-                          className={`renov-value ${
-                            (overview.settlements.works.balance ?? 0) > 0
-                              ? 'renov-value--pos'
-                              : (overview.settlements.works.balance ?? 0) < 0
-                                ? 'renov-value--neg'
-                                : ''
-                          }`}
-                        >
-                          {formatKopecks(overview.settlements.works.balance, true)}
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="renov-line">
-                      <span className="renov-label">Взаиморасчёты (работы)</span>
-                      <span className="renov-value">—</span>
-                    </div>
-                  )}
-                </div>
-              </div>
+                )}
+              </RenovationSummaryCard>
 
               {/* Блок 2. Материалы */}
-              <div className="card renov-card">
-                <div className="renov-card__head">
-                  <span className="renov-card__title">Блок 2. Материалы</span>
-                </div>
-                <div className="renov-card__body">
-                  <div className="renov-line">
-                    <span className="renov-label">Итого заказы материалов</span>
-                    <span className="renov-value">
-                      {formatKopecks(materials?.ordersTotal, true)}
-                    </span>
+              <RenovationSummaryCard title="Блок 2. Материалы" progress={materialsProgress}>
+                {materials && materials.orders.length > 0 && (
+                  <>
+                    <div className="renov-divider" />
+                    <StatRow
+                      label={
+                        <>
+                          Заказы
+                          <span className="renov-pill">{materials.orders.length}</span>
+                        </>
+                      }
+                    />
+                    {materials.orders.map((o) => (
+                      <RenovDocRow
+                        key={o.id}
+                        date={o.date}
+                        name={`Отчёт №${o.number ?? '—'}`}
+                        sum={o.total}
+                        accounted={materialsSettledAt != null && o.date <= materialsSettledAt}
+                        pdfPath={o.pdfPath}
+                        pdfTitle={`Отчёт №${o.number ?? '—'} от ${formatDateIso(o.date)}`}
+                        onOpenPdf={openPdf}
+                      />
+                    ))}
+                  </>
+                )}
+                {overview.settlements.materials ? (
+                  <RenovationSettlement
+                    title="Взаиморасчёты (материалы)"
+                    date={overview.settlements.materials.date}
+                    pdfPath={overview.settlements.materials.pdfPath}
+                    onOpenPdf={openPdf}
+                    paidInLabel="Внесено по ведомости"
+                    paidIn={overview.settlements.materials.paidIn}
+                    usedLabel="Использовано (с накладными)"
+                    used={overview.settlements.materials.used}
+                    balance={overview.settlements.materials.balance}
+                  />
+                ) : (
+                  <div className="renov-section">
+                    <div className="renov-divider" />
+                    <StatRow label="Взаиморасчёты (материалы)" value="—" />
                   </div>
-                  {materials && materials.orders.length > 0 && (
-                    <>
-                      <div className="renov-divider" />
-                      <div className="renov-label">Заказы ({materials.orders.length}):</div>
-                      {materials.orders.map((o) => (
-                        <div className="renov-line renov-line--sub" key={o.id}>
-                          <span className="renov-label">
-                            {o.pdfPath ? (
-                              <button
-                                type="button"
-                                className="renov-link"
-                                onClick={() =>
-                                  openPdf(
-                                    o.pdfPath!,
-                                    `Отчёт №${o.number ?? '—'} от ${formatDateIso(o.date)}`,
-                                  )
-                                }
-                              >
-                                Отчёт №{o.number ?? '—'} от {formatDateIso(o.date)}
-                              </button>
-                            ) : (
-                              <>
-                                Отчёт №{o.number ?? '—'} от {formatDateIso(o.date)}
-                              </>
-                            )}
-                          </span>
-                          <span className="renov-value">{formatKopecks(o.total, true)}</span>
-                        </div>
-                      ))}
-                    </>
-                  )}
-                  <div className="renov-divider" />
-                  {overview.settlements.materials ? (
-                    <>
-                      <div className="renov-line">
-                        <span className="renov-label">
-                          Взаиморасчёты (материалы), от{' '}
-                          {formatDateIso(overview.settlements.materials.date)}
-                        </span>
-                        <span className="renov-value" />
-                      </div>
-                      <div className="renov-line renov-line--sub">
-                        <span className="renov-label">Внесено по ведомости</span>
-                        <span className="renov-value renov-value--blue">
-                          {formatKopecks(overview.settlements.materials.paidIn, true)}
-                        </span>
-                      </div>
-                      <div className="renov-line renov-line--sub">
-                        <span className="renov-label">Использовано (с накладными)</span>
-                        <span className="renov-value">
-                          {formatKopecks(overview.settlements.materials.used, true)}
-                        </span>
-                      </div>
-                      <div className="renov-line renov-line--sub">
-                        <span className="renov-label">Остаток</span>
-                        <span
-                          className={`renov-value ${
-                            (overview.settlements.materials.balance ?? 0) > 0
-                              ? 'renov-value--pos'
-                              : (overview.settlements.materials.balance ?? 0) < 0
-                                ? 'renov-value--neg'
-                                : ''
-                          }`}
-                        >
-                          {formatKopecks(overview.settlements.materials.balance, true)}
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="renov-line">
-                      <span className="renov-label">Взаиморасчёты (материалы)</span>
-                      <span className="renov-value">—</span>
-                    </div>
-                  )}
-                </div>
-              </div>
+                )}
+              </RenovationSummaryCard>
             </div>
 
-            <div className="renov-tabs">
-              {(
-                [
-                  ['summary', 'Сводка'],
-                  ['work', 'Ход работ'],
-                  ['materials', 'Материалы'],
-                ] as [Tab, string][]
-              ).map(([key, label]) => (
-                <button
-                  key={key}
-                  className={`renov-tab ${tab === key ? 'renov-tab--active' : ''}`}
-                  onClick={() => switchTab(key)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <Tabs
+              items={[
+                { value: 'summary', label: 'Сводка' },
+                { value: 'work', label: 'Ход работ' },
+                { value: 'materials', label: 'Материалы' },
+              ]}
+              value={tab}
+              onChange={switchTab}
+            />
 
             {tab === 'work' && <RenovationWorkReport reports={reports} />}
             {tab === 'materials' && (
@@ -339,6 +291,13 @@ function RenovationPage() {
       )}
       {addendumOpen && (
         <AddendumModal onClose={() => setAddendumOpen(false)} onApplied={() => reload()} />
+      )}
+      {budgetOpen && (
+        <MaterialsBudgetModal
+          budget={materialsBudget}
+          onClose={() => setBudgetOpen(false)}
+          onSaved={() => reload()}
+        />
       )}
       {viewPdf && (
         <Suspense fallback={null}>

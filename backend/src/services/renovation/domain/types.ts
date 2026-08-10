@@ -132,3 +132,21 @@ export interface RenovationMeta {
   /** Площадь в виде текста, например «91,91 м²». */
   area: string | null;
 }
+
+/** Режим задания бюджета на материалы: процент от сметы или явная сумма. */
+export type MaterialsBudgetMode = 'percent' | 'amount';
+
+/** Настройка бюджета на материалы (сохраняется в `renovation_settings`). */
+export interface MaterialsBudgetSetting {
+  mode: MaterialsBudgetMode;
+  /** % от сметы на работы (для `mode='percent'`); по умолчанию 100. */
+  percent: number | null;
+  /** Явная сумма, копейки (для `mode='amount'`). */
+  amount: number | null;
+}
+
+/** Действующий бюджет на материалы: настройка + вычисленное значение (копейки). */
+export interface MaterialsBudget extends MaterialsBudgetSetting {
+  /** Действующий бюджет: % сметы или явная сумма; `null` — не вычислим. */
+  value: number | null;
+}

@@ -4,8 +4,9 @@ import {
   listRenovationDocs,
   listSettlementActs,
 } from '../../db/renovationRepository';
+import { getMaterialsBudget } from './budget';
 import { sumKopecks } from './domain/money';
-import type { RenovationDoc, SettlementAct } from './domain/types';
+import type { MaterialsBudget, RenovationDoc, SettlementAct } from './domain/types';
 
 /**
  * Сводка проекта «Ремонт» (аналог Блоков 1/2 главной страницы
@@ -69,14 +70,20 @@ export interface RenovationOverview {
       paidIn: number | null;
       used: number | null;
       balance: number | null;
+      /** URL исходного PDF ведомости (просмотр в приложении). */
+      pdfPath: string | null;
     } | null;
     materials: {
       date: string;
       paidIn: number | null;
       used: number | null;
       balance: number | null;
+      /** URL исходного PDF ведомости (просмотр в приложении). */
+      pdfPath: string | null;
     } | null;
   };
+  /** Настройка и действующий бюджет на материалы («Блок 2»). */
+  materialsBudget: MaterialsBudget;
 }
 
 /** Итоги из строки «Всего» ведомости (последний акт на тип). */
@@ -90,6 +97,7 @@ function totalsOf(
     paidIn: totalRow?.paidIn ?? null,
     used: totalRow?.used ?? null,
     balance: totalRow?.balance ?? null,
+    pdfPath: act.pdfPath,
   };
 }
 
@@ -115,6 +123,7 @@ export function buildOverview(): RenovationOverview {
   const factTotal = sumKopecks(acts.map((a) => a.totalWithOverhead));
   const planTotal = estimate?.total ?? null;
   const ordersTotal = sumKopecks(orders.map((o) => o.total));
+  const materialsBudget = getMaterialsBudget();
 
   let percent: number | null = null;
   if (planTotal != null && planTotal !== 0 && factTotal != null) {
@@ -160,5 +169,6 @@ export function buildOverview(): RenovationOverview {
       works: totalsOf(latestByType(settlements, 'works')),
       materials: totalsOf(latestByType(settlements, 'materials')),
     },
+    materialsBudget,
   };
 }

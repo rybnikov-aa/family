@@ -10,6 +10,7 @@ import {
   overviewController,
   pdfFileController,
   settlementsController,
+  updateMaterialsBudgetController,
   uploadPdfController,
   workReportController,
 } from '../controllers/renovationController';
@@ -41,3 +42,6 @@ renovationRouter.post('/pdf/:id/confirm', requireAdmin, confirmPdfController);
 // Доп. соглашения к смете (этап 4): предложение → подтверждение.
 renovationRouter.post('/estimate/addendum', requireAdmin, addendumProposalController);
 renovationRouter.post('/estimate/addendum/confirm', requireAdmin, addendumConfirmController);
+
+// Бюджет на материалы: настройка (admin).
+renovationRouter.put('/materials-budget', requireAdmin, updateMaterialsBudgetController);

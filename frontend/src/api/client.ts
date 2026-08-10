@@ -346,6 +346,18 @@ export async function deleteVps(name: string): Promise<void> {
 
 // ── Ремонт (renovation) ──────────────────────────────────────────────────────
 
+/** Настройка и действующий бюджет на материалы (для «Блока 2»). */
+export interface MaterialsBudget {
+  /** Режим: `percent` (от сметы на работы) или `amount` (явная сумма). */
+  mode: 'percent' | 'amount';
+  /** % от сметы (для `mode='percent'`); по умолчанию 100. */
+  percent: number | null;
+  /** Явная сумма, копейки (для `mode='amount'`). */
+  amount: number | null;
+  /** Действующий бюджет, копейки (percent% сметы или amount). */
+  value: number | null;
+}
+
 /**
  * Сводка проекта «Ремонт» (Блок 1 Работы / Блок 2 Материалы) из отдельной БД
  * `renovation.sqlite`. Все суммы — копейки (×100); форматирование — `utils/money.ts`.
@@ -400,14 +412,20 @@ export interface RenovationOverview {
       paidIn: number | null;
       used: number | null;
       balance: number | null;
+      /** URL исходного PDF ведомости (просмотр в приложении). */
+      pdfPath: string | null;
     } | null;
     materials: {
       date: string;
       paidIn: number | null;
       used: number | null;
       balance: number | null;
+      /** URL исходного PDF ведомости (просмотр в приложении). */
+      pdfPath: string | null;
     } | null;
   };
+  /** Настройка и действующий бюджет на материалы («Блок 2»). */
+  materialsBudget: MaterialsBudget;
 }
 
 /** Сводка «Ремонта»: `GET /api/renovation`. */
@@ -415,6 +433,25 @@ export async function fetchRenovationOverview(): Promise<RenovationOverview> {
   const res = await apiFetch('/renovation');
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<RenovationOverview>;
+}
+
+/**
+ * Обновить бюджет на материалы (admin): `PUT /api/renovation/materials-budget`.
+ * В режиме `percent` бюджет = % от сметы на работы (пересчитывается при её
+ * изменении); в режиме `amount` — явная сумма в копейках.
+ */
+export async function updateMaterialsBudget(input: {
+  mode: 'percent' | 'amount';
+  percent?: number | null;
+  amount?: number | null;
+}): Promise<{ budget: MaterialsBudget }> {
+  const res = await apiFetch('/renovation/materials-budget', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ budget: MaterialsBudget }>;
 }
 
 /** Черновик импорта PDF (этап 3) — результат `POST /api/renovation/pdf`. */
