@@ -159,6 +159,10 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+/* Документ не учтён в ведомости (жёлтая точка) — сумма приглушена */
+.renov-doc-value--dim {
+  color: var(--text-muted);
+}
 /* Статус учёта документа в ведомости взаиморасчётов — фиксированная ширина,
    чтобы суммы во всех строках были ровно выровнены перед статусом */
 .renov-doc-status {
@@ -219,6 +223,33 @@
 }
 .renov-note a:hover {
   text-decoration: underline;
+}
+/* Сноска на «Использовано» (подотчётные прораба) */
+.renov-note-ref {
+  font-size: 0.7em;
+  vertical-align: super;
+  margin-left: 2px;
+  color: var(--color-accent-orange);
+}
+/* Примечания к сводке «Ремонта» (между карточками и вкладками) */
+.renov-notes {
+  margin-top: var(--space-5);
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+}
+.renov-notes__title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: var(--space-1);
+}
+.renov-notes__item {
+  margin: 0;
+}
+.renov-notes__item sup {
+  font-size: 0.7em;
+  color: var(--color-accent-orange);
+  margin-right: 2px;
 }
 
 /* Вкладки страниц — примитив `Tabs` (раньше `.renov-tabs`/`.renov-tab`) */

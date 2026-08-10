@@ -414,6 +414,8 @@ export interface RenovationOverview {
       balance: number | null;
       /** URL исходного PDF ведомости (просмотр в приложении). */
       pdfPath: string | null;
+      /** Сумма «подотчётные прораба» в ведомости, копейки; null — нет. */
+      foremenAmount: number | null;
     } | null;
     materials: {
       date: string;
@@ -422,6 +424,8 @@ export interface RenovationOverview {
       balance: number | null;
       /** URL исходного PDF ведомости (просмотр в приложении). */
       pdfPath: string | null;
+      /** Сумма «подотчётные прораба» в ведомости, копейки; null — нет. */
+      foremenAmount: number | null;
     } | null;
   };
   /** Настройка и действующий бюджет на материалы («Блок 2»). */

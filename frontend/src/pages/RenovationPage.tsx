@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useState, type ReactNode } from 'react';
 import PageLayout from '../components/PageLayout';
 import { RenovationIcon, RefreshIcon, UploadIcon } from '../components/icons';
 import Button from '../components/Button';
@@ -53,6 +53,93 @@ function RenovationPage() {
   // Даты последних ведомостей взаиморасчётов — для пометки «учтён в ведомости».
   const worksSettledAt = overview?.settlements.works?.date ?? null;
   const materialsSettledAt = overview?.settlements.materials?.date ?? null;
+  // «Учтено по актам» в ведомостях: использовано минус подотчётные.
+  const worksUsedByActs =
+    overview?.settlements.works?.used != null
+      ? overview.settlements.works.used - (overview.settlements.works.foremenAmount ?? 0)
+      : null;
+  const materialsUsedByActs =
+    overview?.settlements.materials?.used != null
+      ? overview.settlements.materials.used - (overview.settlements.materials.foremenAmount ?? 0)
+      : null;
+  // Сумма документов, учтённых в ведомости (дата ≤ даты последней ведомости по типу).
+  const worksSettledSum =
+    works && worksSettledAt
+      ? works.acts.reduce(
+          (acc, a) =>
+            a.date <= worksSettledAt && a.totalWithOverhead != null
+              ? acc + a.totalWithOverhead
+              : acc,
+          0,
+        )
+      : null;
+  const materialsSettledSum =
+    materials && materialsSettledAt
+      ? materials.orders.reduce(
+          (acc, o) => (o.date <= materialsSettledAt && o.total != null ? acc + o.total : acc),
+          0,
+        )
+      : null;
+  // Расхождения «Учтено по актам» с суммой учтённых документов (в т.ч. копеечные).
+  const worksDiff =
+    worksSettledSum != null && worksUsedByActs != null ? worksSettledSum - worksUsedByActs : null;
+  const materialsDiff =
+    materialsSettledSum != null && materialsUsedByActs != null
+      ? materialsSettledSum - materialsUsedByActs
+      : null;
+  // Сноски (подотчётные прораба + расхождения) — для блока «Примечания».
+  const notes: { ref: number; text: ReactNode }[] = [];
+  const addNote = (text: ReactNode): number => {
+    const ref = notes.length + 1;
+    notes.push({ ref, text });
+    return ref;
+  };
+  const worksForemen = overview?.settlements.works?.foremenAmount ?? null;
+  const worksNote =
+    worksForemen != null
+      ? {
+          ref: addNote(
+            <>в т.ч. подотчётные прораба на сумму {formatKopecks(worksForemen, true)}</>,
+          ),
+          amount: worksForemen,
+        }
+      : null;
+  const worksDiffNote =
+    worksDiff != null && worksDiff !== 0
+      ? {
+          ref: addNote(
+            <>
+              расхождение {formatKopecks(Math.abs(worksDiff), true)} между суммой по актам, учтённым
+              в ведомости ({formatKopecks(worksSettledSum, true)}), и строкой «Учтено по актам» —
+              соответствует исходным документам, не исправлено
+            </>,
+          ),
+          amount: worksDiff,
+        }
+      : null;
+  const materialsForemen = overview?.settlements.materials?.foremenAmount ?? null;
+  const materialsNote =
+    materialsForemen != null
+      ? {
+          ref: addNote(
+            <>в т.ч. подотчётные прораба на сумму {formatKopecks(materialsForemen, true)}</>,
+          ),
+          amount: materialsForemen,
+        }
+      : null;
+  const materialsDiffNote =
+    materialsDiff != null && materialsDiff !== 0
+      ? {
+          ref: addNote(
+            <>
+              расхождение {formatKopecks(Math.abs(materialsDiff), true)} между суммой по заказам,
+              учтённым в ведомости ({formatKopecks(materialsSettledSum, true)}), и строкой «Учтено
+              по актам» — соответствует исходным документам, не исправлено
+            </>,
+          ),
+          amount: materialsDiff,
+        }
+      : null;
   // Прогресс освоения бюджета (факт по актам из плана сметы) — для прогресс-бара.
   const worksProgress =
     works && est && est.total != null && works.factTotal != null && est.total !== 0
@@ -202,9 +289,12 @@ function RenovationPage() {
                     onOpenPdf={openPdf}
                     paidInLabel="Внесено заказчиком"
                     paidIn={overview.settlements.works.paidIn}
-                    usedLabel="Использовано"
                     used={overview.settlements.works.used}
                     balance={overview.settlements.works.balance}
+                    foremenAmount={worksNote?.amount ?? null}
+                    noteRef={worksNote?.ref ?? null}
+                    diffAmount={worksDiffNote?.amount ?? null}
+                    diffNoteRef={worksDiffNote?.ref ?? null}
                   />
                 ) : (
                   <div className="renov-section">
@@ -247,11 +337,14 @@ function RenovationPage() {
                     date={overview.settlements.materials.date}
                     pdfPath={overview.settlements.materials.pdfPath}
                     onOpenPdf={openPdf}
-                    paidInLabel="Внесено по ведомости"
+                    paidInLabel="Внесено заказчиком"
                     paidIn={overview.settlements.materials.paidIn}
-                    usedLabel="Использовано (с накладными)"
                     used={overview.settlements.materials.used}
                     balance={overview.settlements.materials.balance}
+                    foremenAmount={materialsNote?.amount ?? null}
+                    noteRef={materialsNote?.ref ?? null}
+                    diffAmount={materialsDiffNote?.amount ?? null}
+                    diffNoteRef={materialsDiffNote?.ref ?? null}
                   />
                 ) : (
                   <div className="renov-section">
@@ -261,6 +354,17 @@ function RenovationPage() {
                 )}
               </RenovationSummaryCard>
             </div>
+
+            {notes.length > 0 && (
+              <div className="renov-notes">
+                <h3 className="renov-notes__title">Примечания</h3>
+                {notes.map((n) => (
+                  <p key={n.ref} className="renov-notes__item">
+                    <sup>{n.ref}</sup> {n.text}
+                  </p>
+                ))}
+              </div>
+            )}
 
             <Tabs
               items={[

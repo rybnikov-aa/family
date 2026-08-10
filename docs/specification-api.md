@@ -149,7 +149,8 @@
 Все суммы/количество — **целые копейки (×100)**. Поля: `meta`, `estimate`, `works`
 (`planTotal`/`factTotal`/`percent`/`acts[]`), `materials` (`ordersTotal`/`orders[]`),
 `settlements` (`works`/`materials` — последний акт на тип, `null` если нет; каждый объект
-содержит `pdfPath` — URL исходного PDF ведомости для ссылки-просмотра), `materialsBudget`
+содержит `pdfPath` — URL исходного PDF ведомости для ссылки-просмотра, и `foremenAmount` —
+сумма «подотчётные прораба» в ведомости, копейки, `null` если нет), `materialsBudget`
 (настройка бюджета на материалы: `mode` `percent`/`amount`, `percent`/`amount`, и
 действующий `value` — `percent`% от актуальной сметы либо явная сумма).
 
@@ -203,14 +204,16 @@
       "paidIn": 30187600,
       "used": 14112780,
       "balance": 16074820,
-      "pdfPath": "/projects/renovation/pdf/Взаиморасчеты/6124 - ВВ работы.pdf"
+      "pdfPath": "/projects/renovation/pdf/Взаиморасчеты/6124 - ВВ работы.pdf",
+      "foremenAmount": null
     },
     "materials": {
       "date": "2026-08-06",
       "paidIn": 40000000,
       "used": 42283280,
       "balance": -2283280,
-      "pdfPath": "/projects/renovation/pdf/Взаиморасчеты/6124 - ВВ материалы 2026-08-06.pdf"
+      "pdfPath": "/projects/renovation/pdf/Взаиморасчеты/6124 - ВВ материалы 2026-08-06.pdf",
+      "foremenAmount": 5000000
     }
   },
   "materialsBudget": {

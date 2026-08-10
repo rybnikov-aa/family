@@ -46,7 +46,13 @@ function RenovDocRow({
           name
         )}
       </span>
-      <span className="renov-doc-value">{formatKopecks(sum, true)}</span>
+      <span
+        className={['renov-doc-value', !accounted && 'renov-doc-value--dim']
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {formatKopecks(sum, true)}
+      </span>
       <span
         className="renov-doc-status"
         title={

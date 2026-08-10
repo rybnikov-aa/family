@@ -72,6 +72,8 @@ export interface RenovationOverview {
       balance: number | null;
       /** URL исходного PDF ведомости (просмотр в приложении). */
       pdfPath: string | null;
+      /** Сумма «подотчётные прораба» в ведомости, копейки; null — нет. */
+      foremenAmount: number | null;
     } | null;
     materials: {
       date: string;
@@ -80,6 +82,8 @@ export interface RenovationOverview {
       balance: number | null;
       /** URL исходного PDF ведомости (просмотр в приложении). */
       pdfPath: string | null;
+      /** Сумма «подотчётные прораба» в ведомости, копейки; null — нет. */
+      foremenAmount: number | null;
     } | null;
   };
   /** Настройка и действующий бюджет на материалы («Блок 2»). */
@@ -92,12 +96,17 @@ function totalsOf(
 ): RenovationOverview['settlements']['works'] | null {
   if (!act) return null;
   const totalRow = act.rows.find((r) => r.kind === 'total');
+  // Строка-подсумма «Подотчётные прораба»: сумма = модуль баланса строки.
+  const foremenAmount = act.rows
+    .filter((r) => r.kind === 'subtotal')
+    .reduce((sum, r) => sum + Math.abs(r.balance ?? 0), 0);
   return {
     date: act.date,
     paidIn: totalRow?.paidIn ?? null,
     used: totalRow?.used ?? null,
     balance: totalRow?.balance ?? null,
     pdfPath: act.pdfPath,
+    foremenAmount: foremenAmount > 0 ? foremenAmount : null,
   };
 }
 
