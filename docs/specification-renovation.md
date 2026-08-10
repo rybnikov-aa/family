@@ -114,14 +114,20 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   - `GET /api/renovation/estimate/versions`, `GET /api/renovation/estimate?version=…`;
   - `GET /api/renovation/docs?type=…`, `GET /api/renovation/settlements?type=…`;
   - `GET /api/renovation/docs/:file` — загруженный PDF (под авторизацией);
-  - `PUT /api/renovation/meta` — обновить адрес объекта (admin).
+  - `PUT /api/renovation/meta` — обновить адрес объекта и/или дату старта (admin).
 - Фронтенд: `api/client.ts` (типы + `fetchRenovationOverview`), `hooks/useRenovationOverview.ts`,
   `utils/money.ts` (формат копеек/дат), страница `pages/RenovationPage.tsx` (Работы /
   Материалы + реквизиты), маршрут `#/projects/renovation` (`routes.ts`, `App.tsx`).
-- **Адрес объекта (шапка страницы):** адрес из `meta.object` — в подзаголовке страницы;
-  рядом кнопка-карандаш (`.renov-edit-object`), открывает `components/RenovationAddressModal.tsx`
-  (только admin). Сохраняется через `PUT /api/renovation/meta`
-  (`db/renovationRepository.ts::updateRenovationMetaObject` → `renovation_meta.object`), после
+- **Реквизиты в шапке (`renov-meta`):** две карточки в одну строку на всю ширину (адаптивно для
+  узких окон — друг под другом). Карточка реквизитов (`.renov-meta__card`): сетка 2×2 — «Договор»/
+  «Площадь» и «Подрядчик»/«Начало работ» (дата старта, карандаш — `.renov-edit-object`, admin,
+  `components/RenovationStartDateModal.tsx`). Карточка «Прошло времени от старта»
+  (`.renov-meta__start`): календарные дни от старта к сроку, срок ≈ ×1,4 календарных,
+  `utils/date.ts::calendarDaysBetween`, без карандаша (дата правится через «Начало работ»); ниже
+  разделитель и ссылки «Дизайн-проект» и «Смета» (статичный архив `/projects/renovation/`).
+  Адрес из `meta.object` — в подзаголовке страницы (карандаш admin,
+  `components/RenovationAddressModal.tsx`). Сохраняется через `PUT /api/renovation/meta`
+  (`db/renovationRepository.ts::updateRenovationMeta` → `renovation_meta.object`/`start_date`), после
   сохранения сводка перезагружается.
 - **Шапка карточки «Работы»:** вместо строк «Смета (план)»/«Выполнено по актам» и бейджа
   процента — прогресс-бар освоения бюджета под заголовком (`components/RenovationSummaryCard.tsx`,
@@ -324,9 +330,10 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
       акта (`141 127,88`), заказов материалов, ведомостей; % освоения — `6,9`.
 - [x] Read-API `/api/renovation` отдаёт корректную сводку (проверено curl + браузер).
 - [x] Страница `#/projects/renovation` рендерит сводку из БД (проверено в браузере после входа).
-- [x] Адрес объекта редактируется на странице «Ремонт» (карандаш в подзаголовке, admin →
-      `PUT /api/renovation/meta`): сохранение обновляет подзаголовок и переживает перезагрузку
-      (проверено в браузере), пустой адрес — 400.
+- [x] Адрес и дата начала работ редактируются на странице «Ремонт» (карандаши в подзаголовке и у
+      «Начало работ», admin → `PUT /api/renovation/meta`): сохранение обновляет UI и переживает
+      перезагрузку (проверено curl + браузер), пустой адрес/некорректная дата — 400;
+      не-админ карандашей не видит (403 на API).
 - [x] Импорт PDF: `POST /api/renovation/pdf` строит черновик (тип/дата/позиции/итог),
       `POST /pdf/:id/confirm` пишет в БД (201), идемпотентность → 409; UI-модалка «Импорт PDF»
       (загрузка → предпросмотр → подтверждение → перезагрузка сводки) проверена в браузере.

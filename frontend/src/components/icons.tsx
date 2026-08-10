@@ -37,10 +37,10 @@ export function UserIcon(props: IconProps) {
 /** Ремонт — дом с малярным валиком (ремонт/отделка жилья) */
 export function RenovationIcon(props: IconProps) {
   return (
-    <svg {...base} {...props}>
+    <svg {...base} strokeWidth={1.5} {...props}>
       <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      {/* Валик внутри дома: stroke 4 компенсирует scale 0.5 → визуально 2 */}
-      <g transform="translate(12 15) scale(0.5) translate(-12 -12)" strokeWidth={4}>
+      {/* Валик внутри дома: stroke 3 компенсирует scale 0.5 → визуально 1.5 */}
+      <g transform="translate(12 15) scale(0.5) translate(-12 -12)" strokeWidth={3}>
         <rect width="16" height="6" x="2" y="2" rx="2" />
         <path d="M10 16v-2a2 2 0 0 1 2-2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
         <rect width="4" height="6" x="8" y="16" rx="1" />
@@ -283,6 +283,18 @@ export function EditIcon(props: IconProps) {
     <svg {...base} {...props}>
       <path d="M12 20h9" />
       <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+/** Документ — лист с загнутым углом */
+export function DocIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M9 13h6" />
+      <path d="M9 17h6" />
     </svg>
   );
 }

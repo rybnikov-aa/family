@@ -42,16 +42,123 @@
   align-items: stretch;
 }
 .renov-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+  gap: var(--space-4);
   margin: var(--space-3) 0 var(--space-5);
+  align-items: stretch;
+}
+/* Карточка реквизитов (договор): сетка 2×2 + ссылки на документы */
+.renov-meta__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-1xl);
+}
+.renov-meta__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-5);
+}
+.renov-meta__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.renov-meta__label {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+}
+.renov-meta__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-strong);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.renov-meta__divider {
+  height: 1px;
+  background: var(--border);
+}
+/* «Старт» — карточка «Прошло времени от старта» (макет отчёта, стили дизайн-системы) */
+.renov-meta__start {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-1xl);
+}
+.renov-meta__progress-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
-.renov-meta strong {
+.renov-meta__progress-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.renov-meta__progress-top strong {
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.renov-meta__progress-track {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  overflow: hidden;
+}
+.renov-meta__progress-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-orange);
+  transition: width 0.3s ease;
+}
+.renov-meta__progress-sub {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Ссылки на документы (дизайн-проект, смета) */
+.renov-meta__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.renov-meta__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--text-strong);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+.renov-meta__link svg {
+  width: 15px;
+  height: 15px;
+}
+.renov-meta__link:hover {
+  border-color: var(--color-accent-orange);
+  background: color-mix(in srgb, var(--color-accent-orange) 8%, transparent);
 }
 /* Карточка-сводка «Ремонта» — самостоятельный примитив (не ссылочная `.card`:
    без hover-подъёма и align-items: flex-start). */

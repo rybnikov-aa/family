@@ -14,7 +14,7 @@ import {
   listEstimateVersions,
   listRenovationDocs,
   listSettlementActs,
-  updateRenovationMetaObject,
+  updateRenovationMeta,
 } from '../db/renovationRepository';
 import {
   buildAddendumProposal,
@@ -54,18 +54,42 @@ export function overviewController(_req: Request, res: Response): void {
 }
 
 /**
- * Обновить адрес объекта «Ремонта»: `PUT /api/renovation/meta`.
- * Тело — `{ object: string }` (непустая строка без обрамляющих пробелов).
- * Ответ — `{ meta }` — актуальные реквизиты проекта.
+ * Обновить реквизиты проекта «Ремонта»: `PUT /api/renovation/meta` (admin).
+ * Тело — любое подмножество `{ object: string, startDate: 'ГГГГ-ММ-ДД' }`.
+ * `object` — непустая строка (обрамляющие пробелы обрезаются); `startDate` —
+ * корректная дата в формате ГГГГ-ММ-ДД. Ответ — `{ meta }`.
  */
 export function updateMetaController(req: Request, res: Response): void {
-  const body = (req.body ?? {}) as { object?: unknown };
-  const object = typeof body.object === 'string' ? body.object.trim() : '';
-  if (!object) {
-    res.status(400).json({ message: 'Адрес объекта не может быть пустым' });
+  const body = (req.body ?? {}) as { object?: unknown; startDate?: unknown };
+  const fields: { object?: string; startDate?: string } = {};
+  if (body.object !== undefined) {
+    if (typeof body.object !== 'string') {
+      res.status(400).json({ message: 'Адрес объекта должен быть строкой' });
+      return;
+    }
+    const object = body.object.trim();
+    if (!object) {
+      res.status(400).json({ message: 'Адрес объекта не может быть пустым' });
+      return;
+    }
+    fields.object = object;
+  }
+  if (body.startDate !== undefined) {
+    if (typeof body.startDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.startDate)) {
+      res.status(400).json({ message: 'Дата старта должна быть в формате ГГГГ-ММ-ДД' });
+      return;
+    }
+    if (Number.isNaN(new Date(`${body.startDate}T00:00:00Z`).getTime())) {
+      res.status(400).json({ message: 'Некорректная дата старта' });
+      return;
+    }
+    fields.startDate = body.startDate;
+  }
+  if (Object.keys(fields).length === 0) {
+    res.status(400).json({ message: 'Нет полей для обновления' });
     return;
   }
-  res.json({ meta: updateRenovationMetaObject(object) });
+  res.json({ meta: updateRenovationMeta(fields) });
 }
 
 /**

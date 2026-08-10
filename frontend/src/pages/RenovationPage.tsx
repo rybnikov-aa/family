@@ -1,10 +1,11 @@
 import { lazy, Suspense, useState, type ReactNode } from 'react';
 import PageLayout from '../components/PageLayout';
-import { EditIcon, RenovationIcon, RefreshIcon, UploadIcon } from '../components/icons';
+import { DocIcon, EditIcon, RenovationIcon, RefreshIcon, UploadIcon } from '../components/icons';
 import Button from '../components/Button';
 import AddendumModal from '../components/AddendumModal';
 import RenovationAddressModal from '../components/RenovationAddressModal';
 import RenovationPdfModal from '../components/RenovationPdfModal';
+import RenovationStartDateModal from '../components/RenovationStartDateModal';
 import RenovationWorkReport from '../components/RenovationWorkReport';
 import RenovationMaterialsReport from '../components/RenovationMaterialsReport';
 import RenovationSummaryCard from '../components/RenovationSummaryCard';
@@ -16,6 +17,7 @@ import StatRow from '../components/StatRow';
 import { useRenovationOverview } from '../hooks/useRenovationOverview';
 import { useRenovationReports } from '../hooks/useRenovationReports';
 import { useAuth } from '../hooks/useAuth';
+import { calendarDaysBetween, todayIso } from '../utils/date';
 import { formatDateIso, formatKopecks } from '../utils/money';
 import { pluralize } from '../utils/plural';
 
@@ -43,6 +45,7 @@ function RenovationPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [addendumOpen, setAddendumOpen] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
+  const [startDateOpen, setStartDateOpen] = useState(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
   // Открытый отчёт («Работы»/«Материалы») — в модальном окне.
   const [report, setReport] = useState<'work' | 'materials' | null>(null);
@@ -179,6 +182,20 @@ function RenovationPage() {
           ),
         }
       : null;
+  // Прогресс «Прошло времени от старта»: календарные дни от старта к сроку.
+  // Срок в раб. днях ≈ ×1,4 календарных (как в отчётах «Ход работ»).
+  const startProgress =
+    meta?.startDate && meta.deadlineDays != null && meta.deadlineDays > 0
+      ? (() => {
+          const total = Math.round(meta.deadlineDays * 1.4);
+          const elapsed = calendarDaysBetween(meta.startDate, todayIso());
+          return {
+            percent: total > 0 ? Math.round((elapsed / total) * 1000) / 10 : 0,
+            elapsed,
+            total,
+          };
+        })()
+      : null;
 
   /** Открыть отчёт («Работы»/«Материалы») в модальном окне. */
   const openReport = (r: 'work' | 'materials') => {
@@ -235,31 +252,83 @@ function RenovationPage() {
           <>
             {meta && (
               <div className="renov-meta">
-                {meta.contractNo && (
-                  <span>
-                    <strong>Договор:</strong> {meta.contractNo}
-                    {meta.contractDate ? ` от ${formatDateIso(meta.contractDate)}` : ''}
-                  </span>
-                )}
-                {meta.contractor && (
-                  <span>
-                    <strong>Подрядчик:</strong> {meta.contractor}
-                  </span>
-                )}
-                {meta.startDate && (
-                  <span>
-                    <strong>Старт:</strong> {formatDateIso(meta.startDate)}
-                  </span>
-                )}
-                {meta.area && (
-                  <span>
-                    <strong>Площадь:</strong> {meta.area}
-                  </span>
-                )}
-                {meta.deadlineDays != null && (
-                  <span>
-                    <strong>Срок:</strong> {meta.deadlineDays} раб. дней
-                  </span>
+                <div className="renov-meta__card">
+                  <div className="renov-meta__grid">
+                    <div className="renov-meta__item">
+                      <span className="renov-meta__label">Договор</span>
+                      <span className="renov-meta__value">
+                        {meta.contractNo}
+                        {meta.contractDate ? ` от ${formatDateIso(meta.contractDate)}` : ''}
+                      </span>
+                    </div>
+                    <div className="renov-meta__item">
+                      <span className="renov-meta__label">Площадь</span>
+                      <span className="renov-meta__value">{meta.area}</span>
+                    </div>
+                    <div className="renov-meta__item">
+                      <span className="renov-meta__label">Подрядчик</span>
+                      <span className="renov-meta__value">{meta.contractor}</span>
+                    </div>
+                    <div className="renov-meta__item">
+                      <span className="renov-meta__label">Начало работ</span>
+                      <span className="renov-meta__value">
+                        {formatDateIso(meta.startDate)}
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            className="renov-edit-object"
+                            title="Изменить дату начала работ"
+                            aria-label="Изменить дату начала работ"
+                            onClick={() => setStartDateOpen(true)}
+                          >
+                            <EditIcon />
+                          </button>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {meta.startDate && startProgress && (
+                  <div className="renov-meta__start">
+                    <div className="renov-meta__progress-top">
+                      <span className="renov-meta__progress-label">Прошло времени от старта</span>
+                      <strong>{startProgress.percent.toLocaleString('ru-RU')}%</strong>
+                    </div>
+                    <div className="renov-meta__progress-track">
+                      <div
+                        className="renov-meta__progress-fill"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, startProgress.percent))}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="renov-meta__progress-sub">
+                      {formatDateIso(meta.startDate)} → {formatDateIso(todayIso())} ·{' '}
+                      {startProgress.elapsed} из ~{startProgress.total} дн.
+                    </div>
+                    <div className="renov-meta__divider" />
+                    <div className="renov-meta__links">
+                      <a
+                        className="renov-meta__link"
+                        href="/projects/renovation/pdf/00%20Дизайн-проект/1%20этап%20%2B%20электрика%20(1).pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <DocIcon />
+                        Дизайн-проект
+                      </a>
+                      <a
+                        className="renov-meta__link"
+                        href="/projects/renovation/estimates.html"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <DocIcon />
+                        Смета
+                      </a>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -407,6 +476,13 @@ function RenovationPage() {
         <RenovationAddressModal
           object={meta.object}
           onClose={() => setAddressOpen(false)}
+          onSaved={() => reload()}
+        />
+      )}
+      {startDateOpen && meta?.startDate && (
+        <RenovationStartDateModal
+          startDate={meta.startDate}
+          onClose={() => setStartDateOpen(false)}
           onSaved={() => reload()}
         />
       )}

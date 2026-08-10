@@ -104,13 +104,27 @@ export function getRenovationMeta(): RenovationMeta | null {
   };
 }
 
-/** Обновить адрес объекта «Ремонта» (поле `object` в `renovation_meta`, id=1). */
-export function updateRenovationMetaObject(object: string): RenovationMeta {
+/** Обновить реквизиты «Ремонта» (`renovation_meta`, id=1): только переданные поля. */
+export function updateRenovationMeta(fields: {
+  object?: string;
+  startDate?: string;
+}): RenovationMeta {
   const db = getRenovationDb();
-  db.prepare(
-    `INSERT INTO renovation_meta (id, object) VALUES (1, ?)
-     ON CONFLICT(id) DO UPDATE SET object = excluded.object`,
-  ).run(object);
+  db.prepare('INSERT OR IGNORE INTO renovation_meta (id) VALUES (1)').run();
+  const sets: string[] = [];
+  const values: (string | number)[] = [];
+  if (fields.object !== undefined) {
+    sets.push('object = ?');
+    values.push(fields.object);
+  }
+  if (fields.startDate !== undefined) {
+    sets.push('start_date = ?');
+    values.push(fields.startDate);
+  }
+  if (sets.length > 0) {
+    values.push(1);
+    db.prepare(`UPDATE renovation_meta SET ${sets.join(', ')} WHERE id = ?`).run(...values);
+  }
   const meta = getRenovationMeta();
   if (!meta) throw new Error('Реквизиты «Ремонта» не инициализированы');
   return meta;
