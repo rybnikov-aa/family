@@ -127,13 +127,15 @@
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
-/* Ссылки на документы (дизайн-проект, смета) */
+/* Кнопки-ссылки на документы (дизайн-проект, смета) — открывают модальные окна */
 .renov-meta__links {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
 }
 .renov-meta__link {
+  font: inherit;
+  line-height: inherit;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -142,6 +144,8 @@
   border-radius: var(--radius-pill);
   color: var(--text-strong);
   font-size: var(--font-size-sm);
+  background: none;
+  cursor: pointer;
   text-decoration: none;
   transition:
     border-color 0.15s ease,
@@ -349,18 +353,6 @@
   height: 1px;
   background: var(--border);
   margin: var(--space-1) 0;
-}
-.renov-note {
-  margin-top: var(--space-4);
-  font-size: var(--font-size-caption);
-}
-.renov-note a {
-  color: var(--color-accent-orange);
-  font-weight: 600;
-  text-decoration: none;
-}
-.renov-note a:hover {
-  text-decoration: underline;
 }
 /* Сноска на «Использовано» (подотчётные прораба) */
 .renov-note-ref {
@@ -757,6 +749,101 @@
 .renov-pdf__error {
   font-size: var(--font-size-caption);
   color: var(--color-danger-strong);
+}
+
+/* ── Модалка «Дизайн-проект»: список документов из хранилища ── */
+.design-modal__hint,
+.design-modal__error,
+.design-modal__empty {
+  padding: var(--space-6) 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+.design-modal__error {
+  color: var(--color-danger-strong);
+}
+.design-modal__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.design-modal__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  white-space: normal;
+  text-align: left;
+}
+.design-modal__link svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Модалка «Смета»: версии сметы из БД + ссылки на исходные PDF ── */
+.est-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.est-modal__hint,
+.est-modal__error {
+  padding: var(--space-6) 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+.est-modal__error {
+  color: var(--color-danger-strong);
+}
+.est-modal__block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.est-modal__title {
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.est-modal__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.est-modal__row:last-child {
+  border-bottom: none;
+}
+.est-modal__row--muted .est-modal__name,
+.est-modal__row--muted .est-modal__total {
+  color: var(--text-muted);
+}
+.est-modal__name {
+  min-width: 0;
+  font-size: var(--font-size-sm);
+}
+.est-modal__total {
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-sm);
+}
+.est-modal__muted {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+.est-modal__actions {
+  margin-top: var(--space-2);
 }
 .renov-pdf__done {
   display: flex;

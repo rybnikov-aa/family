@@ -131,3 +131,62 @@ export function cleanupPendingPdfs(): void {
     /* каталога ещё нет — чистить нечего */
   }
 }
+
+// ── Документы дизайн-проекта (подпапка `design/` каталога документов) ───────
+
+/** Подпапка каталога документов для файлов дизайн-проекта. */
+const DESIGN_DIR = 'design';
+
+/**
+ * Человекочитаемые заголовки документов дизайн-проекта (по имени файла).
+ * Имена файлов — безопасные (латиница/цифры/дефисы), исходные имена с кириллицей
+ * и пробелами хранить нельзя (path traversal-защита и URL). Заголовок — сюда.
+ */
+const DESIGN_TITLES: Record<string, string> = {
+  '1-etap-elektrika.pdf': '1 этап + электрика',
+  'obmernyj-plan.pdf': 'Обмерный план',
+};
+
+/** Абсолютный путь к каталогу документов дизайн-проекта. */
+export function designDocsDir(): string {
+  return join(docsDir(), DESIGN_DIR);
+}
+
+/** URL PDF дизайн-проекта (в подпапке `design/` каталога документов). */
+export function designPdfUrl(fileName: string): string {
+  return `/api/renovation/docs/design/${encodeURIComponent(fileName)}`;
+}
+
+/**
+ * Абсолютный путь к PDF дизайн-проекта (в подпапке `design/`). Возвращает
+ * `null`, если имя некорректно (path traversal). Существование файла
+ * контроллер проверяет отдельно (404).
+ */
+export function resolveStoredDesignPdf(fileName: string): string | null {
+  if (!isSafeFileName(fileName)) return null;
+  const base = docsDir();
+  const path = resolve(base, DESIGN_DIR, fileName);
+  if (path !== base && !path.startsWith(base + sep)) return null;
+  return path;
+}
+
+/** Заголовок документа дизайн-проекта: из карты имён, иначе — из имени файла. */
+function designTitle(fileName: string): string {
+  const known = DESIGN_TITLES[fileName];
+  if (known) return known;
+  const base = fileName.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ');
+  return base.charAt(0).toUpperCase() + base.slice(1) || fileName;
+}
+
+/**
+ * Список документов дизайн-проекта: PDF в `docs/renovation/design/`.
+ * Возвращает `{ fileName, title, url }[]`, отсортированный по заголовку.
+ */
+export function listDesignDocs(): { fileName: string; title: string; url: string }[] {
+  const dir = designDocsDir();
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((name) => name.toLowerCase().endsWith('.pdf'))
+    .map((fileName) => ({ fileName, title: designTitle(fileName), url: designPdfUrl(fileName) }))
+    .sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+}

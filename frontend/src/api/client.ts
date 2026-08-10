@@ -554,6 +554,23 @@ export async function fetchRenovationEstimateVersions(): Promise<{
   return res.json() as Promise<{ versions: RenovationEstimateVersion[] }>;
 }
 
+/** Документ дизайн-проекта (файл в подпапке `design/` каталога документов). */
+export interface RenovationDesignDoc {
+  /** Имя файла в хранилище (без пути). */
+  fileName: string;
+  /** Человекочитаемый заголовок документа. */
+  title: string;
+  /** URL PDF (`/api/renovation/docs/design/<file>`). */
+  url: string;
+}
+
+/** Документы дизайн-проекта: `GET /api/renovation/design`. */
+export async function fetchRenovationDesignDocs(): Promise<{ docs: RenovationDesignDoc[] }> {
+  const res = await apiFetch('/renovation/design');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<{ docs: RenovationDesignDoc[] }>;
+}
+
 /** Строка диффа применения доп. соглашения. */
 export interface RenovationAddendumDiff {
   key: string;

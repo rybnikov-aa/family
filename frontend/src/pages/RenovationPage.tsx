@@ -1,9 +1,10 @@
 import { lazy, Suspense, useState, type ReactNode } from 'react';
 import PageLayout from '../components/PageLayout';
-import { DocIcon, EditIcon, RenovationIcon, RefreshIcon, UploadIcon } from '../components/icons';
+import { DocIcon, EditIcon, RenovationIcon, UploadIcon } from '../components/icons';
 import Button from '../components/Button';
-import AddendumModal from '../components/AddendumModal';
 import RenovationAddressModal from '../components/RenovationAddressModal';
+import RenovationDesignModal from '../components/RenovationDesignModal';
+import RenovationEstimateModal from '../components/RenovationEstimateModal';
 import RenovationPdfModal from '../components/RenovationPdfModal';
 import RenovationStartDateModal from '../components/RenovationStartDateModal';
 import RenovationWorkReport from '../components/RenovationWorkReport';
@@ -28,6 +29,8 @@ const PdfViewerModal = lazy(() => import('../components/PdfViewerModal'));
 interface ViewPdfDoc {
   url: string;
   title: string;
+  /** Растягивать форму под ширину документа (дизайн-проект). */
+  fitToWidth?: boolean;
 }
 
 /**
@@ -43,7 +46,8 @@ function RenovationPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [importOpen, setImportOpen] = useState(false);
-  const [addendumOpen, setAddendumOpen] = useState(false);
+  const [designOpen, setDesignOpen] = useState(false);
+  const [estimateOpen, setEstimateOpen] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
@@ -204,7 +208,8 @@ function RenovationPage() {
   };
 
   /** Открыть PDF документа во встроенном просмотрщике. */
-  const openPdf = (url: string, title: string) => setViewPdf({ url, title });
+  const openPdf = (url: string, title: string, fitToWidth?: boolean) =>
+    setViewPdf({ url, title, fitToWidth });
 
   return (
     <PageLayout>
@@ -234,9 +239,6 @@ function RenovationPage() {
           </div>
           {isAdmin && (
             <div className="page__head-actions">
-              <Button icon={<RefreshIcon />} onClick={() => setAddendumOpen(true)}>
-                Доп. соглашение
-              </Button>
               <Button variant="primary" icon={<UploadIcon />} onClick={() => setImportOpen(true)}>
                 Импорт PDF
               </Button>
@@ -310,24 +312,22 @@ function RenovationPage() {
                     </div>
                     <div className="renov-meta__divider" />
                     <div className="renov-meta__links">
-                      <a
+                      <button
+                        type="button"
                         className="renov-meta__link"
-                        href="/projects/renovation/pdf/00%20Дизайн-проект/1%20этап%20%2B%20электрика%20(1).pdf"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        onClick={() => setDesignOpen(true)}
                       >
                         <DocIcon />
                         Дизайн-проект
-                      </a>
-                      <a
+                      </button>
+                      <button
+                        type="button"
                         className="renov-meta__link"
-                        href="/projects/renovation/estimates.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        onClick={() => setEstimateOpen(true)}
                       >
                         <DocIcon />
                         Смета
-                      </a>
+                      </button>
                     </div>
                   </div>
                 )}
@@ -457,12 +457,6 @@ function RenovationPage() {
                 ))}
               </div>
             )}
-
-            <div className="renov-note">
-              <a href="/projects/renovation/" target="_blank" rel="noopener">
-                Открыть статичный архив проекта (PDF, документы, отчёты) →
-              </a>
-            </div>
           </>
         )}
       </section>
@@ -470,8 +464,15 @@ function RenovationPage() {
       {importOpen && (
         <RenovationPdfModal onClose={() => setImportOpen(false)} onImported={() => reload()} />
       )}
-      {addendumOpen && (
-        <AddendumModal onClose={() => setAddendumOpen(false)} onApplied={() => reload()} />
+      {designOpen && (
+        <RenovationDesignModal onClose={() => setDesignOpen(false)} onOpenPdf={openPdf} />
+      )}
+      {estimateOpen && (
+        <RenovationEstimateModal
+          onClose={() => setEstimateOpen(false)}
+          onOpenPdf={openPdf}
+          onApplied={() => reload()}
+        />
       )}
       {addressOpen && meta && (
         <RenovationAddressModal
@@ -512,6 +513,7 @@ function RenovationPage() {
           <PdfViewerModal
             url={viewPdf.url}
             title={viewPdf.title}
+            fitToWidth={viewPdf.fitToWidth}
             onClose={() => setViewPdf(null)}
           />
         </Suspense>

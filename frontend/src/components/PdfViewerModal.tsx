@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { fetchFileBytes } from '../api/client';
@@ -14,11 +14,24 @@ interface PdfViewerModalProps {
   title: string;
   /** Закрыть модалку. */
   onClose: () => void;
+  /**
+   * Растягивать модалку так, чтобы документ помещался целиком по ширине
+   * (самая широкая страница без горизонтальной прокрутки) — но только если
+   * позволяет ширина экрана. Используется для документов дизайн-проекта.
+   */
+  fitToWidth?: boolean;
 }
 
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 3;
 const ZOOM_STEP = 0.25;
+// Горизонтальные «отступы-хром» вокруг страницы: паддинги модалки (--space-4 ×2)
+// и сцены (--space-4 ×2).
+const PDF_CHROME_X = 16 * 4;
+// Не сужаем форму ниже дефолтной ширины модалки PDF (min(1080px, 96vw)).
+const PDF_DEFAULT_MAX = 1080;
+// Доступная ширина экрана: бэкдроп (--space-6 = 24 ×2) + запас на скроллбар.
+const PDF_BACKDROP_X = 24 * 2 + 8;
 
 /**
  * Просмотр PDF в приложении (pdf.js / pdfjs-dist). Открывается по клику на
@@ -27,7 +40,7 @@ const ZOOM_STEP = 0.25;
  * (для `/api/*` — с обработкой 401, для статичного архива `/projects/…` —
  * обычным fetch). Компонент грузится лениво (pdfjs — тяжёлый чанк).
  */
-function PdfViewerModal({ url, title, onClose }: PdfViewerModalProps) {
+function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerModalProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const taskRef = useRef<pdfjsLib.PDFDocumentLoadingTask | null>(null);
   const docRef = useRef<pdfjsLib.PDFDocumentProxy | null>(null);
@@ -37,6 +50,8 @@ function PdfViewerModal({ url, title, onClose }: PdfViewerModalProps) {
   const [page, setPage] = useState(1);
   const [numPages, setNumPages] = useState(0);
   const [scale, setScale] = useState(1);
+  /** Ширина самой широкой страницы на масштабе 1 (для fitToWidth), px. */
+  const [pageWidth, setPageWidth] = useState<number | null>(null);
 
   // Загрузка документа по url (перезагружается при смене url).
   useEffect(() => {
@@ -62,6 +77,19 @@ function PdfViewerModal({ url, title, onClose }: PdfViewerModalProps) {
         docRef.current = doc;
         setNumPages(doc.numPages);
         setPage(1);
+        if (fitToWidth) {
+          // Подгонка под самую широкую страницу (без отрисовки, только метаданные).
+          let maxW = 0;
+          for (let i = 1; i <= doc.numPages; i++) {
+            const p = await doc.getPage(i);
+            const vp = p.getViewport({ scale: 1 });
+            if (vp.width > maxW) maxW = vp.width;
+          }
+          if (cancelled) return;
+          setPageWidth(maxW || null);
+        } else {
+          setPageWidth(null);
+        }
         setStatus('ready');
       } catch (err) {
         if (!cancelled) {
@@ -120,8 +148,18 @@ function PdfViewerModal({ url, title, onClose }: PdfViewerModalProps) {
   const prevPage = () => setPage((p) => Math.max(1, p - 1));
   const nextPage = () => setPage((p) => Math.min(numPages, p + 1));
 
+  // Ширина модалки для «подогнанных» документов: самая широкая страница +
+  // отступы-хром, не уже дефолта (1080) и не шире доступного экрана.
+  const modalStyle = useMemo(() => {
+    if (!fitToWidth || pageWidth == null) return undefined;
+    const desired = pageWidth + PDF_CHROME_X;
+    const available = window.innerWidth - PDF_BACKDROP_X;
+    const width = Math.min(Math.max(desired, PDF_DEFAULT_MAX), available);
+    return { width: `${width}px`, maxWidth: `${width}px` };
+  }, [fitToWidth, pageWidth]);
+
   return (
-    <Modal title={title} onClose={onClose} className="modal--pdf">
+    <Modal title={title} onClose={onClose} className="modal--pdf" style={modalStyle}>
       <div className="pdf-viewer">
         <div className="pdf-viewer__toolbar">
           <span className="pdf-viewer__file">{url}</span>

@@ -17,11 +17,16 @@
 `data/renovation.sqlite`** и, далее (этапы 2+), перевести просмотр и расчёт в приложение
 (React + Express). Статичные страницы при этом остаются read-only архивом.
 
-Текущий статус — **этапы 1–6 выполнены**: домен, отдельная БД, seed-импорт с верификацией;
+Текущий статус — **этапы 1–7 выполнены**: домен, отдельная БД, seed-импорт с верификацией;
 read-API `/api/renovation/*`, страница приложения `#/projects/renovation` (сводка
 «Работы»/«Материалы» + отчёты по ссылкам «Ход работ»/«Закупка материалов» (в модальном окне)), импорт PDF через `pdfplumber` (черновик → подтверждение), применение
 доп. соглашений к смете (дифф → подтверждение → версионирование); карточка «Ремонт» в разделе
 «Проекты» ведёт в приложение (`#/projects/renovation`), статичные страницы остаются архивом.
+**Этап 7 (модалки вместо прямых ссылок):** «Дизайн-проект» и «Смета» на странице «Ремонт»
+открывают модальные окна из БД/хранилища документов (документы дизайн-проекта — подпапка
+`design/` каталога документов, смета/доп. соглашения — версии из БД со ссылками на исходные
+PDF во встроенном просмотрщике); кнопка «Доп. соглашение» перенесена в модалку «Смета».
+Прямые ссылки на статичные `estimates.html` и `pdf/...` с этой страницы убраны.
 
 ## 1. Требования
 
@@ -114,6 +119,7 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   - `GET /api/renovation/estimate/versions`, `GET /api/renovation/estimate?version=…`;
   - `GET /api/renovation/docs?type=…`, `GET /api/renovation/settlements?type=…`;
   - `GET /api/renovation/docs/:file` — загруженный PDF (под авторизацией);
+  - `GET /api/renovation/design`, `GET /api/renovation/docs/design/:file` — документы дизайн-проекта;
   - `PUT /api/renovation/meta` — обновить адрес объекта и/или дату старта (admin).
 - Фронтенд: `api/client.ts` (типы + `fetchRenovationOverview`), `hooks/useRenovationOverview.ts`,
   `utils/money.ts` (формат копеек/дат), страница `pages/RenovationPage.tsx` (Работы /
@@ -125,7 +131,12 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   (`.renov-meta__start`): сверху даты «старт → сегодня», полоса, подпись «N из ~M дн.» и % справа
   (календарные дни от старта к сроку, срок ≈ ×1,4 календарных,
   `utils/date.ts::calendarDaysBetween`, без карандаша — дата правится через «Начало работ»); ниже
-  разделитель и ссылки «Дизайн-проект» и «Смета» (статичный архив `/projects/renovation/`).
+  разделитель и кнопки «Дизайн-проект» и «Смета» (`.renov-meta__link`) — открывают модальные
+  окна, а не прямые ссылки на статичный архив: `components/RenovationDesignModal.tsx` (список
+  документов дизайн-проекта из `GET /api/renovation/design`, по клику — встроенный просмотрщик
+  `PdfViewerModal`) и `components/RenovationEstimateModal.tsx` (версии сметы из БД
+  `GET /api/renovation/estimate/versions` с суммами и ссылками на исходные PDF; для admin —
+  кнопка «Доп. соглашение» → `AddendumModal`).
   Адрес из `meta.object` — в подзаголовке страницы (карандаш admin,
   `components/RenovationAddressModal.tsx`). Сохраняется через `PUT /api/renovation/meta`
   (`db/renovationRepository.ts::updateRenovationMeta` → `renovation_meta.object`/`start_date`), после
@@ -215,18 +226,28 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   400 — некорректное имя, 404 — файл не найден. В БД пишется `pdf_path` =
   `/api/renovation/docs/<file>` (заполняется при подтверждении: `insertRenovationDoc`,
   `insertSettlementAct`, `insertAddendumVersion`).
-- **`pdf_path` у записей:** URL приложения `/api/renovation/docs/<file>` — как у
-  импортированных документов, так и у записей из seed (на сервере PDF, включая перенесённые
-  со статичного архива, лежат в `server/docs/renovation/`). Просмотрщик умеет и «прямые»
-  серверные пути (`/projects/...`) — они остались у записей, чьи файлы ещё не перенесены.
-- **Перенос существующих PDF (разовая операция на сервере):** файлы, на которые ссылался seed
-  через статичный архив (`public_html/projects/renovation/pdf/…`), переносятся в
+- **`pdf_path` у записей:** URL приложения `/api/renovation/docs/<file>` у всех записей —
+  импортированных и из seed (PDF лежат в `server/docs/renovation/`, включая перенесённые
+  со статичного архива). Просмотрщик умеет и «прямые» серверные пути (`/projects/...`) —
+  как fallback, в БД таких значений уже нет.
+- **Перенос существующих PDF (выполнен и на сервере, и в dev):** файлы, на которые ссылался
+  seed через статичный архив (`public_html/projects/renovation/pdf/…`), перенесены в
   `server/docs/renovation/` с именами по тем же правилам (акты/заказы/ведомости —
   `pdfFileName`, смета — `estimate.pdf`, доп. соглашения — `addendum_<дата>_<id>.pdf`), а
-  `pdf_path` в БД переписывается на `/api/renovation/docs/<file>`. Статичный архив остаётся
-  только с файлами вне БД (дизайн-проект, фото, спецификации). ВНИМАНИЕ: повторный
+  `pdf_path` в БД переписан на `/api/renovation/docs/<file>` (все таблицы: `estimate_versions`,
+  `renovation_docs`, `settlement_acts`). ВНИМАНИЕ: повторный
   `--seed-renovation` восстанавливает `pdf_path` из `.doc-sources` (URL статичного архива) —
   после пересева перенос нужно применить заново.
+- **Документы дизайн-проекта** — подпапка `design/` каталога документов
+  (`docs/renovation/design/`; имена файлов — безопасные `[a-z0-9._-]`, человекочитаемые
+  заголовки — карта `DESIGN_TITLES` в `pdfStore.ts`). Список — `GET /api/renovation/design`
+  (`{ docs: { fileName, title, url }[] }`, по заголовку), раздача —
+  `GET /api/renovation/docs/design/:file` (под `requireAuth`, path traversal-защита как у
+  плоских файлов). Кнопка «Дизайн-проект» на странице «Ремонт» открывает модалку со списком
+  (`RenovationDesignModal.tsx`), по клику на документ — встроенный просмотрщик `PdfViewerModal`.
+  Для документов дизайн-проекта просмотрщик открывается с `fitToWidth`: форма растягивается так,
+  чтобы самая широкая страница помещалась целиком по ширине (без горизонтальной прокрутки), но
+  не шире доступного экрана; остальные PDF (смета, акты, отчёты) — с дефолтной шириной.
 - **Просмотр:** фронтенд-компонент `components/PdfViewerModal.tsx` (pdf.js / `pdfjs-dist`,
   ленивый чанк): скачивает файл через `fetchFileBytes` (`api/client.ts`; для `/api/*` — с
   обработкой 401), рисует страницы на `<canvas>` с листанием, масштабом и индикатором страницы.
@@ -274,7 +295,8 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   → применяет и возвращает `{ currentId, total, totalNoOverhead, overhead, itemsCount }` (201).
   Проверки: `addendumId`/`addendum.kind='addendum'`, у соглашения есть `date`, есть `current`.
 
-**Фронтенд:** модалка `AddendumModal.tsx` (admin, кнопка «Доп. соглашение» на странице «Ремонт»):
+**Фронтенд:** модалка `AddendumModal.tsx` (admin, кнопка «Доп. соглашение» — в модалке
+«Смета», `RenovationEstimateModal.tsx`; открывается поверх неё, Escape закрывает только её):
 список соглашений (`GET /estimate/versions`) → выбор → дифф (Было/Стало, метки
 изменение/добавление/без изменений) → чекбоксы «Удалить» для позиций `keep` → итоги
 (Итого по всем разделам / Накладные 5% / Итого) → «Применить доп. соглашение» → перезагрузка
@@ -317,7 +339,8 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
 - Карточка «Ремонт» в разделе «Проекты» теперь ведёт в приложение: `ProjectsPage.tsx`
   маппит `slug === 'renovation'` → `/projects/renovation` (значение `ROUTES.renovation`) — это
   внутренний маршрут SPA, `SectionCard` рендерит его через `<Link>` (hash-форма). Статичный
-  `projects/renovation/` остаётся доступен со страницы «Ремонт» (ссылка «Открыть статичный архив»).
+  `projects/renovation/` больше не ссылается из приложения (ссылка «Открыть статичный архив»
+  убрана — все документы доступны через модалки и встроенный просмотрщик).
 - Сервер: `python3` + `pdfplumber` ставятся отдельно, путь задаётся `RENOVATION_PYTHON` в
   `server/.env` (см. `docs/server.md`); БД `data/renovation.sqlite` сохраняется при деплое
   (как и `data/vps.sqlite`). Деплой — `npm run deploy` (см. `scripts/deploy.mjs`).
@@ -347,7 +370,14 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
       — 4 заказа, итого 433 724,80 ₽, накладные 33 893,89 ₽; ссылки «Ход работ» /
       «Закупка материалов» (открытие отчёта в модальном окне) на странице «Ремонт» проверены в браузере.
 - [x] Карточка «Ремонт» в «Проектах» ведёт в `#/projects/renovation` (SPA), а не в статичный
-      `projects/renovation/`; статичный архив доступен со страницы «Ремонт».
+      `projects/renovation/`; ссылка на статичный архив со страницы «Ремонт» убрана (этап 7).
+- [x] Этап 7: кнопки «Дизайн-проект» и «Смета» открывают модальные окна (`RenovationDesignModal`,
+      `RenovationEstimateModal`) вместо прямых ссылок на статику; кнопка «Доп. соглашение» — в
+      модалке «Смета»; документы дизайн-проекта — подпапка `docs/renovation/design/`
+      (`GET /api/renovation/design`, раздача `/docs/design/:file`); просмотрщик PDF для
+      дизайн-проекта растягивает форму под ширину документа (`fitToWidth`); все `pdf_path`
+      (смета, доп. соглашения, акты, заказы, ведомости) — `/api/renovation/docs/...` (проверено
+      в браузере: дизайн-проект, смета, акт, ведомость открываются во встроенном просмотрщике).
 - [x] Сохранение PDF: подтверждённый импорт кладёт файл в `docs/renovation/<тип>_<дата>.pdf`
       и пишет `pdf_path = /api/renovation/docs/<file>`; `GET /api/renovation/docs/:file` отдаёт
       файл (200, `application/pdf`), без сессии — 401, некорректное имя — 400, отсутствующий —

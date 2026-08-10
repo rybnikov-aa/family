@@ -33,8 +33,10 @@ import {
   cleanupPendingPdfs,
   discardPdf,
   finalizePdf,
+  listDesignDocs,
   pdfFileName,
   pdfUrl,
+  resolveStoredDesignPdf,
   resolveStoredPdf,
   savePendingPdf,
 } from '../services/renovation/import/pdfStore';
@@ -154,6 +156,36 @@ export function settlementsController(req: Request, res: Response): void {
 export function pdfFileController(req: Request, res: Response): void {
   const name = String(req.params.file);
   const filePath = resolveStoredPdf(name);
+  if (!filePath) {
+    res.status(400).json({ message: 'Некорректное имя файла' });
+    return;
+  }
+  if (!existsSync(filePath)) {
+    res.status(404).json({ message: 'Файл не найден' });
+    return;
+  }
+  res.type('application/pdf');
+  res.sendFile(filePath);
+}
+
+/**
+ * Список документов дизайн-проекта: `GET /api/renovation/design`.
+ * Файлы — в подпапке `design/` каталога документов (`RENOVATION_DOCS_DIR`).
+ * Ответ — `{ docs: { fileName, title, url }[] }`.
+ */
+export function designDocsController(_req: Request, res: Response): void {
+  res.json({ docs: listDesignDocs() });
+}
+
+/**
+ * PDF дизайн-проекта: `GET /api/renovation/docs/design/:file` (под авторизацией).
+ * Отдаёт файл из подпапки `design/` каталога документов; имя — только
+ * `[a-z0-9._-]` (защита от path traversal). 400 — некорректное имя,
+ * 404 — файл не найден.
+ */
+export function designPdfController(req: Request, res: Response): void {
+  const name = String(req.params.file);
+  const filePath = resolveStoredDesignPdf(name);
   if (!filePath) {
     res.status(400).json({ message: 'Некорректное имя файла' });
     return;

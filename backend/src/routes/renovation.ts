@@ -3,6 +3,8 @@ import {
   addendumConfirmController,
   addendumProposalController,
   confirmPdfController,
+  designDocsController,
+  designPdfController,
   docsController,
   estimateController,
   estimateVersionsController,
@@ -30,6 +32,9 @@ renovationRouter.get('/estimate/versions', estimateVersionsController);
 renovationRouter.get('/estimate', estimateController);
 renovationRouter.get('/docs', docsController);
 renovationRouter.get('/docs/:file', pdfFileController);
+// Документы дизайн-проекта: список + PDF из подпапки `design/` каталога документов.
+renovationRouter.get('/design', designDocsController);
+renovationRouter.get('/docs/design/:file', designPdfController);
 renovationRouter.get('/settlements', settlementsController);
 
 // Отчёты (этап 5).

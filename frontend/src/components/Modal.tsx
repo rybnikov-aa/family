@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type CSSProperties, type ReactNode } from 'react';
 import IconButton from './IconButton';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 
@@ -18,6 +18,8 @@ interface ModalProps {
   closeOnEscape?: boolean;
   /** Не закрывать по клику на подложку. */
   closeOnBackdrop?: boolean;
+  /** Инлайн-стили карточки (например, ширина под контент просмотрщика PDF). */
+  style?: CSSProperties;
 }
 
 /**
@@ -36,6 +38,7 @@ function Modal({
   actions,
   closeOnEscape = true,
   closeOnBackdrop = true,
+  style,
 }: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -104,6 +107,7 @@ function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
+        style={style}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="modal__head">
