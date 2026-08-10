@@ -34,11 +34,17 @@ export function UserIcon(props: IconProps) {
   );
 }
 
-/** Ремонт — гаечный ключ */
+/** Ремонт — дом с малярным валиком (ремонт/отделка жилья) */
 export function RenovationIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      {/* Валик внутри дома: stroke 4 компенсирует scale 0.5 → визуально 2 */}
+      <g transform="translate(12 15) scale(0.5) translate(-12 -12)" strokeWidth={4}>
+        <rect width="16" height="6" x="2" y="2" rx="2" />
+        <path d="M10 16v-2a2 2 0 0 1 2-2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+        <rect width="4" height="6" x="8" y="16" rx="1" />
+      </g>
     </svg>
   );
 }

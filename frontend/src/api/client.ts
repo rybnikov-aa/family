@@ -359,7 +359,7 @@ export interface MaterialsBudget {
 }
 
 /**
- * Сводка проекта «Ремонт» (Блок 1 Работы / Блок 2 Материалы) из отдельной БД
+ * Сводка проекта «Ремонт» (Работы / Материалы) из отдельной БД
  * `renovation.sqlite`. Все суммы — копейки (×100); форматирование — `utils/money.ts`.
  */
 export interface RenovationOverview {

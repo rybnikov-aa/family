@@ -16,7 +16,7 @@ interface MaterialsBudgetModalProps {
 type Mode = 'percent' | 'amount';
 
 /**
- * Форма настройки бюджета на материалы (admin) — «Блок 2. Материалы».
+ * Форма настройки бюджета на материалы (admin) — «Материалы».
  * Бюджет задаётся либо процентом от сметы на работы (по умолчанию 100%,
  * пересчитывается при изменении сметы), либо явной суммой.
  */
@@ -70,7 +70,7 @@ function MaterialsBudgetModal({ budget, onClose, onSaved }: MaterialsBudgetModal
     <Modal title="Бюджет на материалы" onClose={onClose}>
       <form className="vps-form" onSubmit={handleSubmit}>
         <p className="vps-form__note">
-          Бюджет используется в прогресс-баре «Блок 2. Материалы» — сумма по заказам из бюджета.
+          Бюджет используется в прогресс-баре «Материалы» — сумма по заказам из бюджета.
         </p>
 
         <div className="field">

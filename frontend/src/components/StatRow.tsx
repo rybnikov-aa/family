@@ -15,7 +15,7 @@ interface StatRowProps {
 }
 
 /**
- * Строка «показатель — значение» сводки «Ремонта» (Блок 1 Работы / Блок 2 Материалы).
+ * Строка «показатель — значение» сводки «Ремонта» (Работы / Материалы).
  * Единый примитив вместо ручной разметки `.renov-line` + `.renov-value`.
  */
 function StatRow({ label, value, tone, sub = false, valueClassName = '' }: StatRowProps) {

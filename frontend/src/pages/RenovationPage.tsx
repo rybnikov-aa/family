@@ -8,16 +8,15 @@ import RenovationWorkReport from '../components/RenovationWorkReport';
 import RenovationMaterialsReport from '../components/RenovationMaterialsReport';
 import RenovationSummaryCard from '../components/RenovationSummaryCard';
 import MaterialsBudgetModal from '../components/MaterialsBudgetModal';
+import Modal from '../components/Modal';
 import RenovDocRow from '../components/RenovDocRow';
 import RenovationSettlement from '../components/RenovationSettlement';
 import StatRow from '../components/StatRow';
-import Tabs from '../components/Tabs';
 import { useRenovationOverview } from '../hooks/useRenovationOverview';
 import { useRenovationReports } from '../hooks/useRenovationReports';
 import { useAuth } from '../hooks/useAuth';
 import { formatDateIso, formatKopecks } from '../utils/money';
-
-type Tab = 'summary' | 'work' | 'materials';
+import { pluralize } from '../utils/plural';
 
 // Просмотрщик PDF (pdfjs) — тяжёлый чанк, грузится только при открытии документа.
 const PdfViewerModal = lazy(() => import('../components/PdfViewerModal'));
@@ -29,11 +28,11 @@ interface ViewPdfDoc {
 }
 
 /**
- * Страница «Ремонт» (этапы 2–5): сводка (Блок 1 Работы / Блок 2 Материалы) из
- * отдельной БД `renovation.sqlite` (`GET /api/renovation`), вкладки «Ход работ»
- * и «Материалы» (отчёты `GET /api/renovation/reports/*`), импорт PDF и
- * применение доп. соглашений (admin). Статичные страницы `projects/renovation/`
- * остаются read-only архивом.
+ * Страница «Ремонт» (этапы 2–5): сводка (Работы / Материалы) из отдельной БД
+ * `renovation.sqlite` (`GET /api/renovation`), отчёты — по ссылкам «Ход работ» /
+ * «Закупка материалов» в карточках, открываются в модальном окне
+ * (`GET /api/renovation/reports/*`), импорт PDF и применение доп. соглашений
+ * (admin). Статичные страницы `projects/renovation/` остаются read-only архивом.
  */
 function RenovationPage() {
   const { overview, error, loading, reload } = useRenovationOverview();
@@ -43,7 +42,8 @@ function RenovationPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [addendumOpen, setAddendumOpen] = useState(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
-  const [tab, setTab] = useState<Tab>('summary');
+  // Открытый отчёт («Работы»/«Материалы») — в модальном окне.
+  const [report, setReport] = useState<'work' | 'materials' | null>(null);
   const [viewPdf, setViewPdf] = useState<ViewPdfDoc | null>(null);
 
   const meta = overview?.meta;
@@ -178,9 +178,10 @@ function RenovationPage() {
         }
       : null;
 
-  const switchTab = (t: Tab) => {
-    setTab(t);
-    if (t !== 'summary') void reports.load();
+  /** Открыть отчёт («Работы»/«Материалы») в модальном окне. */
+  const openReport = (r: 'work' | 'materials') => {
+    setReport(r);
+    void reports.load();
   };
 
   /** Открыть PDF документа во встроенном просмотрщике. */
@@ -190,12 +191,12 @@ function RenovationPage() {
     <PageLayout>
       <section className="page">
         <div className="page__head">
-          <span className="page__icon page__icon--projects">
+          <span className="page__icon page__icon--projects page__icon--renovation">
             <RenovationIcon />
           </span>
           <div>
             <h2>Ремонт квартиры</h2>
-            <div className="page__sub">Сводка из БД: смета, акты, материалы, взаиморасчёты</div>
+            {meta?.object ? <div className="page__sub">{meta.object}</div> : null}
           </div>
           {isAdmin && (
             <div className="page__head-actions">
@@ -217,9 +218,6 @@ function RenovationPage() {
           <>
             {meta && (
               <div className="renov-meta">
-                <span>
-                  <strong>Объект:</strong> {meta.object}
-                </span>
                 {meta.contractNo && (
                   <span>
                     <strong>Договор:</strong> {meta.contractNo}
@@ -250,19 +248,19 @@ function RenovationPage() {
             )}
 
             <div className="renov-grid">
-              {/* Блок 1. Работы */}
-              <RenovationSummaryCard title="Блок 1. Работы" progress={worksProgress}>
+              {/* Работы */}
+              <RenovationSummaryCard title="Работы" progress={worksProgress}>
                 <div className="renov-divider" />
                 <StatRow
                   label={
-                    works && works.acts.length > 0 ? (
-                      <>
-                        Акты выполненных работ
-                        <span className="renov-pill">{works.acts.length}</span>
-                      </>
-                    ) : (
-                      'Акты выполненных работ'
-                    )
+                    <button type="button" className="renov-link" onClick={() => openReport('work')}>
+                      Ход работ
+                      {works && works.acts.length > 0 && (
+                        <span className="renov-pill">
+                          {works.acts.length} {pluralize(works.acts.length, 'акт', 'акта', 'актов')}
+                        </span>
+                      )}
+                    </button>
                   }
                 />
                 {works && works.acts.length > 0 && (
@@ -304,17 +302,24 @@ function RenovationPage() {
                 )}
               </RenovationSummaryCard>
 
-              {/* Блок 2. Материалы */}
-              <RenovationSummaryCard title="Блок 2. Материалы" progress={materialsProgress}>
+              {/* Материалы */}
+              <RenovationSummaryCard title="Материалы" progress={materialsProgress}>
                 {materials && materials.orders.length > 0 && (
                   <>
                     <div className="renov-divider" />
                     <StatRow
                       label={
-                        <>
-                          Заказы
-                          <span className="renov-pill">{materials.orders.length}</span>
-                        </>
+                        <button
+                          type="button"
+                          className="renov-link"
+                          onClick={() => openReport('materials')}
+                        >
+                          Закупка материалов
+                          <span className="renov-pill">
+                            {materials.orders.length}{' '}
+                            {pluralize(materials.orders.length, 'отчет', 'отчета', 'отчетов')}
+                          </span>
+                        </button>
                       }
                     />
                     {materials.orders.map((o) => (
@@ -366,21 +371,6 @@ function RenovationPage() {
               </div>
             )}
 
-            <Tabs
-              items={[
-                { value: 'summary', label: 'Сводка' },
-                { value: 'work', label: 'Ход работ' },
-                { value: 'materials', label: 'Материалы' },
-              ]}
-              value={tab}
-              onChange={switchTab}
-            />
-
-            {tab === 'work' && <RenovationWorkReport reports={reports} />}
-            {tab === 'materials' && (
-              <RenovationMaterialsReport reports={reports} onOpenPdf={openPdf} />
-            )}
-
             <div className="renov-note">
               <a href="/projects/renovation/" target="_blank" rel="noopener">
                 Открыть статичный архив проекта (PDF, документы, отчёты) →
@@ -402,6 +392,19 @@ function RenovationPage() {
           onClose={() => setBudgetOpen(false)}
           onSaved={() => reload()}
         />
+      )}
+      {report && (
+        <Modal
+          title={report === 'work' ? 'Отчет о ходе работ' : 'Отчет по материалам'}
+          onClose={() => setReport(null)}
+          className="modal--report"
+        >
+          {report === 'work' ? (
+            <RenovationWorkReport reports={reports} />
+          ) : (
+            <RenovationMaterialsReport reports={reports} onOpenPdf={openPdf} />
+          )}
+        </Modal>
       )}
       {viewPdf && (
         <Suspense fallback={null}>

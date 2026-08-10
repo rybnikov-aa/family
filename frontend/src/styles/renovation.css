@@ -2,6 +2,12 @@
    Ранее были инлайн-`<style>` в RenovationPage/AddendumModal/RenovationPdfModal;
    перенесены в index.css (Фаза A консолидации дизайн-системы). */
 
+/* Иконка «Ремонта» в шапке — крупнее внутри контейнера (54px не меняем). */
+.page__icon--renovation svg {
+  width: 36px;
+  height: 36px;
+}
+
 /* Страница «Ремонт»: сводка */
 .renov-grid {
   display: grid;
@@ -44,7 +50,7 @@
   font-weight: 700;
   color: var(--text-strong);
 }
-/* Прогресс освоения бюджета — полоса под заголовком (Блок 1. Работы) */
+/* Прогресс освоения бюджета — полоса под заголовком (карточки «Работы»/«Материалы») */
 .renov-card__progress {
   margin-bottom: var(--space-3);
 }
@@ -132,6 +138,11 @@
   outline: var(--focus-ring);
   outline-offset: 2px;
   border-radius: var(--radius-xs);
+}
+/* Pill внутри ссылки-кнопки: подчёркивание ссылки не распространяется на pill */
+.renov-link .renov-pill {
+  display: inline-block;
+  text-decoration: none;
 }
 /* Строка документа «Ремонта» в 4 столбца: дата | имя-ссылка | статус | сумма */
 .renov-doc-row {
@@ -231,7 +242,7 @@
   margin-left: 2px;
   color: var(--color-accent-orange);
 }
-/* Примечания к сводке «Ремонта» (между карточками и вкладками) */
+/* Примечания к сводке «Ремонта» (под карточками «Работы»/«Материалы») */
 .renov-notes {
   margin-top: var(--space-5);
   font-size: var(--font-size-caption);
@@ -250,43 +261,6 @@
   font-size: 0.7em;
   color: var(--color-accent-orange);
   margin-right: 2px;
-}
-
-/* Вкладки страниц — примитив `Tabs` (раньше `.renov-tabs`/`.renov-tab`) */
-.tabs {
-  display: flex;
-  gap: var(--space-3);
-  margin: var(--space-6) 0 var(--space-3);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: var(--space-2);
-  flex-wrap: wrap;
-}
-.tab {
-  font: inherit;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  padding: 8px var(--space-4);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-.tab:hover {
-  background: var(--surface-hover);
-  color: var(--text);
-}
-.tab--active {
-  background: var(--color-accent-orange);
-  border-color: var(--color-accent-orange);
-  color: var(--on-accent-orange);
-}
-.tab--active:hover {
-  background: var(--color-accent-orange-strong);
-  color: var(--on-accent-orange);
 }
 
 /* Отчёты (ход работ / материалы) */

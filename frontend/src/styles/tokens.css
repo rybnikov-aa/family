@@ -79,8 +79,6 @@
   --color-accent-sky: #0ea5e9;
   --color-accent-orange: #e8872e;
   --color-accent-orange-strong: #d97706;
-  /* Текст поверх акцентного оранжевого (активная вкладка) — тёмный: контраст WCAG AA */
-  --on-accent-orange: #0a0a0a;
 
   /* ── Дизайн-система: шкала радиусов ── */
   --radius-xs: 5px;

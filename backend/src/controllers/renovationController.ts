@@ -47,7 +47,7 @@ import type {
   SettlementType,
 } from '../services/renovation/domain/types';
 
-/** Сводка «Ремонта» (Блок 1 Работы / Блок 2 Материалы): `GET /api/renovation`. */
+/** Сводка «Ремонта» (Работы / Материалы): `GET /api/renovation`. */
 export function overviewController(_req: Request, res: Response): void {
   res.json(buildOverview());
 }
