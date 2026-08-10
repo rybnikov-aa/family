@@ -3,7 +3,7 @@
  *
  * Правила — из архивного навыка `project-renovation-update-from-pdf`
  * (`projects/skills-archive/`). Тип определяется по ключевым словам; дата — из
- * шапки; номер — по «№N».
+ * шапки; номер — по «№N»/«NN» (в PDF подрядчика бывает и латинская «N»).
  */
 
 export type PdfDocType = 'work_act' | 'material_order' | 'settlement' | 'addendum' | null;
@@ -148,7 +148,9 @@ export function classifyPdf(text: string, fileName: string): PdfClass {
     }
   }
 
-  const number = /№\s*(\d+)/.exec(text.slice(0, 300))?.[1] ?? null;
+  // Номер документа: в PDF шаблона подрядчика встречается и «№», и латинская
+  // «N» («Заказ материалов N5 от …») — учитываем оба варианта.
+  const number = /(?:№|N)\s*(\d+)/i.exec(text.slice(0, 300))?.[1] ?? null;
   // Дата: приоритет — из имени файла; для ведомостей (кумулятивных) — самая поздняя
   // строка (дата документа = дата последней записи), иначе — из шапки.
   const fromName = fileNameDate(fileName);

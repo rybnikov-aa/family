@@ -16,8 +16,13 @@ interface RenovationEstimateModalProps {
   onApplied: () => void;
 }
 
-/** Кнопка-ссылка на исходный PDF версии сметы (если путь задан). */
-function VersionPdfLink({
+/**
+ * Строка версии сметы в 3 столбца (как списки документов «Ход работ» /
+ * «Закупка материалов»): дата | имя-ссылка | сумма. Отдельной кнопки
+ * «Открыть PDF» нет — иконка стоит перед именем, PDF открывается по клику
+ * на имя документа (если `pdfPath` задан).
+ */
+function VersionRow({
   version,
   onOpenPdf,
 }: {
@@ -25,18 +30,30 @@ function VersionPdfLink({
   onOpenPdf: (url: string, title: string) => void;
 }) {
   const pdf = version.pdfPath;
-  if (!pdf) return null;
   const title = version.label + (version.date ? ` от ${formatDateIso(version.date)}` : '');
   return (
-    <button
-      type="button"
-      className="renov-link"
-      onClick={() => onOpenPdf(pdf, title)}
-      title={`Открыть исходный документ (PDF)`}
-    >
-      <DocIcon />
-      Открыть PDF
-    </button>
+    <div className="est-doc-row">
+      <span className="est-doc-date">{version.date ? formatDateIso(version.date) : ''}</span>
+      <span className="est-doc-name">
+        {pdf ? (
+          <button
+            type="button"
+            className="renov-link"
+            onClick={() => onOpenPdf(pdf, title)}
+            title="Открыть исходный документ (PDF)"
+          >
+            <DocIcon />
+            {version.label}
+          </button>
+        ) : (
+          <span className="est-doc-name-plain">
+            <DocIcon />
+            {version.label}
+          </span>
+        )}
+      </span>
+      <span className="est-doc-total">{formatKopecks(version.total, true)}</span>
+    </div>
   );
 }
 
@@ -70,7 +87,6 @@ function RenovationEstimateModal({ onClose, onOpenPdf, onApplied }: RenovationEs
 
   const current = versions.find((v) => v.kind === 'current') ?? null;
   const addenda = versions.filter((v) => v.kind === 'addendum');
-  const history = versions.filter((v) => v.kind === 'history' || v.kind === 'seed');
 
   return (
     <Modal
@@ -90,11 +106,7 @@ function RenovationEstimateModal({ onClose, onOpenPdf, onApplied }: RenovationEs
             <section className="est-modal__block">
               <div className="est-modal__title">Актуальная смета</div>
               {current ? (
-                <div className="est-modal__row">
-                  <span className="est-modal__name">{current.label}</span>
-                  <span className="est-modal__total">{formatKopecks(current.total, true)}</span>
-                  <VersionPdfLink version={current} onOpenPdf={onOpenPdf} />
-                </div>
+                <VersionRow version={current} onOpenPdf={onOpenPdf} />
               ) : (
                 <div className="est-modal__muted">Актуальная смета не найдена</div>
               )}
@@ -104,30 +116,7 @@ function RenovationEstimateModal({ onClose, onOpenPdf, onApplied }: RenovationEs
               <section className="est-modal__block">
                 <div className="est-modal__title">Доп. соглашения</div>
                 {addenda.map((a) => (
-                  <div key={a.id} className="est-modal__row">
-                    <span className="est-modal__name">
-                      {a.label}
-                      {a.date ? ` от ${formatDateIso(a.date)}` : ''}
-                    </span>
-                    <span className="est-modal__total">{formatKopecks(a.total, true)}</span>
-                    <VersionPdfLink version={a} onOpenPdf={onOpenPdf} />
-                  </div>
-                ))}
-              </section>
-            )}
-
-            {history.length > 0 && (
-              <section className="est-modal__block">
-                <div className="est-modal__title">История</div>
-                {history.map((h) => (
-                  <div key={h.id} className="est-modal__row est-modal__row--muted">
-                    <span className="est-modal__name">
-                      {h.label}
-                      {h.date ? ` от ${formatDateIso(h.date)}` : ''}
-                    </span>
-                    <span className="est-modal__total">{formatKopecks(h.total, true)}</span>
-                    <VersionPdfLink version={h} onOpenPdf={onOpenPdf} />
-                  </div>
+                  <VersionRow key={a.id} version={a} onOpenPdf={onOpenPdf} />
                 ))}
               </section>
             )}

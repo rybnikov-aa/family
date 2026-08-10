@@ -340,14 +340,16 @@ function RenovationPage() {
                 <div className="renov-divider" />
                 <StatRow
                   label={
-                    <button type="button" className="renov-link" onClick={() => openReport('work')}>
-                      Ход работ
+                    <>
+                      <button type="button" className="renov-link" onClick={() => openReport('work')}>
+                        Ход работ
+                      </button>
                       {works && works.acts.length > 0 && (
                         <span className="renov-pill">
                           {works.acts.length} {pluralize(works.acts.length, 'акт', 'акта', 'актов')}
                         </span>
                       )}
-                    </button>
+                    </>
                   }
                 />
                 {works && works.acts.length > 0 && (
@@ -396,17 +398,19 @@ function RenovationPage() {
                     <div className="renov-divider" />
                     <StatRow
                       label={
-                        <button
-                          type="button"
-                          className="renov-link"
-                          onClick={() => openReport('materials')}
-                        >
-                          Закупка материалов
+                        <>
+                          <button
+                            type="button"
+                            className="renov-link"
+                            onClick={() => openReport('materials')}
+                          >
+                            Закупка материалов
+                          </button>
                           <span className="renov-pill">
                             {materials.orders.length}{' '}
                             {pluralize(materials.orders.length, 'отчет', 'отчета', 'отчетов')}
                           </span>
-                        </button>
+                        </>
                       }
                     />
                     {materials.orders.map((o) => (
