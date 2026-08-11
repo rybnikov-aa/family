@@ -141,9 +141,18 @@ family (монорепозиторий, npm workspaces)
 
 ## 5. Данные и конфигурация
 
-### 5.1. Хранилище VPS — SQLite (`backend/data/vps.sqlite`)
+### 5.1. Хранилища данных — отдельные SQLite-базы по доменам
 
-Схема VPS-таблиц — в [docs/specification-vps.md](specification-vps.md) (раздел «Хранилище VPS»). В той же БД — таблицы авторизации `users`/`sessions` (см. [docs/specification-auth.md](specification-auth.md), раздел «Данные»).
+Каждый домен приложения хранится в собственной SQLite-базе (каталог `backend/data/`, файлы не в git, при деплое сохраняются):
+
+| Домен                                | Файл БД                  | Путь в env           | Схема                      |
+| ------------------------------------ | ------------------------ | -------------------- | -------------------------- |
+| VPS (`vps`, `vps_services`)          | `data/vps.sqlite`        | `DB_PATH`            | `db/database.ts`           |
+| Авторизация (`users`, `sessions`)    | `data/auth.sqlite`       | `AUTH_DB_PATH`       | `db/authDatabase.ts`       |
+| Прикладные проекты (`projects`)      | `data/projects.sqlite`   | `PROJECTS_DB_PATH`   | `db/projectsDatabase.ts`   |
+| «Ремонт» (смета/документы/ведомости) | `data/renovation.sqlite` | `RENOVATION_DB_PATH` | `db/renovationDatabase.ts` |
+
+Схема VPS-таблиц — в [docs/specification-vps.md](specification-vps.md) (раздел «Хранилище VPS»), авторизации — в [docs/specification-auth.md](specification-auth.md) (раздел «Данные»), проектов — в [docs/specification-projects.md](specification-projects.md) (раздел «Хранилище проектов»).
 
 ### 5.2. Наполнение БД
 
@@ -161,14 +170,14 @@ VPS наполняется вручную/через UI/импорт — см. [
 
 В проекте три независимых пространства переменных окружения; у каждого — шаблон `.env.example` (в git) и, при необходимости, реальный `.env` (в git не попадает, реальные `.env` не переопределяют переменные уже заданные в окружении процесса):
 
-| Файл            | Кто читает                             | Переменные                                                                                                                     |
-| --------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Корневой `.env` | `scripts/deploy.mjs` (деплой)          | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH` |
-| `backend/.env`  | Бэкенд (`src/config/env.ts`, `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `AUTH_BOOTSTRAP_*`, `RENOVATION_*`      |
-| `frontend/.env` | Vite (только `VITE_*`)                 | `VITE_API_BASE_URL`                                                                                                            |
+| Файл            | Кто читает                             | Переменные                                                                                                                                                    |
+| --------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Корневой `.env` | `scripts/deploy.mjs` (деплой)          | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH`                                |
+| `backend/.env`  | Бэкенд (`src/config/env.ts`, `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `AUTH_DB_PATH`, `PROJECTS_DB_PATH`, `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `AUTH_BOOTSTRAP_*`, `RENOVATION_*` |
+| `frontend/.env` | Vite (только `VITE_*`)                 | `VITE_API_BASE_URL`                                                                                                                                           |
 
 - **Корневой** `.env`/`.env.example` — конфигурация **деплоя** (SSH, пути на сервере, pm2).
-- **`backend/.env`** — конфигурация **рантайма бэкенда**: `PORT` (по умолчанию `3000`), `CORS_ORIGIN` (dev `http://localhost:5173`, прод — домен), `NODE_ENV`, `DB_PATH` (по умолчанию `data/vps.sqlite` — БД VPS и проектов `projects`), `RENOVATION_DB_PATH`/`RENOVATION_DOCS_DIR` (каталог загруженных PDF «Ремонта», по умолчанию `docs/renovation`)/`RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT` (модуль «Ремонт»), а также авторизация: `AUTH_COOKIE_NAME` (`sid`), `SESSION_TTL_HOURS` (168), `AUTH_BOOTSTRAP_PASSWORD`/`AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME` (создание первого администратора при старте, если в БД нет пользователей). Переменной `PROJECTS_DIR` больше нет — проекты хранятся в БД, статичные папки не используются.
+- **`backend/.env`** — конфигурация **рантайма бэкенда**: `PORT` (по умолчанию `3000`), `CORS_ORIGIN` (dev `http://localhost:5173`, прод — домен), `NODE_ENV`, пути к раздельным SQLite-базам: `DB_PATH` (по умолчанию `data/vps.sqlite` — БД VPS), `AUTH_DB_PATH` (по умолчанию `data/auth.sqlite` — авторизация), `PROJECTS_DB_PATH` (по умолчанию `data/projects.sqlite` — прикладные проекты), `RENOVATION_DB_PATH`/`RENOVATION_DOCS_DIR` (каталог загруженных PDF «Ремонта», по умолчанию `docs/renovation`)/`RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT` (модуль «Ремонт»), а также авторизация: `AUTH_COOKIE_NAME` (`sid`), `SESSION_TTL_HOURS` (168), `AUTH_BOOTSTRAP_PASSWORD`/`AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME` (создание первого администратора при старте, если в БД нет пользователей). Переменной `PROJECTS_DIR` больше нет — проекты хранятся в БД, статичные папки не используются.
 - **`frontend/.env`** — конфигурация **фронтенда**: `VITE_API_BASE_URL` (пусто → Vite dev-прокси `/api` → `:3000`).
 
 ---

@@ -7,20 +7,22 @@
 
 ## 1. Веб-приложение
 
-| Что                                            | Путь на сервере                                                                               |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Фронтенд (статик-файлы, сборка Vite)           | `/var/www/family.rybnikov.su/public_html`                                                     |
-| Бэкенд (Express, рантайм + `node_modules`)     | `/var/www/family.rybnikov.su/server`                                                          |
-| SQLite-база VPS и проектов (runtime, не в git) | `/var/www/family.rybnikov.su/server/data/vps.sqlite`                                          |
-| БД «Ремонта» (runtime, не в git)               | `/var/www/family.rybnikov.su/server/data/renovation.sqlite`                                   |
-| Загруженные PDF «Ремонта» (runtime, не в git)  | `/var/www/family.rybnikov.su/server/docs/renovation/` (в т.ч. подпапки `design/` и `legacy/`) |
+| Что                                           | Путь на сервере                                                                               |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Фронтенд (статик-файлы, сборка Vite)          | `/var/www/family.rybnikov.su/public_html`                                                     |
+| Бэкенд (Express, рантайм + `node_modules`)    | `/var/www/family.rybnikov.su/server`                                                          |
+| SQLite-база VPS (runtime, не в git)           | `/var/www/family.rybnikov.su/server/data/vps.sqlite`                                          |
+| БД авторизации (users/sessions, runtime)      | `/var/www/family.rybnikov.su/server/data/auth.sqlite`                                         |
+| БД прикладных проектов (runtime, не в git)    | `/var/www/family.rybnikov.su/server/data/projects.sqlite`                                     |
+| БД «Ремонта» (runtime, не в git)              | `/var/www/family.rybnikov.su/server/data/renovation.sqlite`                                   |
+| Загруженные PDF «Ремонта» (runtime, не в git) | `/var/www/family.rybnikov.su/server/docs/renovation/` (в т.ч. подпапки `design/` и `legacy/`) |
 
 - Бэкенд слушает `127.0.0.1:3000` (не публичный порт), доступен только через nginx-прокси `/api/`.
 - Процесс бэкенда управляется **pm2**, имя приложения: `family-backend`.
   - pm2 не в PATH в неинтерактивной сессии, полный путь:
     `/home/rybnikov/.nvm/versions/node/v24.19.0/bin/pm2`
-- **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется вручную (SQL/клиентом) **или через форму добавления VPS в UI** (`POST /api/vps`), импорт из JSON (`POST /api/vps/import`), удаление — кнопка-корзина в детализации (`DELETE /api/vps/:name`). Путь задаётся через `DB_PATH` (по умолчанию `data/vps.sqlite`). При деплое папки `data/` и `docs/` **не удаляются** (как и `.env`); схема таблиц создаётся автоматически при первом обращении. В той же БД — таблицы авторизации `users` и `sessions` (см. ниже).
-- **Авторизация** — весь портал (SPA и API) закрыт входом: без действующей сессии API отвечает 401, фронтенд показывает экран входа. Вход/выход/текущий пользователь — `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Сессия — httpOnly `SameSite=Lax` cookie `sid` (в проде `Secure`), в БД хранится только SHA-256 от токена; срок жизни — `SESSION_TTL_HOURS`. Роли: `admin` (управление VPS + создание проектов) и `user` (чтение). **Первый администратор** создаётся при старте из `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей); дальнейшие учётки — CLI `npm run user -w backend` (`add`/`list`/`set-role`/`remove`), он пишет в ту же БД и использует тот же формат хэша scrypt. Скрипт `scripts/users.mjs` входит в деплой, поэтому на сервере его можно запускать прямо из каталога бэкенда: `cd /var/www/family.rybnikov.su/server && node scripts/users.mjs add <username> <name> <role>`. `/api/health` остаётся публичным (для диагностики). Статичный архив «Ремонта» (`/projects/**`) удалён с сервера — все документы доступны только в приложении под авторизацией (модалки + `GET /api/renovation/docs/...`).
+- **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется вручную (SQL/клиентом) **или через форму добавления VPS в UI** (`POST /api/vps`), импорт из JSON (`POST /api/vps/import`), удаление — кнопка-корзина в детализации (`DELETE /api/vps/:name`). Путь задаётся через `DB_PATH` (по умолчанию `data/vps.sqlite`). При деплое папки `data/` и `docs/` **не удаляются** (как и `.env`); схема таблиц создаётся автоматически при первом обращении. Каждый домен — в своей БД: авторизация (`users`/`sessions`) — `server/data/auth.sqlite` (`AUTH_DB_PATH`), прикладные проекты (`projects`) — `server/data/projects.sqlite` (`PROJECTS_DB_PATH`), «Ремонт» — `server/data/renovation.sqlite` (см. ниже).
+- **Авторизация** — весь портал (SPA и API) закрыт входом: без действующей сессии API отвечает 401, фронтенд показывает экран входа. Вход/выход/текущий пользователь — `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Сессия — httpOnly `SameSite=Lax` cookie `sid` (в проде `Secure`), в БД хранится только SHA-256 от токена; срок жизни — `SESSION_TTL_HOURS`. Роли: `admin` (управление VPS + создание проектов) и `user` (чтение). **Первый администратор** создаётся при старте из `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей); дальнейшие учётки — CLI `npm run user -w backend` (`add`/`list`/`set-role`/`remove`), он пишет в отдельную БД авторизации `server/data/auth.sqlite` и использует тот же формат хэша scrypt. Скрипт `scripts/users.mjs` входит в деплой, поэтому на сервере его можно запускать прямо из каталога бэкенда: `cd /var/www/family.rybnikov.su/server && node scripts/users.mjs add <username> <name> <role>`. `/api/health` остаётся публичным (для диагностики). Статичный архив «Ремонта» (`/projects/**`) удалён с сервера — все документы доступны только в приложении под авторизацией (модалки + `GET /api/renovation/docs/...`).
 - Для диагностики API, требующего авторизации, в curl нужна cookie сессии: `curl -c ck -X POST http://127.0.0.1:3000/api/auth/login -H 'Content-Type: application/json' -d '{"username":"…","password":"…"}'`, затем `curl -b ck http://127.0.0.1:3000/api/vps`.
 
 **Управление пользователями на сервере:**
@@ -42,7 +44,7 @@
   - `PORT` — порт API (по умолчанию `3000`);
   - `NODE_ENV` — в проде `production` (задаётся скриптом деплоя);
   - `CORS_ORIGIN` — в проде `https://family.rybnikov.su`;
-  - `DB_PATH` — путь к SQLite-базе (по умолчанию `data/vps.sqlite`; в той же БД — таблица `projects`);
+  - `DB_PATH` — путь к SQLite-базе VPS (по умолчанию `data/vps.sqlite`); `AUTH_DB_PATH` — путь к БД авторизации (по умолчанию `data/auth.sqlite`); `PROJECTS_DB_PATH` — путь к БД прикладных проектов (по умолчанию `data/projects.sqlite`);
   - `AUTH_COOKIE_NAME` — имя cookie сессии (по умолчанию `sid`);
   - `SESSION_TTL_HOURS` — срок жизни сессии в часах (по умолчанию `168` = 7 суток);
   - `AUTH_BOOTSTRAP_PASSWORD` — пароль первого администратора (создаётся при старте, если в БД нет пользователей); после первого входа переменную можно убрать. Дополнительно: `AUTH_BOOTSTRAP_USERNAME` (`admin`), `AUTH_BOOTSTRAP_NAME` (`Администратор`).

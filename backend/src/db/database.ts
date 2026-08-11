@@ -31,6 +31,9 @@ function openDatabase(): DatabaseSync {
 
   // Схема: VPS (1) — (N) services.
   // `name` у VPS уникален — естественный ключ для идентификации записей.
+  // Авторизация (users/sessions) и прикладные проекты (projects) вынесены
+  // в отдельные БД: `data/auth.sqlite` (AUTH_DB_PATH) и `data/projects.sqlite`
+  // (PROJECTS_DB_PATH) — см. `db/authDatabase.ts` и `db/projectsDatabase.ts`.
   db.exec(`
     CREATE TABLE IF NOT EXISTS vps (
       id      INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,43 +52,6 @@ function openDatabase(): DatabaseSync {
     );
 
     CREATE INDEX IF NOT EXISTS idx_vps_services_vps_id ON vps_services(vps_id);
-
-    -- Пользователи (авторизация) и сессии. Пароли — только хэши (scrypt).
-    CREATE TABLE IF NOT EXISTS users (
-      id            INTEGER PRIMARY KEY AUTOINCREMENT,
-      username      TEXT    NOT NULL UNIQUE,
-      name          TEXT    NOT NULL,
-      password_hash TEXT    NOT NULL,
-      role          TEXT    NOT NULL DEFAULT 'user', -- 'admin' | 'user'
-      created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS sessions (
-      id         INTEGER PRIMARY KEY AUTOINCREMENT,
-      token_hash TEXT    NOT NULL UNIQUE, -- SHA-256 от токена (сам токен в БД не храним)
-      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      created_at TEXT    NOT NULL DEFAULT (datetime('now')),
-      expires_at TEXT    NOT NULL
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
-    CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
-
-    -- Проекты (раздел «Проекты»): созданные через UI — записи в БД (kind: app),
-    -- а не статичные папки. Встроенные проекты (например, «Ремонт») живут в
-    -- реестре config/appProjects.ts и в эту таблицу не попадают.
-    CREATE TABLE IF NOT EXISTS projects (
-      id          INTEGER PRIMARY KEY AUTOINCREMENT,
-      slug        TEXT    NOT NULL UNIQUE,          -- латиница, цифры, дефисы
-      title       TEXT    NOT NULL,
-      description TEXT    NOT NULL,
-      accent      TEXT    NOT NULL DEFAULT '#3b82f6',
-      icon        TEXT    NOT NULL DEFAULT 'projects', -- renovation | folder | projects
-      order_num   INTEGER NOT NULL DEFAULT 2147483647, -- меньше — раньше в списке
-      content     TEXT    NOT NULL DEFAULT '',          -- markdown-контент страницы проекта
-      created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
-      updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
-    );
   `);
 
   return db;

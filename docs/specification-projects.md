@@ -34,7 +34,7 @@
 
 ## 2. Хранилище проектов (`services/projectsService.ts`, `db/projectsRepository.ts`)
 
-- Таблица `projects` (SQLite, та же БД `DB_PATH`, что и VPS): `slug` (UNIQUE), `title`, `description`,
+- Таблица `projects` (SQLite, отдельная БД `data/projects.sqlite`, путь — `PROJECTS_DB_PATH`): `slug` (UNIQUE), `title`, `description`,
   `accent`, `icon`, `order_num`, `content` (markdown), `created_at`, `updated_at`.
 - `listProjects()` — встроенный реестр `config/appProjects.ts` (в т.ч. «Ремонт», `editable: false`)
   - записи БД (`editable: true`); сортировка по `order`, затем по названию (ru). Скан файловой

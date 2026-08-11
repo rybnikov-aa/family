@@ -38,26 +38,25 @@
 
 ## 2. Данные (SQLite: `users` и `sessions`)
 
-В той же БД, что и VPS (`backend/data/vps.sqlite`), хранятся таблицы авторизации (схема — `backend/src/db/database.ts`, создаются автоматически `CREATE TABLE IF NOT EXISTS`):
-
-```sql
+Таблицы авторизации живут в **отдельной БД** `backend/data/auth.sqlite` (путь — `env.AUTH_DB_PATH`, по умолчанию `data/auth.sqlite`; это **не** `DB_PATH` — БД VPS). Схема — `backend/src/db/authDatabase.ts` (синглтон `getAuthDb()`), создаётся автоматически `CREATE TABLE IF NOT EXISTS`:
 CREATE TABLE users (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  username      TEXT    NOT NULL UNIQUE,
-  name          TEXT    NOT NULL,
-  password_hash TEXT    NOT NULL,
-  role          TEXT    NOT NULL DEFAULT 'user', -- 'admin' | 'user'
-  created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+username TEXT NOT NULL UNIQUE,
+name TEXT NOT NULL,
+password_hash TEXT NOT NULL,
+role TEXT NOT NULL DEFAULT 'user', -- 'admin' | 'user'
+created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE sessions (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  token_hash TEXT    NOT NULL UNIQUE, -- SHA-256 от токена (сам токен в БД не храним)
-  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  created_at TEXT    NOT NULL DEFAULT (datetime('now')),
-  expires_at TEXT    NOT NULL
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+token_hash TEXT NOT NULL UNIQUE, -- SHA-256 от токена (сам токен в БД не храним)
+user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+created_at TEXT NOT NULL DEFAULT (datetime('now')),
+expires_at TEXT NOT NULL
 );
-```
+
+````
 
 **Наполнение.** Пользователи вручную SQL не наполняются:
 
@@ -182,7 +181,7 @@ CREATE TABLE sessions (
 
 | Требование           | Критерии приёмки | Реализация                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | -------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| FR-11 Авторизация    | §6               | `backend/services/authService.ts`, `backend/middlewares/auth.ts`, `backend/controllers/authController.ts`, `backend/routes/auth.ts`, `backend/db/database.ts`, `backend/scripts/users.mjs`, `frontend/hooks/useAuth.tsx`, `frontend/pages/LoginPage.tsx`, `frontend/App.tsx`, `frontend/main.tsx`, `frontend/api/client.ts`, `PageLayout.tsx`, `VpsDetailsModal.tsx`, `ProjectsPage.tsx`, `icons.tsx`, `index.css`                                                                                                                                                                                                                                           |
+| FR-11 Авторизация    | §6               | `backend/services/authService.ts`, `backend/middlewares/auth.ts`, `backend/controllers/authController.ts`, `backend/routes/auth.ts`, `backend/db/authDatabase.ts`, `backend/scripts/users.mjs`, `frontend/hooks/useAuth.tsx`, `frontend/pages/LoginPage.tsx`, `frontend/App.tsx`, `frontend/main.tsx`, `frontend/api/client.ts`, `PageLayout.tsx`, `VpsDetailsModal.tsx`, `ProjectsPage.tsx`, `icons.tsx`, `index.css`                                                                                                                                                                                                                                           |
 | FR-12 Профиль        | §6.7–6.8         | `backend/controllers/authController.ts` (`updateProfileController`), `backend/routes/auth.ts` (`PATCH /api/auth/profile`), `backend/services/authService.ts` (`updateUserProfile`), `frontend/pages/ProfilePage.tsx`, `frontend/routes.ts`, `frontend/App.tsx`, `frontend/hooks/useAuth.tsx` (`updateProfile`), `frontend/api/client.ts` (`updateProfile`), `frontend/components/PageLayout.tsx`, `frontend/components/icons.tsx` (`UserIcon`), `index.css`                                                                                                                                                                                                  |
 | FR-11.9 Админ-панель | §6.9–6.10        | `backend/services/authService.ts` (`listUsers`/`createUser`/`deleteUser`/`setUserPassword`), `backend/controllers/authController.ts` (`admin*Controller`), `backend/routes/auth.ts` (`/api/auth/admin/users*`), `frontend/pages/AdminUsersPage.tsx`, `frontend/components/AdminUserAddModal.tsx`, `frontend/components/AdminUserPasswordModal.tsx`, `frontend/components/PageLayout.tsx` (кликабельный бейдж «админ»), `frontend/App.tsx` (`AdminGate`, роут `#/admin/users`), `frontend/routes.ts` (`ROUTES.adminUsers`), `frontend/api/client.ts` (`fetchAdminUsers`/`createAdminUser`/`setAdminUserPassword`/`deleteAdminUser`), `icons.tsx`, `index.css` |
 
@@ -198,7 +197,7 @@ npm run user -w backend -- add papa Папа admin
 npm run user -w backend -- list
 npm run user -w backend -- set-role mama admin
 npm run user -w backend -- remove mama
-```
+````
 
 На сервере (скрипт входит в деплой — `server/scripts/users.mjs`; в неинтерактивной SSH-сессии node не в PATH, поэтому полным путём):
 

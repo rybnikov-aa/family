@@ -1,5 +1,5 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
-import { getDb } from '../db/database';
+import { getAuthDb } from '../db/authDatabase';
 import { env } from '../config/env';
 
 /**
@@ -70,14 +70,14 @@ const sha256 = (value: string): string => createHash('sha256').update(value).dig
 
 /** Пользователь по имени (с хэшем пароля). */
 export function getUserByUsername(username: string): UserRow | undefined {
-  const db = getDb();
+  const db = getAuthDb();
   const row = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
   return row ? (row as unknown as UserRow) : undefined;
 }
 
 /** Пользователь по id (с хэшем пароля). */
 export function getUserById(id: number): UserRow | undefined {
-  const db = getDb();
+  const db = getAuthDb();
   const row = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
   return row ? (row as unknown as UserRow) : undefined;
 }
@@ -95,7 +95,7 @@ export function updateUserProfile(
   userId: number,
   updates: { name?: string; passwordHash?: string },
 ): AuthUser {
-  const db = getDb();
+  const db = getAuthDb();
   const fields: string[] = [];
   const values: Array<string | number> = [];
   if (updates.name !== undefined) {
@@ -118,7 +118,7 @@ export function updateUserProfile(
 
 /** Список всех пользователей для админ-панели, отсортирован по логину. */
 export function listUsers(): AdminUser[] {
-  const db = getDb();
+  const db = getAuthDb();
   const rows = db
     .prepare('SELECT id, username, name, role, created_at FROM users ORDER BY username')
     .all() as unknown as Array<{
@@ -147,7 +147,7 @@ export function createUser(input: {
   role: UserRole;
   password: string;
 }): AuthUser {
-  const db = getDb();
+  const db = getAuthDb();
   db.prepare('INSERT INTO users (username, name, password_hash, role) VALUES (?, ?, ?, ?)').run(
     input.username,
     input.name,
@@ -161,14 +161,14 @@ export function createUser(input: {
 
 /** Удаляет пользователя (сессии каскадно); false — если его не было. */
 export function deleteUser(id: number): boolean {
-  const db = getDb();
+  const db = getAuthDb();
   const result = db.prepare('DELETE FROM users WHERE id = ?').run(id);
   return result.changes > 0;
 }
 
 /** Принудительно задаёт пароль пользователю; false — если пользователя нет. */
 export function setUserPassword(id: number, password: string): boolean {
-  const db = getDb();
+  const db = getAuthDb();
   const result = db
     .prepare('UPDATE users SET password_hash = ? WHERE id = ?')
     .run(hashPassword(password), id);
@@ -177,9 +177,12 @@ export function setUserPassword(id: number, password: string): boolean {
 
 /** Создаёт новую сессию, возвращает токен (в БД — только его SHA-256). */
 export function createSession(userId: number): string {
+  // Гигиена (вариант C): при каждом входе чистим просроченные сессии —
+  // таблица не копится, а WAL не раздувается записями «мёртвых» сессий.
+  deleteExpiredSessions();
   const token = randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + env.SESSION_TTL_HOURS * 3_600_000).toISOString();
-  const db = getDb();
+  const db = getAuthDb();
   db.prepare('INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)').run(
     sha256(token),
     userId,
@@ -193,7 +196,7 @@ export function createSession(userId: number): string {
  * двух (sessions + users). Просроченную сессию удаляет и возвращает undefined.
  */
 export function getSessionUser(token: string): AuthUser | undefined {
-  const db = getDb();
+  const db = getAuthDb();
   const tokenHash = sha256(token);
   const row = db
     .prepare(
@@ -214,14 +217,34 @@ export function getSessionUser(token: string): AuthUser | undefined {
 
 /** Удаляет сессию (выход). */
 export function destroySession(token: string): void {
-  const db = getDb();
+  const db = getAuthDb();
   db.prepare('DELETE FROM sessions WHERE token_hash = ?').run(sha256(token));
 }
 
-/** Удаляет все просроченные сессии. */
-export function deleteExpiredSessions(): void {
-  const db = getDb();
-  db.prepare('DELETE FROM sessions WHERE expires_at <= ?').run(new Date().toISOString());
+/**
+ * Удаляет все просроченные сессии. Возвращает число удалённых строк.
+ * Вызывается при каждом входе (`createSession`) и при старте (`authMaintenance`).
+ */
+export function deleteExpiredSessions(): number {
+  const db = getAuthDb();
+  const result = db
+    .prepare('DELETE FROM sessions WHERE expires_at <= ?')
+    .run(new Date().toISOString());
+  return Number(result.changes);
+}
+
+/**
+ * Обслуживание БД авторизации при старте приложения (гигиена, вариант C):
+ * чистит просроченные сессии и сжимает WAL (`wal_checkpoint(TRUNCATE)`),
+ * чтобы файл не раздувался записями сессий. Безопасно вызывать каждый старт.
+ */
+export function authMaintenance(): void {
+  const removed = deleteExpiredSessions();
+  const db = getAuthDb();
+  db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+  if (removed > 0) {
+    console.log(`🧹 БД авторизации: удалено просроченных сессий: ${removed}.`);
+  }
 }
 
 /**
@@ -231,7 +254,7 @@ export function deleteExpiredSessions(): void {
  */
 export function ensureBootstrapAdmin(): void {
   if (!env.AUTH_BOOTSTRAP_PASSWORD) return;
-  const db = getDb();
+  const db = getAuthDb();
   const row = db.prepare('SELECT COUNT(*) AS count FROM users').get() as unknown as {
     count: number;
   };

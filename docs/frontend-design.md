@@ -289,17 +289,17 @@ CSS: `.modal-done`, `.modal-done__icon`, `.modal-done__actions`.
 - логин `test` / пароль `test123456`, роль `admin` (создана 2026-08-09) — проверка админ-возможностей;
 - логин `user` / пароль `user123456`, роль `user` (создана 2026-08-10) — проверка вида не-админа
   (например, на странице «Ремонт» нет карандаша «Изменить адрес объекта» и кнопок admin).
-  БД — `backend/data/vps.sqlite` (рабочая БД бэкенда в dev).
+  БД авторизации — `backend/data/auth.sqlite` (отдельная БД бэкенда в dev).
 
 **Почему пароль не нужно «искать в документации»:** пароли хранятся только как scrypt-хэши и не
 восстанавливаются; `backend/.env` в dev отсутствует (нет `AUTH_BOOTSTRAP_PASSWORD`). Существующие учётки
 (`admin`, `mama`) имеют пароли, заданные при их создании, — они неизвестны и не восстанавливаются.
 
-**Создать/пересоздать тестовые учётки** (из корня репозитория; в PowerShell — через `$env:DB_PATH=...`):
+**Создать/пересоздать тестовые учётки** (из корня репозитория; в PowerShell — через `$env:AUTH_DB_PATH=...`):
 
 ```bash
-DB_PATH=backend/data/vps.sqlite node backend/scripts/users.mjs add test Тестовый admin --password test123456
-DB_PATH=backend/data/vps.sqlite node backend/scripts/users.mjs add user User user --password user123456
+AUTH_DB_PATH=backend/data/auth.sqlite node backend/scripts/users.mjs add test Тестовый admin --password test123456
+AUTH_DB_PATH=backend/data/auth.sqlite node backend/scripts/users.mjs add user User user --password user123456
 ```
 
 Удалить — админ-панель (страница «Пользователи») или `node backend/scripts/users.mjs remove <логин>`.

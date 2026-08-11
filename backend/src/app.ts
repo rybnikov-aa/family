@@ -10,7 +10,7 @@ import { projectsRouter } from './routes/projects';
 import { renovationRouter } from './routes/renovation';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler';
 import { requireAuth } from './middlewares/auth';
-import { ensureBootstrapAdmin } from './services/authService';
+import { ensureBootstrapAdmin, authMaintenance } from './services/authService';
 
 // Express application. Exported so that `vite-plugin-node`
 // (dev) can mount it as middleware.
@@ -33,6 +33,9 @@ app.use('/api/renovation', requireAuth, renovationRouter);
 
 // Создание первого администратора (если в env задан bootstrap-пароль).
 ensureBootstrapAdmin();
+
+// Гигиена БД авторизации (вариант C): чистка просроченных сессий + сжатие WAL.
+authMaintenance();
 
 // 404 + error handling
 app.use(notFoundHandler);

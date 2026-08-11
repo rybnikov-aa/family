@@ -10,8 +10,21 @@ export const env = {
   PORT: parsePositiveInt(process.env.PORT, 3000),
   NODE_ENV: process.env.NODE_ENV ?? 'development',
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
-  /** Путь к файлу SQLite. По умолчанию — `data/vps.sqlite` рядом с backend. */
+  /** Путь к файлу SQLite конфигурации VPS. По умолчанию — `data/vps.sqlite` рядом с backend. */
   DB_PATH: process.env.DB_PATH ?? 'data/vps.sqlite',
+
+  /**
+   * Путь к отдельной БД авторизации (пользователи + сессии). Это НЕ `DB_PATH` —
+   * выделено в свой файл, чтобы частые записи сессий (каждый вход) не раздували
+   * WAL и не конкурировали за блокировки с чтениями VPS. По умолчанию `data/auth.sqlite`.
+   */
+  AUTH_DB_PATH: process.env.AUTH_DB_PATH ?? 'data/auth.sqlite',
+
+  /**
+   * Путь к отдельной БД прикладных проектов (раздел «Проекты», kind: 'app').
+   * Это НЕ `DB_PATH` и НЕ `AUTH_DB_PATH`. По умолчанию `data/projects.sqlite`.
+   */
+  PROJECTS_DB_PATH: process.env.PROJECTS_DB_PATH ?? 'data/projects.sqlite',
 
   // ── Модуль «Ремонт» (renovation) ───────────────────────────────────────────
   /**

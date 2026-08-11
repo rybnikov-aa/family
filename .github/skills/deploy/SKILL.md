@@ -78,7 +78,7 @@ node .github/skills/deploy/scripts/check-server.mjs [--host <хост>] [--user 
 ## Что сохраняется на сервере при деплое (не затирается)
 
 - `server/.env` (конфигурация рантайма бэкенда).
-- `server/data/` (SQLite-базы VPS и «Ремонта»).
+- `server/data/` (SQLite-базы: VPS, авторизация, проекты и «Ремонт»).
 - `server/docs/` (загруженные PDF «Ремонта», `docs/renovation/`).
 - `public_html/.well-known` и прочие подпапки фронтенда вне репозитория.
 - Существующий статичный архив `public_html/projects/` (legacy, не обновляется).

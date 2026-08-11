@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS vps_services (
 CREATE INDEX IF NOT EXISTS idx_vps_services_vps_id ON vps_services(vps_id);
 ```
 
-В той же БД также таблицы `users` и `sessions` (авторизация: см. `backend/src/services/authService.ts`) — в этот справочник они не входят.
+Таблицы `users` и `sessions` (авторизация) живут в отдельной БД `backend/data/auth.sqlite` (`AUTH_DB_PATH`, `db/authDatabase.ts`; см. `backend/src/services/authService.ts`) — в этот справочник они не входят.
 
 ## Типы (`backend/src/config/vps.ts`)
 

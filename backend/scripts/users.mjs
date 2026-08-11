@@ -2,7 +2,7 @@
 /**
  * Управление пользователями авторизации (без сборки, без новых зависимостей).
  *
- * Использует ту же БД и тот же формат хэша пароля, что и приложение
+ * Использует ту же БД авторизации и тот же формат хэша пароля, что и приложение
  * (`scrypt$N$r$p$<saltHex>$<hashHex>`), — см. `src/services/authService.ts`.
  *
  * Запуск (из папки backend/):
@@ -11,8 +11,9 @@
  *   node scripts/users.mjs set-role <username> <role>
  *   node scripts/users.mjs remove <username>
  *
- * Роли: admin | user. Путь к БД — `DB_PATH` (по умолчанию `data/vps.sqlite`
- * рядом с backend/). Первого администратора можно создать и через env
+ * Роли: admin | user. Путь к БД авторизации — `AUTH_DB_PATH` (по умолчанию
+ * `data/auth.sqlite` рядом с backend/; это отдельная БД от `DB_PATH` — VPS).
+ * Первого администратора можно создать и через env
  * `AUTH_BOOTSTRAP_PASSWORD` при первом старте бэкенда.
  */
 import { mkdirSync } from 'node:fs';
@@ -26,7 +27,7 @@ const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const KEY_LENGTH = 64;
 
-const dbPath = resolve(process.env.DB_PATH ?? 'data/vps.sqlite');
+const dbPath = resolve(process.env.AUTH_DB_PATH ?? 'data/auth.sqlite');
 
 function hashPassword(password) {
   const salt = randomBytes(16);

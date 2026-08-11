@@ -86,7 +86,7 @@
 
 Список VPS хранится в **SQLite** (встроенный модуль `node:sqlite`, без новых зависимостей). Файл БД лежит по пути из `env.DB_PATH` (по умолчанию `data/vps.sqlite` рядом с бэкендом), не попадает в git и не затирается при деплое.
 
-Схема (см. `backend/src/db/database.ts`; в той же БД — таблицы авторизации `users`/`sessions`, см. спецификацию авторизации):
+Схема (см. `backend/src/db/database.ts`; таблицы авторизации `users`/`sessions` — в отдельной БД `data/auth.sqlite`, см. спецификацию авторизации):
 
 ```sql
 CREATE TABLE vps (

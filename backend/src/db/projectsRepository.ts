@@ -1,4 +1,4 @@
-import { getDb } from './database';
+import { getProjectsDb } from './projectsDatabase';
 
 /**
  * Строка таблицы `projects` (SQLite, раздел «Проекты»).
@@ -37,7 +37,7 @@ const toRow = (value: unknown): ProjectRow => value as unknown as ProjectRow;
 
 /** Все проекты, отсортированные по порядку, затем по названию (без учёта регистра). */
 export function listProjectRows(): ProjectRow[] {
-  const db = getDb();
+  const db = getProjectsDb();
   const rows = db
     .prepare('SELECT * FROM projects ORDER BY order_num ASC, title COLLATE NOCASE ASC')
     .all();
@@ -46,7 +46,7 @@ export function listProjectRows(): ProjectRow[] {
 
 /** Проект по slug (латиница, цифры, дефисы); `null` — не найден. */
 export function getProjectRow(slug: string): ProjectRow | null {
-  const db = getDb();
+  const db = getProjectsDb();
   const row = db.prepare('SELECT * FROM projects WHERE slug = ?').get(slug);
   return row ? toRow(row) : null;
 }
@@ -56,7 +56,7 @@ export function getProjectRow(slug: string): ProjectRow | null {
  * SQLite-ошибку — признак конфликта проверяет сервис через `isConstraintError`.
  */
 export function createProjectRow(input: ProjectRowInput): void {
-  const db = getDb();
+  const db = getProjectsDb();
   db.prepare(
     `INSERT INTO projects (slug, title, description, accent, icon, order_num, content)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -81,7 +81,7 @@ export function updateProjectRow(
     Pick<ProjectRowInput, 'title' | 'description' | 'accent' | 'icon' | 'order' | 'content'>
   >,
 ): ProjectRow | null {
-  const db = getDb();
+  const db = getProjectsDb();
   const current = getProjectRow(slug);
   if (!current) return null;
 
@@ -106,7 +106,7 @@ export function updateProjectRow(
 
 /** Удаляет проект. Возвращает `false`, если записи не было. */
 export function deleteProjectRow(slug: string): boolean {
-  const db = getDb();
+  const db = getProjectsDb();
   const result = db.prepare('DELETE FROM projects WHERE slug = ?').run(slug);
   return result.changes > 0;
 }
