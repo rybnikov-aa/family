@@ -161,14 +161,63 @@ function parsePosition(first: string | undefined): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
-const SINGLE_LINE_ITEM = /^(\d+)\s+(.+?)\s+([^\s]+?)\s+([\d\s.,]+)\s+([\d\s.,]+)\s+([\d\s.,]+)$/;
+/** Регэксп шапки таблицы (как в `findHeaderRow`): после неё идут позиции. */
+const HEADER_RE =
+  /наименование|сумма|количество|объем|объём|цена|внесено|использовано|остаток|обоснование|единиц/i;
 
-/** Продолжение многострочной позиции: «9 шт. 358,80 1,00 358,80» (номер+ед+3 числа). */
-const CONTINUATION_ROW = /^(\d+)\s+(\S+)\s+([\d\s.,]+)\s+([\d\s.,]+)\s+([\d\s.,]+)$/;
+/** Одна строка: «2 Провод ПВС 4х0.75 мм ГОСТ ККЗ м.п. 71,40 45,00 3 213,00». */
+const SINGLE_LINE_ITEM = /^(\d+)\s+(.+?)\s+(\S+)\s+([\d\s.,]+)$/;
+
+/** Продолжение многострочной позиции: «1 м.п. 91,00 60,00 5 460,00» (номер+ед+числа). */
+const CONTINUATION_ROW = /^(\d+)\s+(\S+)\s+([\d\s.,]+)$/;
 
 /** Строка «11 Доставка - - - 6 000,00» (без цены/количества). */
 const DASH_ROW =
   /^(\d+)\s+(Доставка|Подъем|Подъём|доставка|подъем|подъём)\s+-?\s+-?\s+-?\s+([\d\s.,]+)$/;
+
+/**
+ * Разбор числового хвоста позиции «цена кол-во сумма». Три поля, но в сумме
+ * (реже — в цене/количестве) возможен пробел-разделитель тысяч («5 460,00»),
+ * поэтому токенов бывает больше трёх. Жадный regex с `[\d\s.,]+` тут неверно
+ * склеивает поля («91,00 60,00 5 460,00» → цена=null, кол-во=5, сумма=460,00),
+ * поэтому разбираем по токенам и выбираем вариант, где цена×кол-во = сумма.
+ */
+function parseNumFields(tail: string): {
+  price: number | null;
+  qty: number | null;
+  sum: number | null;
+} {
+  const toks = tail.trim().split(/\s+/).filter(Boolean);
+  if (toks.length === 3) {
+    return { price: parseKopecks(toks[0]), qty: parseKopecks(toks[1]), sum: parseKopecks(toks[2]) };
+  }
+  if (toks.length === 4) {
+    const candidates = [
+      { price: toks[0], qty: toks[1], sum: `${toks[2]} ${toks[3]}` },
+      { price: toks[0], qty: `${toks[1]} ${toks[2]}`, sum: toks[3] },
+      { price: `${toks[0]} ${toks[1]}`, qty: toks[2], sum: toks[3] },
+    ].map((c) => ({
+      price: parseKopecks(c.price),
+      qty: parseKopecks(c.qty),
+      sum: parseKopecks(c.sum),
+    }));
+    // Сверка «цена × кол-во = сумма» (в копейках: price*qty/100) — верный вариант.
+    const verified = candidates.find(
+      (c) =>
+        c.price != null &&
+        c.qty != null &&
+        c.sum != null &&
+        Math.abs((c.price * c.qty) / 100 - c.sum) < 2,
+    );
+    return verified ?? candidates[0];
+  }
+  // Неоднозначный набор — защитный fallback по токенам.
+  return {
+    price: parseKopecks(toks[0]),
+    qty: parseKopecks(toks[1]),
+    sum: parseKopecks(toks[toks.length - 1]),
+  };
+}
 
 /** Построчный разбор заказа/акта из текста (для PDF без линий таблицы). */
 function parseItemText(
@@ -179,6 +228,7 @@ function parseItemText(
   let total: number | null = null;
   let needsReview = false;
   let pending: string | null = null; // копим многострочное наименование
+  let seenHeader = false; // прошли шапку таблицы — дальше строки позиций
 
   const lines = text.split('\n');
   const totalRe = /итого[^\d]*([\d\s.,]+)/i;
@@ -200,19 +250,8 @@ function parseItemText(
       continue;
     }
 
-    const cont = line.match(CONTINUATION_ROW);
-    if (cont) {
-      // Продолжение многострочной позиции: имя — накопленное pending.
-      const name = pending ? pending : `позиция ${cont[1]}`;
-      items.push({
-        position: num(cont[1]),
-        name: name.trim(),
-        unit: cont[2],
-        price: parseKopecks(cont[3]),
-        qty: parseKopecks(cont[4]),
-        sum: parseKopecks(cont[5]),
-      });
-      pending = null;
+    if (HEADER_RE.test(line)) {
+      seenHeader = true;
       continue;
     }
 
@@ -230,15 +269,33 @@ function parseItemText(
       continue;
     }
 
+    const cont = line.match(CONTINUATION_ROW);
+    if (cont) {
+      // Продолжение многострочной позиции: имя — накопленное pending.
+      const fields = parseNumFields(cont[3]);
+      const name = pending ? pending : `позиция ${cont[1]}`;
+      items.push({
+        position: num(cont[1]),
+        name: name.trim(),
+        unit: cont[2],
+        price: fields.price,
+        qty: fields.qty,
+        sum: fields.sum,
+      });
+      pending = null;
+      continue;
+    }
+
     const single = line.match(SINGLE_LINE_ITEM);
     if (single) {
+      const fields = parseNumFields(single[4]);
       items.push({
         position: num(single[1]),
-        name: single[2],
+        name: single[2].trim(),
         unit: single[3],
-        price: parseKopecks(single[4]),
-        qty: parseKopecks(single[5]),
-        sum: parseKopecks(single[6]),
+        price: fields.price,
+        qty: fields.qty,
+        sum: fields.sum,
       });
       pending = null;
       continue;
@@ -252,9 +309,11 @@ function parseItemText(
       continue;
     }
 
-    // Строка без номера: продолжение многострочного наименования.
+    // Строка без номера: продолжение многострочного наименования, а до первой
+    // позиции (после шапки) — начало её наименования (накапливаем в pending).
     if (pending) pending += ' ' + line;
     else if (items.length > 0) items[items.length - 1].name += ' ' + line;
+    else if (seenHeader) pending = line;
   }
 
   if (items.length === 0) needsReview = true;
