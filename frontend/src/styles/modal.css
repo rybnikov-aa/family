@@ -112,7 +112,6 @@
 }
 .pdf-viewer__stage {
   display: flex;
-  justify-content: center;
   align-items: flex-start;
   overflow: auto;
   background: color-mix(in srgb, var(--text) 14%, transparent);
@@ -124,6 +123,10 @@
 .pdf-viewer__stage canvas {
   background: var(--color-paper);
   box-shadow: var(--shadow-container);
+  /* Центрирует страницу, когда она меньше сцены; при переполнении авто-поля
+     схлопываются и левый край остаётся доступным прокруткой (вместо
+     justify-content: center, который обрезает левую часть на узких экранах). */
+  margin: auto;
 }
 .modal__head {
   display: flex;

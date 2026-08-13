@@ -2,7 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { fetchFileBytes } from '../api/client';
+import { installPdfPolyfills } from '../utils/pdfPolyfills';
 import Modal from './Modal';
+
+// Samsung Internet и часть старых WebView не имеют Map.prototype.getOrInsertComputed,
+// без которого pdf.js v6 не рендерит страницы. Полифилл — до любого использования pdf.js.
+installPdfPolyfills();
 
 // Воркер pdf.js — отдельный файл (Vite `?url` отдаёт URL ассета).
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
@@ -42,6 +47,7 @@ const PDF_BACKDROP_X = 24 * 2 + 8;
  */
 function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerModalProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const taskRef = useRef<pdfjsLib.PDFDocumentLoadingTask | null>(null);
   const docRef = useRef<pdfjsLib.PDFDocumentProxy | null>(null);
   const renderTaskRef = useRef<pdfjsLib.RenderTask | null>(null);
@@ -77,19 +83,17 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
         docRef.current = doc;
         setNumPages(doc.numPages);
         setPage(1);
-        if (fitToWidth) {
-          // Подгонка под самую широкую страницу (без отрисовки, только метаданные).
-          let maxW = 0;
-          for (let i = 1; i <= doc.numPages; i++) {
-            const p = await doc.getPage(i);
-            const vp = p.getViewport({ scale: 1 });
-            if (vp.width > maxW) maxW = vp.width;
-          }
-          if (cancelled) return;
-          setPageWidth(maxW || null);
-        } else {
-          setPageWidth(null);
+        // Ширина самой широкой страницы на масштабе 1 (метаданные, без отрисовки):
+        // нужна и для подгонки модалки под дизайн-проект (fitToWidth), и для
+        // автовписывания по ширине на узких экранах (мобильные).
+        let maxW = 0;
+        for (let i = 1; i <= doc.numPages; i++) {
+          const p = await doc.getPage(i);
+          const vp = p.getViewport({ scale: 1 });
+          if (vp.width > maxW) maxW = vp.width;
         }
+        if (cancelled) return;
+        setPageWidth(maxW || null);
         setStatus('ready');
       } catch (err) {
         if (!cancelled) {
@@ -132,8 +136,15 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
         await renderTask.promise;
         renderTaskRef.current = null;
         ctx.restore();
-      } catch {
-        /* страница не отрисовалась (отмена/закрытие) — игнорируем */
+      } catch (err) {
+        // Отмена (перелистывание/закрытие) — ожидаемая ошибка, игнорируем.
+        // Всё остальное (например, превышение лимита размера canvas на некоторых
+        // устройствах) — реальная ошибка рендера: показываем её вместо пустой
+        // «белой» страницы.
+        if (!cancelled) {
+          setErrorText(err instanceof Error ? err.message : 'Не удалось отрисовать страницу');
+          setStatus('error');
+        }
       }
     })();
     return () => {
@@ -147,6 +158,33 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
   const zoomOut = () => setScale((s) => Math.max(MIN_SCALE, +(s - ZOOM_STEP).toFixed(2)));
   const prevPage = () => setPage((p) => Math.max(1, p - 1));
   const nextPage = () => setPage((p) => Math.min(numPages, p + 1));
+
+  // Автовписывание по ширине сцены: на узких экранах (мобильные) страница
+  // уменьшается так, чтобы помещаться по ширине целиком — иначе её левый край
+  // обрезается и недоступен прокруткой. Срабатывает при открытии и при смене
+  // размера окна/повороте экрана. Слушаем resize окна (а не ResizeObserver
+  // сцены): при зумме появляется/исчезает полоса прокрутки и clientWidth сцены
+  // меняется, что сбрасывало бы выбранный пользователем масштаб.
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (status !== 'ready' || pageWidth == null || !stage) return;
+    const fit = () => {
+      // Внутренняя ширина сцены: паддинги сцены (--space-4 × 2).
+      const avail = stage.clientWidth - 32;
+      if (avail <= 0) return;
+      const s = avail / pageWidth;
+      // Вписываем только когда страница шире сцены; не увеличиваем сверх 100%.
+      if (s >= 1) return;
+      setScale((prev) => (Math.abs(prev - s) > 0.02 ? Math.max(0.2, s) : prev));
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+    return () => {
+      window.removeEventListener('resize', fit);
+      window.removeEventListener('orientationchange', fit);
+    };
+  }, [status, pageWidth]);
 
   // Ширина модалки для «подогнанных» документов: самая широкая страница +
   // отступы-хром, не уже дефолта (1080) и не шире доступного экрана.
@@ -191,7 +229,7 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
 
         {status === 'ready' && (
           <>
-            <div className="pdf-viewer__stage">
+            <div className="pdf-viewer__stage" ref={stageRef}>
               <canvas ref={canvasRef} />
             </div>
             <div className="pdf-viewer__toolbar pdf-viewer__toolbar--bottom">
