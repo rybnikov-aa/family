@@ -131,7 +131,7 @@ DEPLOY_PM2_APP=family-backend
   пересборке/переустановке nginx проверять, что `mjs` снова на месте.
 - `location /api/` — прокси на бэкенд:
   `proxy_pass http://127.0.0.1:3000;` — **без** завершающего слэша (иначе срезается `/api` → 404).
-- Для импорта PDF в «Ремонт» (`POST /api/renovation/pdf`) в `location /api/` задан `client_max_body_size 20m` (дефолт nginx — 1 МБ, без этого загрузка упадёт с 413).
+- Для загрузки фото «Дневника» (`POST`/`PATCH /api/diary`) и импорта PDF в «Ремонт» (`POST /api/renovation/pdf`) в `location /api/` задан `client_max_body_size 100m` (дефолт nginx — 1 МБ, без этого загрузка упадёт с 413; фото с телефона по несколько МБ каждое, несколько фото легко превышают дефолт).
 - Редирект старого адреса проекта «Ремонт»: `location ^~ /renovation/` → `return 301 /projects$request_uri` (путь после `/renovation/` сохраняется, напр. `/renovation/estimate.html` → `/projects/renovation/estimate.html`); `location = /renovation` → `return 301 /projects/renovation/` — старые ссылки/закладки на `/renovation/...` не ломаются после переноса проекта.
 - `location /projects/renovation/` — HTML-страницы проекта отдаются с `Cache-Control: no-cache` (обновляются деплоем, чтобы не было «залипшего» кэша), статику кэширует 1ч (`expires 1h`, `Cache-Control: public, immutable`). Безопасные заголовки повторяются внутри блока (add_header не наследуется во вложенные location); файлы раздаёт основной `location /`.
 - Проекты (`/projects/<slug>/`, в т.ч. `renovation/`) и общие ассеты `projects/` (`styles.css`, `theme.js`) раздаёт основной `location /` — для раздачи правки nginx не требуются. Для `/projects/renovation/` (единственный с явным кэшем) HTML-страницы отдаются с `Cache-Control: no-cache` (блок `location ~ ^/projects/renovation/.*\.html$`), статика кэшируется 1ч (блок `location /projects/renovation/`).
@@ -174,8 +174,8 @@ server {
         # /api/health -> http://127.0.0.1:3000/api/health
         proxy_pass http://127.0.0.1:3000;
 
-        # Импорт PDF в «Ремонт» (POST /api/renovation/pdf) — дефолт nginx 1 МБ, поднимаем до 20 МБ
-        client_max_body_size 20m;
+        # Загрузка фото «Дневника» (POST/PATCH /api/diary) и PDF «Ремонта» — дефолт nginx 1 МБ, поднимаем до 100 МБ
+        client_max_body_size 100m;
 
         # HTTP/1.1 и передача заголовков клиента
         proxy_http_version 1.1;

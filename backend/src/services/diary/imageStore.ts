@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { join, resolve, sep } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve, sep } from 'node:path';
+import sharp from 'sharp';
 import { env } from '../../config/env';
 
 /**
@@ -11,12 +12,25 @@ import { env } from '../../config/env';
  * сохраняется при деплое). Для каждого события — уникальная подпапка
  * `images/<folder>/`, имя генерируется при создании события (`newEventFolder`).
  *
+ * Для каждого изображения генерируется уменьшенная копия (превью) в подпапке
+ * `images/<folder>/thumbs/` (WebP, максимум `PREVIEW_MAX_SIZE` по большей
+ * стороне). Превью создаётся лениво — при первом запросе `?preview=1`
+ * (`ensurePreview`) — и кэшируется на диске; на карточках/в галерее отдаётся
+ * именно превью, полный размер — только при открытии изображения на весь экран.
+ *
  * Раздача — `GET /api/diary/images/:folder/:file` (под авторизацией), см.
  * `controllers/diaryController.ts` → `imageFileController`.
  */
 
 /** Допустимые символы имён папок и файлов (защита от path traversal). */
 const SAFE_RE = /^[a-z0-9._-]+$/i;
+
+/** Максимальный размер превью по большей стороне (px). */
+export const PREVIEW_MAX_SIZE = 1200;
+/** Качество WebP-превью. */
+const PREVIEW_QUALITY = 82;
+/** Имя подпапки превью внутри папки события. */
+const THUMBS_DIR = 'thumbs';
 
 /** Абсолютный путь к каталогу изображений «Дневника». */
 export function imagesDir(): string {
@@ -55,12 +69,13 @@ export function imageFileName(originalName: string): string {
   return `${Date.now().toString(36)}-${randomBytes(3).toString('hex')}${safeExt}`;
 }
 
-/** Имена изображений в папке события (отсортированы по имени). */
+/** Имена изображений в папке события (отсортированы по имени); превью не входят. */
 export function listEventImages(folder: string): string[] {
   const dir = eventImagesDir(folder);
   if (!dir || !existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter((f) => SAFE_RE.test(f))
+  return readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && SAFE_RE.test(entry.name))
+    .map((entry) => entry.name)
     .sort();
 }
 
@@ -78,13 +93,15 @@ export function removeEventImages(folder: string): void {
   if (dir && existsSync(dir)) rmSync(dir, { recursive: true, force: true });
 }
 
-/** Удаляет одно изображение из папки события. */
+/** Удаляет одно изображение из папки события (вместе с его превью). */
 export function removeEventImage(folder: string, fileName: string): void {
   if (!SAFE_RE.test(fileName)) return;
   const dir = eventImagesDir(folder);
   if (!dir) return;
   const path = join(dir, fileName);
   if (existsSync(path)) rmSync(path, { force: true });
+  const preview = previewFilePath(folder, fileName);
+  if (preview && existsSync(preview)) rmSync(preview, { force: true });
 }
 
 /**
@@ -99,4 +116,67 @@ export function resolveEventImage(folder: string, fileName: string): string | nu
   const path = resolve(dir, fileName);
   if (path !== dir && !path.startsWith(dir + sep)) return null;
   return path;
+}
+
+/**
+ * Абсолютный путь к превью изображения события (`<folder>/thumbs/<file>`).
+ * Возвращает `null`, если папка/файл некорректны (path traversal).
+ */
+export function previewFilePath(folder: string, fileName: string): string | null {
+  if (!SAFE_RE.test(folder) || !SAFE_RE.test(fileName)) return null;
+  const dir = eventImagesDir(folder);
+  if (!dir) return null;
+  return join(dir, THUMBS_DIR, fileName);
+}
+
+/** In-flight генерации превью (по абсолютному пути) — защита от двойной генерации. */
+const pendingPreviews = new Map<string, Promise<string | null>>();
+
+/**
+ * Гарантирует наличие превью для изображения: возвращает абсолютный путь
+ * к готовому превью (генерирует при первом обращении, дальше — из кэша),
+ * либо `null`, если оригинала нет или генерация не удалась. Превью пишется
+ * во временный файл и переименовывается атомарно — незавершённые файлы
+ * не отдаются. Параллельные запросы одного превью дедуплицируются.
+ */
+export function ensurePreview(folder: string, fileName: string): Promise<string | null> {
+  const source = resolveEventImage(folder, fileName);
+  if (!source || !existsSync(source)) return Promise.resolve(null);
+  const preview = previewFilePath(folder, fileName);
+  if (!preview) return Promise.resolve(null);
+  if (existsSync(preview)) return Promise.resolve(preview);
+
+  const inFlight = pendingPreviews.get(preview);
+  if (inFlight) return inFlight;
+
+  const task = (async (): Promise<string | null> => {
+    const tmp = `${preview}.tmp`;
+    try {
+      mkdirSync(dirname(preview), { recursive: true });
+      await sharp(source)
+        .rotate() // учёт EXIF-ориентации (фото с телефона)
+        .resize({
+          width: PREVIEW_MAX_SIZE,
+          height: PREVIEW_MAX_SIZE,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .webp({ quality: PREVIEW_QUALITY })
+        .toFile(tmp);
+      renameSync(tmp, preview);
+      return preview;
+    } catch {
+      try {
+        rmSync(tmp, { force: true });
+      } catch {
+        /* не критично */
+      }
+      return null;
+    } finally {
+      pendingPreviews.delete(preview);
+    }
+  })();
+
+  pendingPreviews.set(preview, task);
+  return task;
 }

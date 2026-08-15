@@ -9,7 +9,7 @@ import {
   updateDiaryEvent,
   type DiaryEventUpload,
 } from '../services/diaryService';
-import { resolveEventImage } from '../services/diary/imageStore';
+import { ensurePreview, resolveEventImage } from '../services/diary/imageStore';
 
 /** Ловит `HttpError` и отвечает статусом; прочие ошибки уходят в errorHandler (500). */
 function handleHttpError(res: Response, err: unknown): boolean {
@@ -122,13 +122,29 @@ export function deleteDiaryEventController(req: Request, res: Response): void {
 
 /**
  * Изображение события: `GET /api/diary/images/:folder/:file` (под авторизацией).
- * Отдаёт файл из `images/<folder>/`; имена проверяются (только `[a-z0-9._-]`,
- * без выхода за каталог) — защита от path traversal. 400 — некорректный путь,
- * 404 — файл не найден.
+ * Без параметров — оригинал в полном размере (открытие на весь экран).
+ * С `?preview=1` — уменьшенная копия (WebP) для превью: генерируется лениво
+ * при первом обращении и кэшируется на диске; кэш браузера — `immutable`
+ * (имя файла неизменяемо). Если превью не удалось создать — отдаётся оригинал.
+ * Имена папки/файла проверяются (только `[a-z0-9._-]`, без выхода за каталог) —
+ * защита от path traversal. 400 — некорректный путь, 404 — файл не найден.
  */
-export function imageFileController(req: Request, res: Response): void {
+export async function imageFileController(req: Request, res: Response): Promise<void> {
   const folder = String(req.params.folder);
   const file = String(req.params.file);
+  const wantPreview = req.query.preview === '1';
+
+  if (wantPreview) {
+    const previewPath = await ensurePreview(folder, file);
+    if (previewPath && existsSync(previewPath)) {
+      res.set('Cache-Control', 'private, max-age=31536000, immutable');
+      res.type('image/webp');
+      res.sendFile(previewPath);
+      return;
+    }
+    // Превью не сгенерировалось — отдаём оригинал (изображение всё же покажется).
+  }
+
   const filePath = resolveEventImage(folder, file);
   if (!filePath) {
     res.status(400).json({ message: 'Некорректный путь к изображению' });

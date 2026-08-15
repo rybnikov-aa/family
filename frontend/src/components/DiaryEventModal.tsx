@@ -52,7 +52,8 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
       ? event.images.map((name) => ({
           id: name,
           file: null,
-          preview: diaryImageUrl(event.folder, name),
+          // Превью существующего изображения — уменьшенная копия с сервера.
+          preview: diaryImageUrl(event.folder, name, true),
         }))
       : [],
   );

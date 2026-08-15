@@ -747,9 +747,15 @@ export interface DiaryEventDetail extends DiaryEventSummary {
   content: string;
 }
 
-/** URL изображения события (раздаётся под авторизацией через `/api/diary/images`). */
-export function diaryImageUrl(folder: string, file: string): string {
-  return `/api/diary/images/${encodeURIComponent(folder)}/${encodeURIComponent(file)}`;
+/**
+ * URL изображения события (раздаётся под авторизацией через `/api/diary/images`).
+ * `preview=true` — уменьшенная копия (WebP, `?preview=1`) для карточек/галереи;
+ * полный размер в максимальном качестве отдаётся только при открытии изображения
+ * на весь экран (без `preview`).
+ */
+export function diaryImageUrl(folder: string, file: string, preview = false): string {
+  const base = `/api/diary/images/${encodeURIComponent(folder)}/${encodeURIComponent(file)}`;
+  return preview ? `${base}?preview=1` : base;
 }
 
 /** Список событий: `GET /api/diary`. */

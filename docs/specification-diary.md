@@ -71,9 +71,18 @@ API — в [docs/specification-api.md](specification-api.md). Здесь — т�
   `server/images`, сохраняется при деплое, как `data/` и `docs/`).
 - Уникальная папка события — `newEventFolder()` (`evt-<time36>-<hex>`); имена файлов —
   `imageFileName()` (случайные, с сохранением расширения, только `[a-z0-9._-]`).
-- `listEventImages(folder)` — список файлов папки; `saveEventImage`/`removeEventImage`/`removeEventImages` —
-  запись/удаление; `resolveEventImage(folder, file)` — безопасный абсолютный путь (проверка `[a-z0-9._-]`
-  и выхода за каталог — защита от path traversal).
+- `listEventImages(folder)` — список файлов папки события (подпапка `thumbs/` не входит);
+  `saveEventImage`/`removeEventImage`/`removeEventImages` — запись/удаление (удаление файла
+  убирает и его превью); `resolveEventImage(folder, file)` — безопасный абсолютный путь
+  (проверка `[a-z0-9._-]` и выхода за каталог — защита от path traversal).
+- **Превью (оптимизация отдачи):** для каждого изображения — уменьшенная копия в подпапке
+  `thumbs/<file>` (WebP, максимум `PREVIEW_MAX_SIZE` = 1200 px по большей стороне, качество 82).
+  Генерируется лениво при первом запросе `?preview=1` (`ensurePreview`): in-flight дедупликация
+  параллельных запросов, атомарная запись (временный файл + rename — недозаписанные файлы
+  не отдаются), далее кэшируется на диске. Полный размер в максимальном качестве отдаётся
+  только при открытии изображения на весь экран (без `?preview=1`).
+- Раздача — `GET /api/diary/images/:folder/:file` (под авторизацией); превью отдаётся с
+  `Cache-Control: private, max-age=31536000, immutable` (имя файла неизменяемо).
 
 ---
 
@@ -100,14 +109,14 @@ API — в [docs/specification-api.md](specification-api.md). Здесь — т�
 Полный справочник API и матрица доступа — в [docs/specification-api.md](specification-api.md)
 (раздел «Дневник»). Эндпоинты модуля:
 
-| Метод  | Путь                              | Назначение                                   | Параметры / ответ                                                                                                                          |
-| ------ | --------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| GET    | `/api/diary`                      | Список событий (сводки, без контента)        | 200 — массив `DiaryEventSummary`                                                                                                           |
-| GET    | `/api/diary/:id`                  | Полные данные события (с markdown-контентом) | 200 — `DiaryEventDetail`; 404 — не найдено                                                                                                 |
-| POST   | `/api/diary` (admin)              | Создание события                             | multipart: `title`, `dateStart`, `dateEnd?`, `summary`, `content`, `images` (файлы), `newIds` (JSON), `keep` (JSON), `cover`; 201; 400/413 |
-| PATCH  | `/api/diary/:id` (admin)          | Обновление события                           | multipart: те же поля; 200; 400/413; 404 — не найдено                                                                                      |
-| DELETE | `/api/diary/:id` (admin)          | Удаление события (+ папка изображений)       | 204; 404 — не найдено                                                                                                                      |
-| GET    | `/api/diary/images/:folder/:file` | Изображение события из `images/<folder>/`    | 200 — файл изображения; 400 — некорректный путь (path traversal); 404 — не найдено                                                         |
+| Метод  | Путь                              | Назначение                                   | Параметры / ответ                                                                                                                                                                                        |
+| ------ | --------------------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/diary`                      | Список событий (сводки, без контента)        | 200 — массив `DiaryEventSummary`                                                                                                                                                                         |
+| GET    | `/api/diary/:id`                  | Полные данные события (с markdown-контентом) | 200 — `DiaryEventDetail`; 404 — не найдено                                                                                                                                                               |
+| POST   | `/api/diary` (admin)              | Создание события                             | multipart: `title`, `dateStart`, `dateEnd?`, `summary`, `content`, `images` (файлы), `newIds` (JSON), `keep` (JSON), `cover`; 201; 400/413                                                               |
+| PATCH  | `/api/diary/:id` (admin)          | Обновление события                           | multipart: те же поля; 200; 400/413; 404 — не найдено                                                                                                                                                    |
+| DELETE | `/api/diary/:id` (admin)          | Удаление события (+ папка изображений)       | 204; 404 — не найдено                                                                                                                                                                                    |
+| GET    | `/api/diary/images/:folder/:file` | Изображение события из `images/<folder>/`    | Без параметра — оригинал в полном размере; `?preview=1` — уменьшенная копия (WebP, подпапка `thumbs/`, генерируется лениво, кэш `immutable`); 400 — некорректный путь (path traversal); 404 — не найдено |
 
 ---
 
@@ -124,6 +133,8 @@ API — в [docs/specification-api.md](specification-api.md). Здесь — т�
   (превью через object URL), выбор обложки кликом по превью, название, период дат (`<input type="date">`),
   краткое описание, markdown. Сборка multipart — `buildDiaryFormData()` в `api/client.ts`.
 - Хуки: `hooks/useDiaryEvents.ts` (список), `hooks/useDiaryEvent.ts` (деталь, перезагрузка при смене id).
-- Стили — `styles/diary.css` (импортируется в `index.css`). URL изображения — `diaryImageUrl(folder, file)`
-  в `api/client.ts`.
+- Стили — `styles/diary.css` (импортируется в `index.css`). URL изображения —
+  `diaryImageUrl(folder, file, preview)` в `api/client.ts`: `preview=true` — уменьшенная копия
+  (`?preview=1`) для карточек/обложки/галереи/формы; полный размер — только в ссылке «Открыть
+  в полном размере» (галерея события, открытие изображения на весь экран).
 - Навигация: карточка «Дневник» на главной, пункт «Дневник» в шапке и в футере ведут на `#/diary`.

@@ -64,7 +64,7 @@ function DiaryEventPage() {
 
             {event.cover && (
               <div className="diary-event__cover">
-                <img src={diaryImageUrl(event.folder, event.cover)} alt="" />
+                <img src={diaryImageUrl(event.folder, event.cover, true)} alt="" />
               </div>
             )}
 
@@ -87,7 +87,12 @@ function DiaryEventPage() {
                     rel="noreferrer"
                     title="Открыть в полном размере"
                   >
-                    <img src={diaryImageUrl(event.folder, name)} alt={event.title} loading="lazy" />
+                    {/* В галерее — превью; полный размер — только по клику (открытие на весь экран). */}
+                    <img
+                      src={diaryImageUrl(event.folder, name, true)}
+                      alt={event.title}
+                      loading="lazy"
+                    />
                   </a>
                 ))}
               </div>

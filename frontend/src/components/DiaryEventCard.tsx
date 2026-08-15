@@ -28,7 +28,8 @@ function dateLabel(event: DiaryEventSummary): string {
  * `<a>` недопустимы). Макет — `list` (на всю ширину) или `cards` (сетка).
  */
 function DiaryEventCard({ event, layout, isAdmin, onEdit, onDelete }: DiaryEventCardProps) {
-  const coverUrl = event.cover ? diaryImageUrl(event.folder, event.cover) : null;
+  // Обложка в карточке — всегда превью (уменьшенная копия).
+  const coverUrl = event.cover ? diaryImageUrl(event.folder, event.cover, true) : null;
 
   const actions = isAdmin ? (
     <div className="diary-card__actions">
