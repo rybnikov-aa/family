@@ -22,6 +22,7 @@ const sections = [
     title: 'Дневник',
     description: 'События, даты, маршруты. Хронология семьи.',
     tag: 'архив',
+    href: ROUTES.diary,
   },
   {
     icon: PhotoIcon,

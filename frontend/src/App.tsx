@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Outlet, RouterProvider, createHashRouter, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
+import DiaryPage from './pages/DiaryPage';
+import DiaryEventPage from './pages/DiaryEventPage';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectPage from './pages/ProjectPage';
 import LoginPage from './pages/LoginPage';
@@ -20,17 +22,21 @@ function RouteLayout() {
     document.title =
       location.pathname === ROUTES.news
         ? 'Новости • family.rybnikov.su'
-        : location.pathname === ROUTES.projects
-          ? 'Проекты • family.rybnikov.su'
-          : location.pathname === ROUTES.renovation
-            ? 'Ремонт • family.rybnikov.su'
-            : location.pathname.startsWith('/projects/')
-              ? 'Проект • family.rybnikov.su'
-              : location.pathname === ROUTES.profile
-                ? 'Профиль • family.rybnikov.su'
-                : location.pathname === ROUTES.adminUsers
-                  ? 'Пользователи • family.rybnikov.su'
-                  : 'Семейное пространство • family.rybnikov.su';
+        : location.pathname === ROUTES.diary
+          ? 'Дневник • family.rybnikov.su'
+          : location.pathname.startsWith('/diary/')
+            ? 'Событие • family.rybnikov.su'
+            : location.pathname === ROUTES.projects
+              ? 'Проекты • family.rybnikov.su'
+              : location.pathname === ROUTES.renovation
+                ? 'Ремонт • family.rybnikov.su'
+                : location.pathname.startsWith('/projects/')
+                  ? 'Проект • family.rybnikov.su'
+                  : location.pathname === ROUTES.profile
+                    ? 'Профиль • family.rybnikov.su'
+                    : location.pathname === ROUTES.adminUsers
+                      ? 'Пользователи • family.rybnikov.su'
+                      : 'Семейное пространство • family.rybnikov.su';
   }, [location.pathname]);
 
   // Ленивые страницы ждут чанк — показываем заглушку.
@@ -72,6 +78,8 @@ const router = createHashRouter([
         children: [
           { path: ROUTES.home, element: <HomePage /> },
           { path: ROUTES.news, element: <NewsPage /> },
+          { path: ROUTES.diary, element: <DiaryPage /> },
+          { path: ROUTES.diaryEvent, element: <DiaryEventPage /> },
           { path: ROUTES.projects, element: <ProjectsPage /> },
           { path: ROUTES.renovation, element: <RenovationPage /> },
           // Страница прикладного проекта (статические пути, например renovation, выше).

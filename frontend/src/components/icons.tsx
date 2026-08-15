@@ -319,3 +319,40 @@ export function LockIcon(props: IconProps) {
     </svg>
   );
 }
+
+/** Список — строки (макет «список на всю ширину» в «Дневнике») */
+export function ListViewIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <line x1="8" x2="21" y1="6" y2="6" />
+      <line x1="8" x2="21" y1="12" y2="12" />
+      <line x1="8" x2="21" y1="18" y2="18" />
+      <line x1="3" x2="3.01" y1="6" y2="6" />
+      <line x1="3" x2="3.01" y1="12" y2="12" />
+      <line x1="3" x2="3.01" y1="18" y2="18" />
+    </svg>
+  );
+}
+
+/** Карточки — сетка (макет «карточки на 3 столбца» в «Дневнике») */
+export function GridViewIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect width="7" height="7" x="3" y="3" rx="1" />
+      <rect width="7" height="7" x="14" y="3" rx="1" />
+      <rect width="7" height="7" x="14" y="14" rx="1" />
+      <rect width="7" height="7" x="3" y="14" rx="1" />
+    </svg>
+  );
+}
+
+/** Изображение — картинка в рамке (заглушка без обложки) */
+export function ImageIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+      <circle cx="9" cy="9" r="2" />
+      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+    </svg>
+  );
+}

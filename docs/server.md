@@ -15,7 +15,9 @@
 | БД авторизации (users/sessions, runtime)      | `/var/www/family.rybnikov.su/server/data/auth.sqlite`                                         |
 | БД прикладных проектов (runtime, не в git)    | `/var/www/family.rybnikov.su/server/data/projects.sqlite`                                     |
 | БД «Ремонта» (runtime, не в git)              | `/var/www/family.rybnikov.su/server/data/renovation.sqlite`                                   |
+| БД «Дневника» (runtime, не в git)             | `/var/www/family.rybnikov.su/server/data/diary.sqlite`                                        |
 | Загруженные PDF «Ремонта» (runtime, не в git) | `/var/www/family.rybnikov.su/server/docs/renovation/` (в т.ч. подпапки `design/` и `legacy/`) |
+| Изображения событий «Дневника» (runtime)      | `/var/www/family.rybnikov.su/server/images/<folder>/` (уникальная папка на событие)           |
 
 - Бэкенд слушает `127.0.0.1:3000` (не публичный порт), доступен только через nginx-прокси `/api/`.
 - Процесс бэкенда управляется **pm2**, имя приложения: `family-backend`.
@@ -49,6 +51,7 @@
   - `SESSION_TTL_HOURS` — срок жизни сессии в часах (по умолчанию `168` = 7 суток);
   - `AUTH_BOOTSTRAP_PASSWORD` — пароль первого администратора (создаётся при старте, если в БД нет пользователей); после первого входа переменную можно убрать. Дополнительно: `AUTH_BOOTSTRAP_USERNAME` (`admin`), `AUTH_BOOTSTRAP_NAME` (`Администратор`).
   - Модуль «Ремонт»: `RENOVATION_DB_PATH` (по умолчанию `data/renovation.sqlite` — отдельная БД, сохраняется в `data/`), `RENOVATION_DOCS_DIR` (по умолчанию `docs/renovation` относительно CWD бэкенда → `server/docs/renovation`; каталог **сохраняется при деплое**, как `data/`), `RENOVATION_PYTHON` и `RENOVATION_EXTRACT_SCRIPT` (импорт PDF, этап 3).
+  - «Дневник»: `DIARY_DB_PATH` (по умолчанию `data/diary.sqlite` — отдельная БД, сохраняется в `data/`), `DIARY_IMAGES_DIR` (по умолчанию `images` относительно CWD бэкенда → `server/images`; каталог **сохраняется при деплое**, как `data/` и `docs/`). Изображения событий — в уникальной подпапке `server/images/<folder>/`; раздача — `GET /api/diary/images/:folder/:file` (под авторизацией).
   - **Загруженные PDF** («Ремонт», импорт): при подтверждении импорта файл кладётся в `RENOVATION_DOCS_DIR` (на сервере — `server/docs/renovation/`, имя `material_order_2026-07-17.pdf` и т.п.), в БД пишется `pdf_path = /api/renovation/docs/<file>`. Раздаёт их бэкенд (`GET /api/renovation/docs/:file`, под авторизацией); просмотр на фронте — pdf.js (`PdfViewerModal`). Существующие PDF со статичного архива (`public_html/projects/renovation/pdf/`) перенесены в `server/docs/renovation/` (смета — `estimate.pdf`, доп. соглашения — `addendum_<дата>_<id>.pdf`, остальное — по правилам `pdfFileName`), их `pdf_path` переписан на `/api/renovation/docs/...`. **Документы дизайн-проекта** — подпапка `server/docs/renovation/design/` (список — `GET /api/renovation/design`, раздача — `GET /api/renovation/docs/design/:file`); кнопка «Дизайн-проект» на странице «Ремонт» открывает модалку со списком, по клику — встроенный просмотрщик.
 
   **Импорт PDF («Ремонт», этап 3):** парсер — `pdfplumber` (Python), Node-бэкенд запускает

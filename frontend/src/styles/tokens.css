@@ -79,6 +79,7 @@
   --color-accent-sky: #0ea5e9;
   --color-accent-orange: #e8872e;
   --color-accent-orange-strong: #d97706;
+  --color-accent-blue: #3b82f6; /* «Дневник»: иконка страницы, pill, обложка, карточки */
 
   /* ── Дизайн-система: шкала радиусов ── */
   --radius-xs: 5px;

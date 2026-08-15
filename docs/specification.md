@@ -42,6 +42,7 @@
 | [docs/specification-vps.md](specification-vps.md)           | VPS-мониторинг (FR-1…FR-9): блок состояния, проверка доступности, % доступности, детализация, форма добавления, импорт из JSON |
 | [docs/specification-projects.md](specification-projects.md) | Раздел «Проекты» (FR-10): прикладные проекты (реестр + БД), markdown-страницы, CRUD проектов, «Ремонт»                         |
 | [docs/specification-auth.md](specification-auth.md)         | Авторизация (FR-11): вход/выход, пользователи, роли, сессии, управление пользователями                                         |
+| [docs/specification-diary.md](specification-diary.md)       | Раздел «Дневник» (FR-12): события-блоки, макеты «список»/«карточки», фотографии, markdown-страница события                     |
 
 Общие сведения (архитектура, конфигурация окружения, фронтенд-инвентарь, ADR, ограничения, карта файлов; API — в отдельной спецификации) — в этом документе.
 
@@ -70,6 +71,7 @@
 15. **Удаление VPS** → кнопка-корзина на карточке VPS в детализации (справа от шестерёнки): подтверждение, `DELETE /api/vps/:name`, список статусов обновляется без рестарта.
 16. **Раздел «Проекты»** → новые требования FR-10: отдельная страница «Проекты» + карточка на главной; проект = подпапка на сервере с `index.html`; список динамический (`GET /api/projects` — сканирование подпапок); страницы проектов используют общий шаблон `projects/` (стиль + тема приложения, общий `localStorage['theme']`).
 17. **Авторизация** → новые требования FR-11: весь портал закрыт входом; несколько учёток с ролями (`admin`/`user`); вход/выход по httpOnly-cookie сессии (SQLite); админ-операции (добавление/удаление VPS, импорт, создание проектов) — только для роли `admin`.
+18. **Раздел «Дневник»** → новые требования FR-12: события семьи в виде блоков, макет «список»/«карточки» (по умолчанию «список»), добавление/редактирование событий admin'ом (фотографии, выбор обложки, период дат, краткое и markdown-описание), отдельная страница события, своя БД `diary.sqlite`, изображения — в уникальной подпапке `images/<folder>/` (сохраняется при деплое).
 
 ### 3.2. Функциональные требования (по модулям)
 
@@ -78,6 +80,7 @@
 - **FR-1…FR-9** — [docs/specification-vps.md](specification-vps.md), раздел «Требования».
 - **FR-10** — [docs/specification-projects.md](specification-projects.md), раздел «Требования».
 - **FR-11** — [docs/specification-auth.md](specification-auth.md), раздел «Требования».
+- **FR-12** — [docs/specification-diary.md](specification-diary.md), раздел «Требования».
 
 ### 3.3. Нефункциональные требования
 
@@ -117,10 +120,13 @@ family (монорепозиторий, npm workspaces)
 │       ├── db/vpsRepository.ts       — чтение VPS из БД
 │       ├── services/vpsChecker.ts    — проверка доступности
 │       ├── services/projectsService.ts — проекты: реестр + БД (без сканирования ФС)
+│       ├── services/diaryService.ts   — «Дневник»: события + изображения (imageStore)
 │       ├── db/projectsRepository.ts   — CRUD таблицы projects (SQLite)
+│       ├── db/diaryRepository.ts      — CRUD таблицы diary_events (SQLite)
 │       ├── controllers/vpsController.ts
 │       ├── controllers/projectsController.ts
-│       └── routes/{health,vps,projects}.ts
+│       ├── controllers/diaryController.ts
+│       └── routes/{health,vps,projects,renovation,diary}.ts
 ├── projects/                        — история «Ремонта» + архивированные навыки (приложением не используется)
 │   ├── styles.css                   — общий дизайн/тема статичных страниц проектов (история)
 │   ├── theme.js                     — тема (light/dark/system) для статичных страниц проектов (история)
@@ -128,7 +134,7 @@ family (монорепозиторий, npm workspaces)
 │   │   ├── Materials/               — заказы материалов (report_*.html) + взаиморасчёты по материалам
 │   │   └── Works/                   — акты работ (act_*.html) + взаиморасчёты по работам
 │   └── skills-archive/              — архивированные навыки project-renovation-* (история)
-└── docs/specification.md            — общая спецификация + модульные (specification-{vps,projects,auth}.md)
+└── docs/specification.md            — общая спецификация + модульные (specification-{vps,projects,auth,renovation,diary}.md)
 ```
 
 Ключевые принципы:
@@ -151,8 +157,11 @@ family (монорепозиторий, npm workspaces)
 | Авторизация (`users`, `sessions`)    | `data/auth.sqlite`       | `AUTH_DB_PATH`       | `db/authDatabase.ts`       |
 | Прикладные проекты (`projects`)      | `data/projects.sqlite`   | `PROJECTS_DB_PATH`   | `db/projectsDatabase.ts`   |
 | «Ремонт» (смета/документы/ведомости) | `data/renovation.sqlite` | `RENOVATION_DB_PATH` | `db/renovationDatabase.ts` |
+| «Дневник» (`diary_events`)           | `data/diary.sqlite`      | `DIARY_DB_PATH`      | `db/diaryDatabase.ts`      |
 
-Схема VPS-таблиц — в [docs/specification-vps.md](specification-vps.md) (раздел «Хранилище VPS»), авторизации — в [docs/specification-auth.md](specification-auth.md) (раздел «Данные»), проектов — в [docs/specification-projects.md](specification-projects.md) (раздел «Хранилище проектов»).
+Схема VPS-таблиц — в [docs/specification-vps.md](specification-vps.md) (раздел «Хранилище VPS»), авторизации — в [docs/specification-auth.md](specification-auth.md) (раздел «Данные»), проектов — в [docs/specification-projects.md](specification-projects.md) (раздел «Хранилище проектов»), «Дневника» — в [docs/specification-diary.md](specification-diary.md) (раздел «Хранилище событий»).
+
+Изображения событий «Дневника» хранятся **на диске** в каталоге `DIARY_IMAGES_DIR` (по умолчанию `images`; dev — `backend/images/`, сервер — `server/images/`) в уникальной подпапке на каждое событие; каталог сохраняется при деплое (как `data/` и `docs/`).
 
 ### 5.2. Наполнение БД
 
@@ -170,14 +179,14 @@ VPS наполняется вручную/через UI/импорт — см. [
 
 В проекте три независимых пространства переменных окружения; у каждого — шаблон `.env.example` (в git) и, при необходимости, реальный `.env` (в git не попадает, реальные `.env` не переопределяют переменные уже заданные в окружении процесса):
 
-| Файл            | Кто читает                             | Переменные                                                                                                                                                    |
-| --------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Корневой `.env` | `scripts/deploy.mjs` (деплой)          | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH`                                |
-| `backend/.env`  | Бэкенд (`src/config/env.ts`, `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `AUTH_DB_PATH`, `PROJECTS_DB_PATH`, `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `AUTH_BOOTSTRAP_*`, `RENOVATION_*` |
-| `frontend/.env` | Vite (только `VITE_*`)                 | `VITE_API_BASE_URL`                                                                                                                                           |
+| Файл            | Кто читает                             | Переменные                                                                                                                                                                                         |
+| --------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Корневой `.env` | `scripts/deploy.mjs` (деплой)          | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH`                                                                     |
+| `backend/.env`  | Бэкенд (`src/config/env.ts`, `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `AUTH_DB_PATH`, `PROJECTS_DB_PATH`, `DIARY_DB_PATH`, `DIARY_IMAGES_DIR`, `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `AUTH_BOOTSTRAP_*`, `RENOVATION_*` |
+| `frontend/.env` | Vite (только `VITE_*`)                 | `VITE_API_BASE_URL`                                                                                                                                                                                |
 
 - **Корневой** `.env`/`.env.example` — конфигурация **деплоя** (SSH, пути на сервере, pm2).
-- **`backend/.env`** — конфигурация **рантайма бэкенда**: `PORT` (по умолчанию `3000`), `CORS_ORIGIN` (dev `http://localhost:5173`, прод — домен), `NODE_ENV`, пути к раздельным SQLite-базам: `DB_PATH` (по умолчанию `data/vps.sqlite` — БД VPS), `AUTH_DB_PATH` (по умолчанию `data/auth.sqlite` — авторизация), `PROJECTS_DB_PATH` (по умолчанию `data/projects.sqlite` — прикладные проекты), `RENOVATION_DB_PATH`/`RENOVATION_DOCS_DIR` (каталог загруженных PDF «Ремонта», по умолчанию `docs/renovation`)/`RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT` (модуль «Ремонт»), а также авторизация: `AUTH_COOKIE_NAME` (`sid`), `SESSION_TTL_HOURS` (168), `AUTH_BOOTSTRAP_PASSWORD`/`AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME` (создание первого администратора при старте, если в БД нет пользователей). Переменной `PROJECTS_DIR` больше нет — проекты хранятся в БД, статичные папки не используются.
+- **`backend/.env`** — конфигурация **рантайма бэкенда**: `PORT` (по умолчанию `3000`), `CORS_ORIGIN` (dev `http://localhost:5173`, прод — домен), `NODE_ENV`, пути к раздельным SQLite-базам: `DB_PATH` (по умолчанию `data/vps.sqlite` — БД VPS), `AUTH_DB_PATH` (по умолчанию `data/auth.sqlite` — авторизация), `PROJECTS_DB_PATH` (по умолчанию `data/projects.sqlite` — прикладные проекты), `RENOVATION_DB_PATH`/`RENOVATION_DOCS_DIR` (каталог загруженных PDF «Ремонта», по умолчанию `docs/renovation`)/`RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT` (модуль «Ремонт»), `DIARY_DB_PATH` (по умолчанию `data/diary.sqlite` — «Дневник»)/`DIARY_IMAGES_DIR` (каталог изображений событий, по умолчанию `images`, сохраняется при деплое), а также авторизация: `AUTH_COOKIE_NAME` (`sid`), `SESSION_TTL_HOURS` (168), `AUTH_BOOTSTRAP_PASSWORD`/`AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME` (создание первого администратора при старте, если в БД нет пользователей). Переменной `PROJECTS_DIR` больше нет — проекты хранятся в БД, статичные папки не используются.
 - **`frontend/.env`** — конфигурация **фронтенда**: `VITE_API_BASE_URL` (пусто → Vite dev-прокси `/api` → `:3000`).
 
 ---

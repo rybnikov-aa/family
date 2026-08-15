@@ -724,3 +724,115 @@ export async function fetchRenovationMaterialsReport(): Promise<{
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<{ materials: RenovationMaterialsReport }>;
 }
+
+// ── Дневник (diary) ──────────────────────────────────────────────────────────
+
+/** Публичные данные события «Дневника» (для списка/карточки). */
+export interface DiaryEventSummary {
+  id: number;
+  title: string;
+  dateStart: string;
+  dateEnd: string | null;
+  summary: string;
+  /** Уникальная папка изображений события (в `server/images/`). */
+  folder: string;
+  /** Имя файла основной фотографии; `null` — нет обложки. */
+  cover: string | null;
+  /** Имена файлов изображений события. */
+  images: string[];
+}
+
+/** Полные данные события: сводка + markdown-контент. */
+export interface DiaryEventDetail extends DiaryEventSummary {
+  content: string;
+}
+
+/** URL изображения события (раздаётся под авторизацией через `/api/diary/images`). */
+export function diaryImageUrl(folder: string, file: string): string {
+  return `/api/diary/images/${encodeURIComponent(folder)}/${encodeURIComponent(file)}`;
+}
+
+/** Список событий: `GET /api/diary`. */
+export async function fetchDiaryEvents(): Promise<DiaryEventSummary[]> {
+  const res = await apiFetch('/diary');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<DiaryEventSummary[]>;
+}
+
+/** Полные данные события: `GET /api/diary/:id`. 404 — не найдено. */
+export async function fetchDiaryEvent(id: number): Promise<DiaryEventDetail> {
+  const res = await apiFetch(`/diary/${id}`);
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<DiaryEventDetail>;
+}
+
+/** Удаляет событие: `DELETE /api/diary/:id` (admin). */
+export async function deleteDiaryEvent(id: number): Promise<void> {
+  const res = await apiFetch(`/diary/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+}
+
+/**
+ * Ссылка на изображение в форме события: у новых файлов — клиентский id
+ * (например `new-0`), у существующих — серверное имя файла. Используется для
+ * выбора основной фотографии (`cover`) и формирования `keep`/`newIds`.
+ */
+export interface DiaryImageRef {
+  /** Клиентский id нового файла либо имя существующего файла. */
+  id: string;
+  /** Новый файл для загрузки; `null` — уже сохранённое изображение. */
+  file: File | null;
+}
+
+/** Входные данные создания/обновления события (поля формы). */
+export interface DiaryEventInput {
+  title: string;
+  dateStart: string;
+  dateEnd: string | null;
+  summary: string;
+  content: string;
+  /** id выбранной обложки (см. `DiaryImageRef.id`); `null` — первое изображение. */
+  cover: string | null;
+  images: DiaryImageRef[];
+  /** Имена существующих изображений, которые нужно сохранить (порядок сохраняется). */
+  keep: string[];
+}
+
+/**
+ * Собирает multipart-тело для создания/обновления события: текстовые поля +
+ * `keep`/`newIds` (JSON) + новые файлы в поле `images`.
+ */
+export function buildDiaryFormData(input: DiaryEventInput): FormData {
+  const fd = new FormData();
+  fd.set('title', input.title);
+  fd.set('dateStart', input.dateStart);
+  fd.set('dateEnd', input.dateEnd ?? '');
+  fd.set('summary', input.summary);
+  fd.set('content', input.content);
+  if (input.cover) fd.set('cover', input.cover);
+  fd.set('keep', JSON.stringify(input.keep));
+
+  const newIds: string[] = [];
+  for (const img of input.images) {
+    if (img.file) {
+      fd.append('images', img.file, img.file.name);
+      newIds.push(img.id);
+    }
+  }
+  fd.set('newIds', JSON.stringify(newIds));
+  return fd;
+}
+
+/** Создаёт событие: `POST /api/diary` (multipart, admin). */
+export async function createDiaryEvent(formData: FormData): Promise<DiaryEventDetail> {
+  const res = await apiFetch('/diary', { method: 'POST', body: formData });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<DiaryEventDetail>;
+}
+
+/** Обновляет событие: `PATCH /api/diary/:id` (multipart, admin). */
+export async function updateDiaryEvent(id: number, formData: FormData): Promise<DiaryEventDetail> {
+  const res = await apiFetch(`/diary/${id}`, { method: 'PATCH', body: formData });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<DiaryEventDetail>;
+}

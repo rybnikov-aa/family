@@ -71,6 +71,12 @@ function PageLayout({ children }: PageLayoutProps) {
               Новости
             </NavLink>
             <NavLink
+              to={ROUTES.diary}
+              className={({ isActive }) => (isActive ? 'active' : undefined)}
+            >
+              Дневник
+            </NavLink>
+            <NavLink
               to={ROUTES.projects}
               className={({ isActive }) => (isActive ? 'active' : undefined)}
             >
@@ -110,7 +116,7 @@ function PageLayout({ children }: PageLayoutProps) {
           <StatusCard label="бэкенд" value={backendValue} tone={backendTone} />
         </span>
         <span>
-          <Link to={ROUTES.home}>Дневник</Link>
+          <Link to={ROUTES.diary}>Дневник</Link>
           <Link to={ROUTES.news}>Новости</Link>
           <Link to={ROUTES.projects}>Проекты</Link>
           <a href="https://immich.rybnikov-aa-home.netcraze.link/">Архив</a>

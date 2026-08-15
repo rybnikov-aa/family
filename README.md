@@ -33,7 +33,7 @@ graph TD
 │       # Навыки project-renovation-* архивированы: projects/skills-archive/ (история)
 ├── README.md
 ├── docs/                     # спецификация и справочники (см. «Документация»)
-│   ├── specification.md      # общая спецификация (SDD) + модульные specification-{vps,projects,auth}.md
+│   ├── specification.md      # общая спецификация (SDD) + модульные specification-{vps,projects,auth,renovation,diary}.md
 │   └── server.md             # справочник по серверу/nginx/SSL/деплою
 │
 ├── projects/                 # история «Ремонта» + архивированные навыки/агенты (приложением не используется)
@@ -76,11 +76,11 @@ graph TD
     └── src/
         ├── app.ts            # Express-приложение (экспорт app + автостарт при прямом запуске)
         ├── config/           # конфигурация окружения + типы VPS
-        ├── db/               # SQLite (node:sqlite): соединения + репозитории (vps/auth/projects)
+        ├── db/               # SQLite (node:sqlite): соединения + репозитории (vps/auth/projects/renovation/diary)
         ├── routes/           # маршруты API (в т.ч. auth — вход/выход/me)
         ├── controllers/      # обработчики запросов
-        ├── services/         # бизнес-логика (VPS, авторизация; renovation/domain — данные «Ремонта»)
-        └── middlewares/      # middleware (ошибки, 404, requireAuth/requireAdmin)
+        ├── services/         # бизнес-логика (VPS, авторизация; renovation/domain — данные «Ремонта»; diary — события)
+        └── middlewares/      # middleware (ошибки, 404, requireAuth/requireAdmin, загрузка файлов)
 ```
 
 ## Установка
@@ -112,6 +112,7 @@ npm install
 - **Раздел «Проекты»** — все проекты прикладные (`kind: 'app'`): встроенный реестр `backend/src/config/appProjects.ts` («Ремонт») + записи БД `projects` (созданные через UI; отдельная БД `backend/data/projects.sqlite`, путь — `PROJECTS_DB_PATH`). Список динамический: `GET /api/projects` = реестр + БД (без сканирования файловой системы). Страницы проектов — маршруты приложения (`#/projects/<slug>`), наследуют стиль и тему приложения.
 - **Данные «Ремонта» (этапы 1–7)** — отчётность в отдельной БД `backend/data/renovation.sqlite` (путь — `RENOVATION_DB_PATH`, не путать с `DB_PATH` — это базы разных модулей; у каждого домена своя БД в `backend/data/`, все сохраняются при деплое). Домен — `backend/src/services/renovation/domain/` (чистые типы + деньги в копейках). Наполнение — **штатное, через импорт PDF в приложении** (`POST /api/renovation/pdf` → черновик → подтверждение); seed из статичных HTML убран. Просмотр — read-API `/api/renovation/*` и страница `#/projects/renovation` (сводка Работы /
   Материалы + отчёты по ссылкам «Ход работ»/«Закупка материалов» — открываются в модальном окне). Импорт PDF (этап 3) — кнопка «Импорт PDF» на странице «Ремонт» (admin): `pdfplumber` через Python-subprocess, черновик → подтверждение; подтверждённый PDF сохраняется в `RENOVATION_DOCS_DIR` (по умолчанию `docs/renovation`, на сервере — `server/docs/renovation`, сохраняется при деплое) и раздаётся через `GET /api/renovation/docs/:file`; «Отчёт №N» в «Блоке 2. Материалы» и в отчёте «Материалы» — ссылки на исходные PDF, просмотр — встроенный pdf.js (`PdfViewerModal`). Доп. соглашения (этап 4) — кнопка «Доп. соглашение» (admin): дифф по наименованиям (было/стало, добавление/удаление), подтверждение → старая смета `current` замораживается как `history`, создаётся новая `current` с пересчитанными итогами (см. `docs/specification-renovation.md`).
+- **Раздел «Дневник»** — события семьи в отдельной БД `backend/data/diary.sqlite` (путь — `DIARY_DB_PATH`): блоки с фотографиями, названием, датой (или периодом дат в pill) и кратким описанием. Пользователь переключает макет кнопками с иконками: «список» (по умолчанию, на всю ширину) и «карточки» (сетка на 3 столбца). Клик по блоку открывает страницу события (`#/diary/:id`) с полным содержимым (обложка, markdown-описание, галерея). Добавление (кнопка «+») и редактирование («карандашик») — только admin: форма с загрузкой нескольких фотографий, выбором основной, периодом дат и markdown-описанием. Изображения сохраняются на сервере в `DIARY_IMAGES_DIR` (по умолчанию `images`; dev — `backend/images/`, сервер — `server/images/`) в уникальной подпапке `images/<folder>/` на каждое событие; каталог сохраняется при деплое (как `data/` и `docs/`). Раздача — `GET /api/diary/images/:folder/:file` (под авторизацией).
 - **Создание/изменение/удаление проектов** — на странице «Проекты» (admin): «Создать проект» → `POST /api/projects` (JSON `{slug, title, description, accent?, icon?, order?, content?}`); редактирование и удаление — `PATCH`/`DELETE /api/projects/:slug` (кнопки на карточке/странице, только для созданных через UI). Бэкенд пишет в БД `projects` (метаданные + markdown-контент), **файлов и папок не создаёт** — проект сразу появляется в списке и открывается по `#/projects/<slug>`, без деплоя. Встроенные проекты (реестр) редактировать/удалять нельзя.
 - **Авторизация** — весь портал (SPA и API) закрыт входом: без сессии фронтенд показывает экран входа, API отвечает 401. Учётные записи хранятся в отдельной БД `backend/data/auth.sqlite` (таблицы `users` + `sessions`, путь — `AUTH_DB_PATH`), пароли — только хэши scrypt; вход/выход по httpOnly `SameSite=Lax` cookie (`sid`, в проде `Secure`). Роли: `admin` (управление VPS, создание проектов, управление пользователями) и `user` (чтение). Первый администратор создаётся при старте из `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей), дальнейшие учётки — `npm run user -w backend` или админ-панель в приложении (по клику на бейдж «админ» в шапке). CLI входит в деплой (`server/scripts/users.mjs`), поэтому учётками можно управлять и прямо на сервере. Эндпоинты: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`, `PATCH /api/auth/profile`, админ-эндпоинты `/api/auth/admin/users*`. Имя и пароль своей учётки пользователь меняет сам на странице «Профиль» (по клику на имя в шапке).
 - **Общие dev-зависимости** (`typescript`, `vite`, `@vitejs/plugin-react`, `vite-plugin-node`, `@types/*`, `prettier`, `concurrently`) подняты в корневой `package.json`, рантайм-зависимости лежат в `frontend/` и `backend/` соответственно.

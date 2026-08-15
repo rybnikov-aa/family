@@ -8,6 +8,7 @@ import { authRouter } from './routes/auth';
 import { vpsRouter } from './routes/vps';
 import { projectsRouter } from './routes/projects';
 import { renovationRouter } from './routes/renovation';
+import { diaryRouter } from './routes/diary';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler';
 import { requireAuth } from './middlewares/auth';
 import { ensureBootstrapAdmin, authMaintenance } from './services/authService';
@@ -30,6 +31,8 @@ app.use('/api/vps', requireAuth, vpsRouter);
 app.use('/api/projects', requireAuth, projectsRouter);
 // Модуль «Ремонт» (этап 2 — чтение отчётности из отдельной БД renovation.sqlite).
 app.use('/api/renovation', requireAuth, renovationRouter);
+// Раздел «Дневник»: события + изображения (своя БД diary.sqlite и каталог images/).
+app.use('/api/diary', requireAuth, diaryRouter);
 
 // Создание первого администратора (если в env задан bootstrap-пароль).
 ensureBootstrapAdmin();

@@ -8,6 +8,9 @@
 export const ROUTES = {
   home: '/',
   news: '/news',
+  diary: '/diary',
+  /** Страница события «Дневника», например `/diary/3`. */
+  diaryEvent: '/diary/:id',
   projects: '/projects',
   profile: '/profile',
   adminUsers: '/admin/users',

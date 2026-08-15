@@ -26,6 +26,20 @@ export const env = {
    */
   PROJECTS_DB_PATH: process.env.PROJECTS_DB_PATH ?? 'data/projects.sqlite',
 
+  // ── Дневник (diary) ────────────────────────────────────────────────────────
+  /**
+   * Путь к отдельной БД событий «Дневника». Это НЕ `DB_PATH` (база VPS) —
+   * у раздела своя БД `data/diary.sqlite` (по умолчанию `DIARY_DB_PATH`).
+   */
+  DIARY_DB_PATH: process.env.DIARY_DB_PATH ?? 'data/diary.sqlite',
+  /**
+   * Каталог хранения изображений событий «Дневника». Относительно CWD бэкенда:
+   * в dev — `backend/images`, на сервере — `server/images` (CWD приложения под
+   * pm2 — `$SERVER`). Каждое событие — уникальная подпапка
+   * `images/<folder>/`. Каталог сохраняется при деплое (как `data/` и `docs/`).
+   */
+  DIARY_IMAGES_DIR: process.env.DIARY_IMAGES_DIR ?? 'images',
+
   // ── Модуль «Ремонт» (renovation) ───────────────────────────────────────────
   /**
    * Путь к отдельной БД отчётности «Ремонта». Это НЕ `DB_PATH` (база VPS) —

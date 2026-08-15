@@ -73,3 +73,6 @@ temp/
 
 # Uploaded renovation PDFs (runtime data, not source; сервер — server/docs/, сохраняется при деплое)
 backend/docs/
+
+# Diary event images (runtime data, not source; сервер — server/images/, сохраняется при деплое)
+backend/images/
