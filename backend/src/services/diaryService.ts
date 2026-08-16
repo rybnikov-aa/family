@@ -83,11 +83,40 @@ export interface DiaryEventUpload {
   files: { buffer: Buffer; originalName: string }[];
 }
 
+const DIARY_IMAGE_RE = /!\[([^\]]*)\]\(diary-image:\/\/([a-z0-9._-]+)\)/g;
+
+/** Заменяет временные id новых файлов и возвращает имена фотографий в описании. */
+function resolveContentImages(
+  content: string,
+  newIds: string[],
+  savedNames: string[],
+  availableNames: string[],
+): { content: string; selectedNames: Set<string> } {
+  const selectedNames = new Set<string>();
+  const resolvedContent = content.replace(DIARY_IMAGE_RE, (match, _alt: string, ref: string) => {
+    const newIndex = newIds.indexOf(ref);
+    const name = newIndex >= 0 ? savedNames[newIndex] : ref;
+    if (!name || !availableNames.includes(name)) {
+      throw new HttpError(400, 'В описании указана недоступная фотография');
+    }
+    selectedNames.add(name);
+    return newIndex >= 0 ? match.replace(`diary-image://${ref}`, `diary-image://${name}`) : match;
+  });
+  return { content: resolvedContent, selectedNames };
+}
+
 /** Строка БД → сводка события (обложка по умолчанию — первое изображение). */
 function rowToSummary(row: DiaryEventRow): DiaryEventSummary {
-  const images = listEventImages(row.folder);
+  const allImages = listEventImages(row.folder);
+  const contentImages = new Set<string>();
+  for (const match of row.content.matchAll(DIARY_IMAGE_RE)) contentImages.add(match[2]);
+  const images = allImages.filter((name) => !contentImages.has(name));
   const cover =
-    row.cover && images.includes(row.cover) ? row.cover : images.length > 0 ? images[0] : null;
+    row.cover && allImages.includes(row.cover)
+      ? row.cover
+      : allImages.length > 0
+        ? allImages[0]
+        : null;
   return {
     id: row.id,
     title: row.title,
@@ -183,9 +212,11 @@ export function createDiaryEvent(input: DiaryEventUpload): DiaryEventDetail {
   }
 
   let cover: string | null;
+  let content: string;
   try {
     cover = resolveCover(input.cover, input.newIds, savedNames, []);
     if (!cover && savedNames.length > 0) cover = savedNames[0];
+    content = resolveContentImages(input.content, input.newIds, savedNames, savedNames).content;
   } catch (err) {
     removeEventImages(folder);
     throw err;
@@ -196,7 +227,7 @@ export function createDiaryEvent(input: DiaryEventUpload): DiaryEventDetail {
     dateStart,
     dateEnd,
     summary,
-    content: input.content,
+    content,
     folder,
     cover,
   });
@@ -232,13 +263,15 @@ export function updateDiaryEvent(id: number, input: DiaryEventUpload): DiaryEven
   }
 
   const cover = resolveCover(input.cover, input.newIds, savedNames, input.keep);
+  const finalNames = [...input.keep, ...savedNames];
+  const content = resolveContentImages(input.content, input.newIds, savedNames, finalNames).content;
 
   const row = updateDiaryEventRow(id, {
     title,
     dateStart,
     dateEnd,
     summary,
-    content: input.content,
+    content,
     folder: current.folder,
     cover,
   });

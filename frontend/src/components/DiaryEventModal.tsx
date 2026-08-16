@@ -46,6 +46,7 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   const [dateEnd, setDateEnd] = useState(event?.dateEnd ?? '');
   const [summary, setSummary] = useState(event?.summary ?? '');
   const [content, setContent] = useState(event?.content ?? '');
+  const contentRef = useRef<HTMLTextAreaElement>(null);
   // Изображения: существующие — из события, новые — добавляются при загрузке.
   const [images, setImages] = useState<FormImage[]>(() =>
     event
@@ -98,8 +99,33 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
     }
     const next = images.filter((i) => i.id !== id);
     setImages(next);
+    const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    setContent((prev) =>
+      prev.replace(new RegExp(`!\\[[^\\]]*\\]\\(diary-image:\\/\\/${escapedId}\\)`, 'g'), ''),
+    );
     if (cover === id) setCover(next[0]?.id ?? null);
   };
+
+  const insertImage = (image: FormImage) => {
+    const textarea = contentRef.current;
+    const marker = `![Фото](diary-image://${image.id})`;
+    const start = textarea?.selectionStart ?? content.length;
+    const end = textarea?.selectionEnd ?? content.length;
+    const nextContent = `${content.slice(0, start)}${marker}${content.slice(end)}`;
+    setContent(nextContent);
+    requestAnimationFrame(() => {
+      textarea?.focus();
+      textarea?.setSelectionRange(start + marker.length, start + marker.length);
+    });
+  };
+
+  const insertedImageIds = new Set(
+    Array.from(
+      content.matchAll(/!\[[^\]]*\]\(diary-image:\/\/([a-z0-9._-]+)\)/g),
+      (match) => match[1],
+    ),
+  );
+  const availableImages = images.filter((image) => !insertedImageIds.has(image.id));
 
   const handleSubmit = async (eventForm: FormEvent) => {
     eventForm.preventDefault();
@@ -209,6 +235,28 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
           <span className="field__hint">
             Клик по фотографии — выбрать основную («Обложка»). JPG, PNG, WebP, GIF.
           </span>
+          {availableImages.length > 0 && (
+            <div className="diary-photos__insert">
+              <span className="field__hint">Вставить фотографию в описание:</span>
+              <div className="diary-photos__insert-list">
+                {availableImages.map((img) => {
+                  const imageNumber = images.indexOf(img) + 1;
+                  return (
+                    <button
+                      key={`insert-${img.id}`}
+                      type="button"
+                      className="diary-photos__insert-item"
+                      aria-label={`Вставить Фото ${imageNumber} в описание`}
+                      onClick={() => insertImage(img)}
+                    >
+                      <span className="diary-photos__insert-label">Фото {imageNumber}</span>
+                      <img src={img.preview} alt="" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </label>
 
         <label className="field">
@@ -263,6 +311,7 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
         <label className="field">
           <span className="field__label">Подробное описание (markdown)</span>
           <textarea
+            ref={contentRef}
             className="input input--area"
             rows={8}
             value={content}
@@ -270,7 +319,8 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
             placeholder="## День первый&#10;&#10;Подробный рассказ о событии: заголовки, списки, ссылки."
           />
           <span className="field__hint">
-            Markdown: ## заголовки, **жирный**, *курсив*, - списки, [ссылки](url).
+            Markdown: ## заголовки, **жирный**, *курсив*, - списки, [ссылки](url). Фотографии
+            вставляются кнопками выше.
           </span>
         </label>
 

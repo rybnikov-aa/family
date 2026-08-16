@@ -12,7 +12,7 @@ import { formatDateIso } from '../utils/money';
 
 /**
  * Страница события «Дневника» (`#/diary/:id`): обложка, название, дата (pill),
- * краткое описание, подробное описание (markdown) и галерея всех фотографий.
+ * краткое описание, подробное описание (markdown) и галерея фотографий.
  * Редактирование — кнопка «карандашик» (admin).
  */
 function DiaryEventPage() {
@@ -73,7 +73,12 @@ function DiaryEventPage() {
             {event.content.trim() === '' ? (
               <div className="news-empty">Подробное описание пока не добавлено.</div>
             ) : (
-              <div className="markdown diary-event__content">{renderMarkdown(event.content)}</div>
+              <div className="markdown diary-event__content">
+                {renderMarkdown(event.content, (name) => ({
+                  src: diaryImageUrl(event.folder, name, true),
+                  href: diaryImageUrl(event.folder, name),
+                }))}
+              </div>
             )}
 
             {event.images.length > 0 && (

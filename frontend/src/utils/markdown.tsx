@@ -8,8 +8,11 @@ import { Fragment, createElement, type ReactNode } from 'react';
  */
 
 /** Инлайн-токенизация: **bold**, *italic*, `code`, [text](url). */
-function renderInline(src: string): ReactNode[] {
-  const regex = /(\*\*([^*]+)\*\*|\*([^*\n]+)\*|`([^`\n]+)`|\[([^\]]+)\]\(([^)\s]+)\))/g;
+export type MarkdownImageResolver = (name: string) => { src: string; href: string } | null;
+
+function renderInline(src: string, imageResolver?: MarkdownImageResolver): ReactNode[] {
+  const regex =
+    /!\[([^\]]*)\]\(diary-image:\/\/([a-z0-9._-]+)\)|(\*\*([^*]+)\*\*|\*([^*\n]+)\*|`([^`\n]+)`|\[([^\]]+)\]\(([^)\s]+)\))/g;
   const out: ReactNode[] = [];
   let last = 0;
   let key = 0;
@@ -20,16 +23,29 @@ function renderInline(src: string): ReactNode[] {
     if (match.index > last) {
       out.push(<Fragment key={key++}>{src.slice(last, match.index)}</Fragment>);
     }
-    if (match[2] !== undefined) {
-      out.push(<strong key={key++}>{match[2]}</strong>);
-    } else if (match[3] !== undefined) {
-      out.push(<em key={key++}>{match[3]}</em>);
-    } else if (match[4] !== undefined) {
-      out.push(<code key={key++}>{match[4]}</code>);
-    } else if (match[5] !== undefined && match[6] !== undefined) {
+    const image = match[1] && match[2] ? imageResolver?.(match[2]) : null;
+    if (image) {
       out.push(
-        <a key={key++} href={match[6]} target="_blank" rel="noreferrer">
-          {match[5]}
+        <a
+          key={key++}
+          className="diary-markdown-image"
+          href={image.href}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <img src={image.src} alt={match[1]} loading="lazy" />
+        </a>,
+      );
+    } else if (match[4] !== undefined) {
+      out.push(<strong key={key++}>{match[4]}</strong>);
+    } else if (match[5] !== undefined) {
+      out.push(<em key={key++}>{match[5]}</em>);
+    } else if (match[6] !== undefined) {
+      out.push(<code key={key++}>{match[6]}</code>);
+    } else if (match[7] !== undefined && match[8] !== undefined) {
+      out.push(
+        <a key={key++} href={match[8]} target="_blank" rel="noreferrer">
+          {match[7]}
         </a>,
       );
     }
@@ -56,7 +72,7 @@ function isBlockStart(line: string): boolean {
 }
 
 /** Рендерит markdown в React-узлы. */
-export function renderMarkdown(markdown: string): ReactNode {
+export function renderMarkdown(markdown: string, imageResolver?: MarkdownImageResolver): ReactNode {
   const lines = markdown.replace(/\r\n/g, '\n').split('\n');
   const blocks: ReactNode[] = [];
   let i = 0;
@@ -74,7 +90,7 @@ export function renderMarkdown(markdown: string): ReactNode {
     const heading = /^(#{1,6})\s+(.*)$/.exec(trimmed);
     if (heading) {
       const level = heading[1].length;
-      const content = renderInline(heading[2]);
+      const content = renderInline(heading[2], imageResolver);
       blocks.push(createElement(`h${level}`, { key: key++ }, ...content));
       i++;
       continue;
@@ -111,7 +127,9 @@ export function renderMarkdown(markdown: string): ReactNode {
         quote.push(lines[i].trim().replace(/^>\s?/, ''));
         i++;
       }
-      blocks.push(<blockquote key={key++}>{renderMarkdown(quote.join('\n'))}</blockquote>);
+      blocks.push(
+        <blockquote key={key++}>{renderMarkdown(quote.join('\n'), imageResolver)}</blockquote>,
+      );
       continue;
     }
 
@@ -127,7 +145,7 @@ export function renderMarkdown(markdown: string): ReactNode {
         const mo = /^\d+\.\s+(.*)$/.exec(t);
         if (isOrdered ? mo : mu) {
           const itemText = (isOrdered ? mo : mu)?.[1] ?? '';
-          items.push(<li key={key++}>{renderInline(itemText)}</li>);
+          items.push(<li key={key++}>{renderInline(itemText, imageResolver)}</li>);
           i++;
         } else if (t === '') {
           i++;
@@ -147,7 +165,7 @@ export function renderMarkdown(markdown: string): ReactNode {
       paragraph.push(lines[i]);
       i++;
     }
-    blocks.push(<p key={key++}>{renderInline(paragraph.join(' '))}</p>);
+    blocks.push(<p key={key++}>{renderInline(paragraph.join(' '), imageResolver)}</p>);
   }
 
   return <>{blocks}</>;

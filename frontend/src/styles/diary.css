@@ -197,6 +197,19 @@
 .diary-event__content {
   margin-bottom: var(--space-8);
 }
+.diary-markdown-image {
+  display: block;
+  width: min(100%, 760px);
+  margin: var(--space-4) 0;
+}
+.diary-markdown-image img {
+  display: block;
+  max-width: 100%;
+  max-height: 520px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  object-fit: contain;
+}
 .diary-event__gallery {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -303,6 +316,56 @@
 .diary-photos__add {
   cursor: pointer;
   align-self: flex-start;
+}
+.diary-photos__insert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.diary-photos__insert .field__hint {
+  width: 100%;
+}
+.diary-photos__insert-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  width: 100%;
+}
+.diary-photos__insert-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 88px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: left;
+}
+.diary-photos__insert-item:hover {
+  color: var(--text);
+}
+.diary-photos__insert-label {
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+}
+.diary-photos__insert-item img {
+  display: block;
+  width: 88px;
+  height: 66px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+.diary-photos__insert-item:hover img {
+  border-color: var(--color-accent-blue);
+  transform: translateY(-1px);
 }
 
 /* Даты события (начало + окончание) — два поля в ряд */
