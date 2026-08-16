@@ -143,22 +143,22 @@ npm run user -w backend -- add papa Папа admin
 npm run user -w backend -- list
 ```
 
-**На сервере** скрипт входит в деплой (`server/scripts/users.mjs`). В неинтерактивной SSH-сессии `node` нет в PATH, поэтому запускайте полным путём:
+**На сервере** скрипт входит в деплой (`server/scripts/users.mjs`). На текущих хостах `node` в PATH (`/usr/bin/node`), поэтому запускается напрямую; если `node` не в PATH — использовать полный путь к бинарю:
 
 ```bash
-cd /var/www/family.rybnikov.su/server
-/home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs add mama Мама user
+cd /var/www/my.rybnikov.su/server
+node scripts/users.mjs add mama Мама user
 ```
 
 ## Конфигурация окружения (файлы `.env`)
 
 В проекте три независимых «пространства» переменных окружения. У каждого есть шаблон `.env.example` (в git, документированный) и, при необходимости, реальный `.env` (в git не попадает). Реальные `.env` не переопределяют уже заданные переменные окружения процесса.
 
-| Файл            | Кто читает                                  | Переменные                                                                                                                                                    |
-| --------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Корневой `.env` | `scripts/deploy.mjs` (деплой)               | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH`                                |
-| `backend/.env`  | Бэкенд (`src/config/env.ts` через `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `AUTH_DB_PATH`, `PROJECTS_DB_PATH`, `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `AUTH_BOOTSTRAP_*`, `RENOVATION_*` |
-| `frontend/.env` | Vite (только `VITE_*`)                      | `VITE_API_BASE_URL`                                                                                                                                           |
+| Файл            | Кто читает                                  | Переменные                                                                                                                                                            |
+| --------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Корневой `.env` | `scripts/deploy.mjs` (деплой)               | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH`, `DEPLOY_PM2_HOME`, `DEPLOY_PDF_SETUP` |
+| `backend/.env`  | Бэкенд (`src/config/env.ts` через `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `AUTH_DB_PATH`, `PROJECTS_DB_PATH`, `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `AUTH_BOOTSTRAP_*`, `RENOVATION_*`         |
+| `frontend/.env` | Vite (только `VITE_*`)                      | `VITE_API_BASE_URL`                                                                                                                                                   |
 
 - **Корневой `.env` / `.env.example`** — конфигурация **деплоя** (SSH-хост, пользователь, пути на сервере, имя pm2-приложения). Загружается `scripts/deploy.mjs` собственным мини-загрузчиком. Шаблон — `.env.example` в корне.
 - **`backend/.env.example`** — конфигурация **рантайма бэкенда**: порт API (`PORT`), разрешённый CORS-origin (`CORS_ORIGIN`), окружение (`NODE_ENV`), пути к раздельным SQLite-базам (`DB_PATH` — `data/vps.sqlite`, БД VPS; `AUTH_DB_PATH` — `data/auth.sqlite`, авторизация; `PROJECTS_DB_PATH` — `data/projects.sqlite`, прикладные проекты), а также авторизация: `AUTH_COOKIE_NAME` (имя cookie сессии, `sid`), `SESSION_TTL_HOURS` (срок жизни сессии, 168 ч), `AUTH_BOOTSTRAP_PASSWORD`/`AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME` (создание первого администратора при старте, если в БД нет пользователей). Модуль «Ремонт» — `RENOVATION_DB_PATH`/`RENOVATION_DOCS_DIR` (каталог загруженных PDF)/`RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT`. В dev подхватывается `dotenv` из `backend/.env`; в проде — из `server/.env`, который сохраняется при деплое. Переменной `PROJECTS_DIR` больше нет — проекты хранятся в БД.
@@ -188,21 +188,21 @@ cd /var/www/family.rybnikov.su/server
 
 После `npm run dev` откройте http://localhost:5173 — страница покажет статус бэкенда (ответ `/api/health`).
 
-## Деплой на family.rybnikov.su
+## Деплой на my.rybnikov.su (основной хост)
 
-Публикация выполняется скриптом `scripts/deploy.mjs` (команда `npm run deploy`). Он собирает проект, загружает файлы по SSH (scp) и разворачивает их на сервере:
+Публикация выполняется скриптом `scripts/deploy.mjs` (команда `npm run deploy`). Он собирает проект, загружает файлы по SSH (scp) и разворачивает их на сервере. Основной хост — **my.rybnikov.su** (данные мигрированы с прежнего хоста 2026-08-16); дополнительный тестовый хост — **test.rybnikov.su** (отдельный инстанс `family-backend-test` на порту 3001).
 
-| Что                                      | Куда на сервере                           |
-| ---------------------------------------- | ----------------------------------------- |
-| Фронтенд (`frontend/dist`)               | `/var/www/family.rybnikov.su/public_html` |
-| Бэкенд (`backend/dist` + `package.json`) | `/var/www/family.rybnikov.su/server`      |
+| Что                                      | Куда на сервере                       |
+| ---------------------------------------- | ------------------------------------- |
+| Фронтенд (`frontend/dist`)               | `/var/www/my.rybnikov.su/public_html` |
+| Бэкенд (`backend/dist` + `package.json`) | `/var/www/my.rybnikov.su/server`      |
 
 После загрузки скрипт на сервере: обновляет файлы, ставит production-зависимости (`npm install --omit=dev`) и перезапускает приложение под `pm2` (`pm2 restart family-backend`, при первом запуске — `pm2 start dist/app.cjs`). Если `pm2` на сервере не установлен (или не виден в PATH), скрипт сам найдёт его в типовых местах либо установит глобально (`npm install -g pm2`).
 
 **Очистка каталогов на сервере:**
 
-- `/var/www/family.rybnikov.su/public_html` — сама папка **никогда не удаляется**. При деплое удаляются только файлы верхнего уровня (`index.html` и т.п.) и подпапка `assets/` (результат сборки Vite), а прочие подпапки (например `.well-known`) сохраняются.
-- `/var/www/family.rybnikov.su/server` — папка не удаляется, содержимое очищается, **`.env`, `data/` (SQLite-базы) и `docs/` (загруженные PDF «Ремонта») сохраняются** (не перезаписываются и не удаляются).
+- `/var/www/my.rybnikov.su/public_html` — сама папка **никогда не удаляется**. При деплое удаляются только файлы верхнего уровня (`index.html` и т.п.) и подпапка `assets/` (результат сборки Vite), а прочие подпапки (например `.well-known`) сохраняются.
+- `/var/www/my.rybnikov.su/server` — папка не удаляется, содержимое очищается, **`.env`, `data/` (SQLite-базы), `docs/` (загруженные PDF «Ремонта») и `images/` (изображения «Дневника») сохраняются** (не перезаписываются и не удаляются).
 - **`projects/` репозитория** (история «Ремонта» + архивированные навыки) на сервер не копируется; `server/renovation-source/` и seed «Ремонта» упразднены. Статичные страницы проектов деплой не зеркалирует (все проекты живут в приложении); статичный архив `public_html/projects/` на сервере удалён.
 
 Посмотреть, что именно выполняется на сервере, без деплоя:
@@ -222,17 +222,33 @@ npm run deploy -- --no-restart  # без перезапуска pm2
 Параметры задаются в корневом файле `.env` (загружается скриптом автоматически, в git не коммитится). Шаблон — `.env.example`:
 
 ```bash
-DEPLOY_HOST=family.rybnikov.su   # SSH host
-DEPLOY_USER=rybnikov             # SSH user
-DEPLOY_PORT=22                   # SSH port
-DEPLOY_FRONTEND_DIR=/var/www/family.rybnikov.su/public_html
-DEPLOY_BACKEND_DIR=/var/www/family.rybnikov.su/server
-DEPLOY_PM2_APP=family-backend    # pm2 app name
+DEPLOY_HOST=my.rybnikov.su      # SSH host (основной)
+DEPLOY_USER=rybnikov            # SSH user
+DEPLOY_PORT=22                  # SSH port
+DEPLOY_FRONTEND_DIR=/var/www/my.rybnikov.su/public_html
+DEPLOY_BACKEND_DIR=/var/www/my.rybnikov.su/server
+DEPLOY_PM2_APP=family-backend   # pm2 app name
+DEPLOY_PM2_HOME=/home/rybnikov/.pm2   # стабильный PM2_HOME на сервере (обязательно)
+DEPLOY_PDF_SETUP=0    # не готовить сервер к импорту PDF (venv ставится вручную; см. docs/server.md §1.4)
 
 # Optional: bin directory with node/npm ON THE SERVER, if the remote script
 # cannot auto-detect them (e.g. /home/rybnikov/.nvm/versions/node/v24.19.0/bin)
 # DEPLOY_NODE_PATH=
 ```
+
+`DEPLOY_PM2_HOME` — абсолютный путь для pm2 на сервере. **Обязателен:** Windows-клиент OpenSSH шлёт на сервер `HOME=C:Usersalex`, и без `PM2_HOME` демон pm2 резолвится относительно CWD и становится нестабильным. Задаётся также в `.env`.
+
+Тестовый хост (дополнительный):
+
+```powershell
+$env:DEPLOY_HOST = "test.rybnikov.su"; $env:DEPLOY_USER = "rybnikov"
+$env:DEPLOY_FRONTEND_DIR = "/var/www/test.rybnikov.su/public_html"
+$env:DEPLOY_BACKEND_DIR = "/var/www/test.rybnikov.su/server"
+$env:DEPLOY_PM2_APP = "family-backend-test"; $env:DEPLOY_PM2_HOME = "/home/rybnikov/.pm2"
+npm run deploy -- --no-pdf-setup
+```
+
+> `--no-pdf-setup` на новых хостах обязателен: из-за грабли `HOME` (см. docs/server.md §4.1) pdf-setup создаёт venv по битому пути; venv ставится вручную.
 
 В неинтерактивной SSH-сессии PATH часто минимален, поэтому Node.js, установленный через nvm или в нестандартный каталог, может быть не виден. Серверный скрипт сам ищет `node`/`npm`: подключает профили пользователя (`~/.profile`, `~/.bashrc`, `nvm.sh`) и проверяет типовые пути (`~/.nvm/...`, `/usr/local/bin`, `/usr/bin` и др.). Если этого мало — задайте `DEPLOY_NODE_PATH` (каталог с `node`/`npm` на сервере).
 
@@ -252,5 +268,6 @@ $env:DEPLOY_USER = "ubuntu"; $env:DEPLOY_PORT = "2222"; npm run deploy
 
 - На машине разработки установлен OpenSSH-клиент (`ssh`/`scp`) — встроен в Windows 10+.
 - Рекомендуется настроить **SSH-ключ** (`ssh-keygen` + `ssh-copy-id`), чтобы деплой шёл без запросов пароля. Пароль/ключ нигде не хранятся — скрипт только вызывает ssh/scp.
-- На сервере установлены `node`/`npm` и `pm2`, а также `.env` в `/var/www/family.rybnikov.su/server` с нужными значениями (`PORT`, `CORS_ORIGIN=https://family.rybnikov.su` и т.д.).
-- Для отдачи статики фронтенда и проксирования `/api` на порт бэкенда на сервере должен быть настроен веб-сервер (например, nginx).
+- На сервере установлены `node`/`npm` и `pm2`, а также `.env` в `/var/www/my.rybnikov.su/server` с нужными значениями (`PORT`, `CORS_ORIGIN=https://my.rybnikov.su` и т.д.).
+- Для отдачи статики фронтенда и проксирования `/api` на порт бэкенда на сервере должен быть настроен веб-сервер (например, nginx). На основном хосте настроены редиректы: `family.rybnikov.su` (CNAME на `my.rybnikov.su` — активен) и `rybnikov.su` (после перевода DNS) → `https://my.rybnikov.su`, а также `http → https`.
+- **`sharp` зафиксирован `~0.35.3`** (последняя версия, работает на новом сервере с CPU AVX2; прежний пин `~0.33.5` был нужен из-за слабого CPU старого сервера).

@@ -4,7 +4,7 @@
  *
  * Использование (из корня репозитория):
  *   node .github/skills/deploy/scripts/check-server.mjs
- *   node .github/skills/deploy/scripts/check-server.mjs --host itg-ru-gw.rybnikov.su --user rybnikov
+ *   node .github/skills/deploy/scripts/check-server.mjs --host test.rybnikov.su --user rybnikov
  *   node .github/skills/deploy/scripts/check-server.mjs --lines 100 --app family-backend
  *   node .github/skills/deploy/scripts/check-server.mjs --batch   # без интерактивного пароля (для агентов)
  *
@@ -54,7 +54,7 @@ function parseArgs(argv) {
 }
 
 const args = parseArgs(process.argv.slice(2));
-const host = args.host ?? process.env.DEPLOY_HOST ?? 'family.rybnikov.su';
+const host = args.host ?? process.env.DEPLOY_HOST ?? 'my.rybnikov.su';
 const user = args.user ?? process.env.DEPLOY_USER ?? 'root';
 const port = args.port ?? process.env.DEPLOY_PORT ?? '22';
 const app = args.app ?? process.env.DEPLOY_PM2_APP ?? 'family-backend';

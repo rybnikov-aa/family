@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Deploy to family.rybnikov.su
+ * Deploy to my.rybnikov.su (основной хост)
  *
  * Flow:
  *   1. Build frontend + backend (unless --no-build)
  *   2. Bundle the builds + backend runtime files into a tarball
  *   3. Upload the tarball and the remote script via scp
  *   4. On the server: extract to
- *        - /var/www/family.rybnikov.su/public_html  (frontend)
- *        - /var/www/family.rybnikov.su/server       (backend)
+ *        - /var/www/my.rybnikov.su/public_html  (frontend)
+ *        - /var/www/my.rybnikov.su/server       (backend)
  *      Static project pages are NOT deployed anymore — all projects live in
  *      the app (SQLite) and are served via the SPA at /projects/<slug>.
  *   5. Install production deps (npm install --omit=dev)
@@ -21,17 +21,21 @@
  *   npm run deploy -- --no-pdf-setup      # skip provisioning python+pdfplumber for PDF import
  *
  * Configuration via env vars (all optional):
- *   DEPLOY_HOST          default: family.rybnikov.su
+ *   DEPLOY_HOST          default: my.rybnikov.su
  *   DEPLOY_USER          default: root
  *   DEPLOY_PORT          default: 22
- *   DEPLOY_FRONTEND_DIR  default: /var/www/family.rybnikov.su/public_html
- *   DEPLOY_BACKEND_DIR   default: /var/www/family.rybnikov.su/server
+ *   DEPLOY_FRONTEND_DIR  default: /var/www/my.rybnikov.su/public_html
+ *   DEPLOY_BACKEND_DIR   default: /var/www/my.rybnikov.su/server
  *   DEPLOY_PM2_APP       default: family-backend
  *   DEPLOY_PDF_SETUP     default: 1. Provision python3-venv + ~/renov-venv (pdfplumber) and
  *                        write RENOVATION_PYTHON / RENOVATION_EXTRACT_SCRIPT into server/.env
  *                        if absent (idempotent, non-fatal). 0 disables.
  *   DEPLOY_NODE_PATH     bin dir with node/npm on the SERVER (e.g. /home/rybnikov/.nvm/versions/node/v24.19.0/bin).
  *                        If unset, the remote script auto-detects node/npm (profiles, nvm, common paths).
+ *   DEPLOY_PM2_HOME     absolute PM2_HOME for pm2 on the SERVER (e.g. /home/rybnikov/.pm2).
+ *                        Если не задан, pm2 использует $HOME/.pm2 — а т.к. Windows-ssh шлёт
+ *                        HOME=C:Usersalex, PM2_HOME резолвится относительно CWD и демон
+ *                        нестабилен. Задавать ОБЯЗАТЕЛЬНО (см. docs/server.md §4.1).
  *
  * Requires the OpenSSH client (ssh/scp) on PATH — built into Windows 10+.
  * Auth is interactive (password/key prompt). An SSH key is recommended so
@@ -87,14 +91,16 @@ function loadEnvFile() {
 loadEnvFile();
 
 const cfg = {
-  host: process.env.DEPLOY_HOST ?? 'family.rybnikov.su',
+  host: process.env.DEPLOY_HOST ?? 'my.rybnikov.su',
   user: process.env.DEPLOY_USER ?? 'root',
   port: process.env.DEPLOY_PORT ?? '22',
-  frontendDir: process.env.DEPLOY_FRONTEND_DIR ?? '/var/www/family.rybnikov.su/public_html',
-  backendDir: process.env.DEPLOY_BACKEND_DIR ?? '/var/www/family.rybnikov.su/server',
+  frontendDir: process.env.DEPLOY_FRONTEND_DIR ?? '/var/www/my.rybnikov.su/public_html',
+  backendDir: process.env.DEPLOY_BACKEND_DIR ?? '/var/www/my.rybnikov.su/server',
   pm2App: process.env.DEPLOY_PM2_APP ?? 'family-backend',
   // Server-side directory containing node/npm (used in the remote script)
   nodePath: process.env.DEPLOY_NODE_PATH ?? '',
+  // Абсолютный PM2_HOME на сервере (стабильный путь для pm2-демона)
+  pm2Home: process.env.DEPLOY_PM2_HOME ?? '',
   build: !process.argv.includes('--no-build'),
   restart: !process.argv.includes('--no-restart'),
   // Подготовка сервера к импорту PDF («Ремонт»): python3-venv + ~/renov-venv (pdfplumber)
@@ -155,6 +161,12 @@ function buildRemoteScript() {
 set -e
 PUBLIC="${cfg.frontendDir}"
 SERVER="${cfg.backendDir}"
+
+# Стабильный PM2_HOME (абсолютный путь), если задан — иначе pm2 берёт $HOME/.pm2,
+# а Windows-ssh шлёт HOME=C:Usersalex (резолвится относительно CWD, демон нестабилен).
+if [ -n "${cfg.pm2Home}" ]; then
+  export PM2_HOME="${cfg.pm2Home}"
+fi
 
 # --- Ensure node/npm/pm2 are available ---
 # Non-interactive SSH sessions often have a minimal PATH, so Node.js

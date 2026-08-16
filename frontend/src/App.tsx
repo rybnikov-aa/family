@@ -13,30 +13,32 @@ const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'));
 const RenovationPage = lazy(() => import('./pages/RenovationPage'));
 import { ROUTES } from './routes';
 import { useAuth } from './hooks/useAuth';
+import { pageTitle } from './utils/brand';
 
 /** Устанавливает заголовок вкладки по текущему маршруту. */
 function RouteLayout() {
   const location = useLocation();
 
   useEffect(() => {
-    document.title =
+    const section =
       location.pathname === ROUTES.news
-        ? 'Новости • family.rybnikov.su'
+        ? 'Новости'
         : location.pathname === ROUTES.diary
-          ? 'Дневник • family.rybnikov.su'
+          ? 'Дневник'
           : location.pathname.startsWith('/diary/')
-            ? 'Событие • family.rybnikov.su'
+            ? 'Событие'
             : location.pathname === ROUTES.projects
-              ? 'Проекты • family.rybnikov.su'
+              ? 'Проекты'
               : location.pathname === ROUTES.renovation
-                ? 'Ремонт • family.rybnikov.su'
+                ? 'Ремонт'
                 : location.pathname.startsWith('/projects/')
-                  ? 'Проект • family.rybnikov.su'
+                  ? 'Проект'
                   : location.pathname === ROUTES.profile
-                    ? 'Профиль • family.rybnikov.su'
+                    ? 'Профиль'
                     : location.pathname === ROUTES.adminUsers
-                      ? 'Пользователи • family.rybnikov.su'
-                      : 'Семейное пространство • family.rybnikov.su';
+                      ? 'Пользователи'
+                      : 'Семейное пространство';
+    document.title = pageTitle(section);
   }, [location.pathname]);
 
   // Ленивые страницы ждут чанк — показываем заглушку.

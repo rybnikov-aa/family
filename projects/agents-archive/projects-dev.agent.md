@@ -55,7 +55,7 @@ New projects in the «Проекты» section are created via the UI (button «
 - **Project anatomy**: `projects/<slug>/index.html` with meta-tags `project-title` (short card name,
   higher priority than `<title>`), `description` (card caption), `project-accent` (hex accent, default
   `#3b82f6`), `project-icon` (`renovation` | `folder` | `projects`), `project-order` (int, sorts
-  ascending; unset → end). `<title>` = `Название • family.rybnikov.su`. The backend
+  ascending; unset → end). `<title>` = `Название • my.rybnikov.su`. The backend
   `GET /api/projects` scans subfolders with `index.html` (60s cache); folders starting with `_`/`.`
   are not projects.
 - **Frame**: `<link href="/projects/styles.css">` + theme script in `<head>` + `<script
@@ -123,8 +123,8 @@ minmax(320px, 1fr))` с переходом в одну колонку на `≤7
    cards, subpages, tables, links.
 6. Run `npm run typecheck` (root gate); run `npm run format` if formatting changed.
 7. After explicit user confirmation, publish: `npm run deploy`.
-8. Post-deploy check: `curl -i https://family.rybnikov.su/api/projects` (60s backend cache — wait or
-   recheck) and open `https://family.rybnikov.su/projects/<slug>/`.
+8. Post-deploy check: `curl -i https://my.rybnikov.su/api/projects` (60s backend cache — wait or
+   recheck) and open `https://my.rybnikov.su/projects/<slug>/`.
 
 ## Output Format
 

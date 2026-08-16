@@ -15,6 +15,17 @@ graph TD
     C --> D["Слой 4: Страницы и блоки<br/>ServiceStats, VpsDetailsModal, PageLayout и т.п."]
 ```
 
+## Заголовки вкладок и брендинг (динамический домен)
+
+Домен в заголовках вкладок (`document.title` = «Раздел • домен») и в футере (`© 2026 домен`)
+берётся из текущего хоста, а не захардкожен: `frontend/src/utils/brand.ts`
+(`APP_DOMAIN = window.location.hostname`, хелпер `pageTitle(section)`). Заголовки выставляют
+`RouteLayout` (`App.tsx`), `LoginPage` (`pageTitle('Вход')`); футер — `PageLayout` (`APP_DOMAIN`).
+Благодаря этому на любом хосте (основной `my.rybnikov.su`, тестовый `test.rybnikov.su`)
+заголовки и футер автоматически показывают фактический адрес публикации.
+Статичный fallback `<title>` в `frontend/index.html` — «Семейное пространство • my.rybnikov.su»
+(перезаписывается приложением после загрузки).
+
 ## Токены
 
 Объявлены в `index.css` в блоках `:root` (светлая тема) и `[data-theme='dark']`.

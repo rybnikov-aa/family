@@ -7,6 +7,7 @@ import { LogoutIcon, UserIcon, UsersIcon } from './icons';
 import { ROUTES } from '../routes';
 import { useHealth } from '../hooks/useHealth';
 import { useAuth } from '../hooks/useAuth';
+import { APP_DOMAIN } from '../utils/brand';
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -110,7 +111,7 @@ function PageLayout({ children }: PageLayoutProps) {
       {children}
 
       <footer className="footer">
-        <span className="copy">© 2026 family.rybnikov.su</span>
+        <span className="copy">© 2026 {APP_DOMAIN}</span>
         <span className="footer-status">
           <StatusCard label="фронтенд" value={frontendValue} tone={frontendTone} />
           <StatusCard label="бэкенд" value={backendValue} tone={backendTone} />

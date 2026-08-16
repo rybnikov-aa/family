@@ -1,10 +1,10 @@
 # Спецификация модуля «Авторизация» (family)
 
-| Поле          | Значение                                                                       |
-| ------------- | ------------------------------------------------------------------------------ |
-| Тип документа | Модульная спецификация (Specification Driven Development)                      |
-| Модуль        | Авторизация (вход/выход, пользователи, роли, сессии)                           |
-| Проект        | family.rybnikov.su — семейный портал (монорепозиторий: `frontend` + `backend`) |
+| Поле          | Значение                                                                   |
+| ------------- | -------------------------------------------------------------------------- |
+| Тип документа | Модульная спецификация (Specification Driven Development)                  |
+| Модуль        | Авторизация (вход/выход, пользователи, роли, сессии)                       |
+| Проект        | my.rybnikov.su — семейный портал (монорепозиторий: `frontend` + `backend`) |
 
 ---
 
@@ -202,6 +202,6 @@ npm run user -w backend -- remove mama
 На сервере (скрипт входит в деплой — `server/scripts/users.mjs`; в неинтерактивной SSH-сессии node не в PATH, поэтому полным путём):
 
 ```bash
-cd /var/www/family.rybnikov.su/server
+cd /var/www/my.rybnikov.su/server
 /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs add mama Мама user
 ```

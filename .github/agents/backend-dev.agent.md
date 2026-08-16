@@ -41,7 +41,7 @@ You are a backend specialist for the «family» app (Node + Express 5 + Vite via
 2. Look for existing patterns (e.g. `vpsController.ts` — normalize/validate → insert → `reloadVpsEntries()` → respond; `vpsRepository.ts` — manual transaction) and reuse them.
 3. Make edits preserving the conventions above.
 4. Verify: `npm run typecheck -w backend` (or root `npm run typecheck`); run `npm run format` if formatting changed.
-5. For run checks: `npm run dev:backend` (port 3000) or `npm run start -w backend` (built bundle); smoke-test with `curl http://127.0.0.1:3000/api/health`. For read-only server diagnostics: `ssh` to `family.rybnikov.su` as `rybnikov` (passwordless), `curl -i http://127.0.0.1:3000/api/health`, `ss -ltnp | grep 3000`, `pm2 logs family-backend --lines 50 --nostream` (pm2 is not in PATH in non-interactive sessions — full path `~/.nvm/versions/node/v24.19.0/bin/pm2`). A 502 under pm2 is usually an nginx/port issue — diagnose before blaming the code.
+5. For run checks: `npm run dev:backend` (port 3000) or `npm run start -w backend` (built bundle); smoke-test with `curl http://127.0.0.1:3000/api/health`. For read-only server diagnostics: `ssh` to `my.rybnikov.su` as `rybnikov` (passwordless), `curl -i http://127.0.0.1:3000/api/health`, `ss -ltnp | grep 3000`, `pm2 logs family-backend --lines 50 --nostream` (pm2 is not in PATH in non-interactive sessions — full path `~/.nvm/versions/node/v24.19.0/bin/pm2`). A 502 under pm2 is usually an nginx/port issue — diagnose before blaming the code.
 
 ## Output Format
 

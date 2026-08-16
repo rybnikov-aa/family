@@ -3,6 +3,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import Button from '../components/Button';
 import { LockIcon, UsersIcon } from '../components/icons';
 import { useAuth } from '../hooks/useAuth';
+import { pageTitle } from '../utils/brand';
 
 /** Экран входа: весь портал закрыт авторизацией. */
 function LoginPage() {
@@ -13,7 +14,7 @@ function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    document.title = 'Вход • family.rybnikov.su';
+    document.title = pageTitle('Вход');
   }, []);
 
   const onSubmit = async (event: FormEvent) => {

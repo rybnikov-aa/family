@@ -17,13 +17,15 @@
 
 | Переменная            | Дефолт                                                                                                                                                     |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DEPLOY_HOST`         | `family.rybnikov.su` (для второго хоста — `itg-ru-gw.rybnikov.su`)                                                                                         |
+| `DEPLOY_HOST`         | `my.rybnikov.su` (основной; для тестового — `test.rybnikov.su`)                                                                                            |
 | `DEPLOY_USER`         | `root` (дефолт скрипта); в `.env.example` и фактически на основном хосте — `rybnikov`. Без корневого `.env` SSH пойдёт под `root` и подключение провалится |
 | `DEPLOY_PORT`         | `22`                                                                                                                                                       |
-| `DEPLOY_FRONTEND_DIR` | `/var/www/family.rybnikov.su/public_html`                                                                                                                  |
-| `DEPLOY_BACKEND_DIR`  | `/var/www/family.rybnikov.su/server`                                                                                                                       |
+| `DEPLOY_FRONTEND_DIR` | `/var/www/my.rybnikov.su/public_html`                                                                                                                      |
+| `DEPLOY_BACKEND_DIR`  | `/var/www/my.rybnikov.su/server`                                                                                                                           |
 | `DEPLOY_PM2_APP`      | `family-backend`                                                                                                                                           |
 | `DEPLOY_NODE_PATH`    | пусто (remote-скрипт сам ищет node/npm; при неудаче указать bin-каталог на сервере)                                                                        |
+| `DEPLOY_PM2_HOME`     | пусто (если задан — remote-скрипт делает `export PM2_HOME=...`; задавать абсолютный `/home/rybnikov/.pm2` для стабильного демона)                          |
+| `DEPLOY_PDF_SETUP`    | `1` (готовит сервер к импорту PDF: python3-venv + `~/renov-venv` + `RENOVATION_*` в `server/.env`; `0` или `--no-pdf-setup` — отключить)                   |
 
 ## Этапы (локально)
 
@@ -43,26 +45,27 @@
 2. **Распаковка**: `/tmp/family-deploy` (каталог пересоздаётся).
 3. **Фронтенд** → `$PUBLIC`: удаляются только файлы верхнего уровня (`find -maxdepth 1 -type f -delete`) и `assets/`; прочие подпапки (`.well-known`) сохраняются. Сам каталог не удаляется.
 4. **Бэкенд** → `$SERVER`: каталог сохраняется, содержимое заменяется, кроме `.env`, `data/`
-   (SQLite) и `docs/` (загруженные PDF «Ремонта»). Seed «Ремонта» и `renovation-source`
-   упразднены; статичный архив `public_html/projects/` на сервере удалён.
+   (SQLite), `docs/` (загруженные PDF «Ремонта») и `images/` (изображения «Дневника»). Seed
+   «Ремонта» и `renovation-source` упразднены; статичный архив `public_html/projects/` на сервере удалён.
 5. `npm install --omit=dev` в `$SERVER`.
-6. **Рестарт pm2** (если не `--no-restart`): найти/установить pm2; `export NODE_ENV=production`; если приложение есть — `pm2 restart family-backend --update-env`, иначе `pm2 start dist/app.cjs --name family-backend --cwd $SERVER`; затем `pm2 save`.
+6. **Рестарт pm2** (если не `--no-restart`): если задан `DEPLOY_PM2_HOME` — `export PM2_HOME=...`; найти/установить pm2; `export NODE_ENV=production`; если приложение есть — `pm2 restart family-backend` (без `--update-env` — dotenv перечитает `.env` при старте), иначе `pm2 start dist/app.cjs --name family-backend --cwd $SERVER`; затем `pm2 save`.
 7. Очистка временных файлов.
 
 ## Грабли (проверять при проблемах)
 
-- **pm2 не в PATH** в неинтерактивной SSH-сессии → полный путь `~/.nvm/versions/node/v24.19.0/bin/pm2`.
-- **`NODE_ENV=production` обязателен**: под pm2 `app.listen` гейтится в `app.ts`; argv-проверка даёт `false` (pm2 запускает скрипт через свой враппер), поэтому основной сигнал — `NODE_ENV`. Деплой-скрипт ставит его при `pm2 restart --update-env`.
+- **pm2 не в PATH** в неинтерактивной SSH-сессии → полный путь (на текущих хостах pm2 в `/usr/bin/pm2`).
+- **`NODE_ENV=production` обязателен**: под pm2 `app.listen` гейтится в `app.ts`; argv-проверка даёт `false` (pm2 запускает скрипт через свой враппер), поэтому основной сигнал — `NODE_ENV`. Деплой-скрипт ставит его при `pm2 start`; `pm2 restart` (без `--update-env`) сохраняет env.
+- **Стабильный `PM2_HOME`**: без него (Windows-ssh шлёт `HOME=C:Usersalex`) демон резолвится относительно CWD и нестабилен — задавать `DEPLOY_PM2_HOME=/home/rybnikov/.pm2`.
 - **nginx `proxy_pass`** в `location /api/` должен быть `http://127.0.0.1:3000;` БЕЗ завершающего слэша — иначе срезается `/api` → 404 («бэкенд оффлайн» в UI).
 - **502**: сначала локально `curl -i http://127.0.0.1:3000/api/health` (200 → проблема в nginx/прокси), `ss -ltnp | grep 3000`, `pm2 logs family-backend --lines 50 --nostream`.
 - **Деплой не обновляет**: `server/.env`, `server/data/` и `server/docs/` сохраняются намеренно — конфигурацию/БД/PDF не «перезаливать» деплоем.
 - **Флаги npm**: использовать `npm run deploy -- --no-build` (с `--`), иначе флаг уйдёт самому npm.
-- Второй хост `itg-ru-gw.rybnikov.su`: SSL — letsencrypt (`/etc/letsencrypt/live/itg-ru-gw.rybnikov.su/`), у пользователя `rybnikov` есть passwordless `sudo`.
+- Тестовый хост `test.rybnikov.su`: SSL — letsencrypt (`/etc/letsencrypt/live/test.rybnikov.su/`), у пользователя `rybnikov` есть passwordless `sudo`.
 
 ## Проверка после деплоя
 
 - Read-only снимок сервера одной командой: [check-server.mjs](../scripts/check-server.mjs) (health, порт 3000, pm2 describe + logs, nginx -t; флаги `--host/--user/--port/--app/--lines/--batch`).
-- `curl -i https://family.rybnikov.su/api/health` → `{"status":"ok",…}`.
-- `curl -s https://family.rybnikov.su/api/projects` — список проектов.
-- `curl -s https://family.rybnikov.su/api/vps` — статусы VPS.
+- `curl -i https://my.rybnikov.su/api/health` → `{"status":"ok",…}`.
+- `curl -s https://my.rybnikov.su/api/projects` — список проектов.
+- `curl -s https://my.rybnikov.su/api/vps` — статусы VPS.
 - Логи бэкенда при ошибках: полный путь к pm2 (см. выше).
