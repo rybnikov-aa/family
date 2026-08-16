@@ -5,6 +5,7 @@ import { parseVpsImport } from '../utils/vpsImport';
 import {
   CheckIcon,
   CopyIcon,
+  EditIcon,
   PlusIcon,
   RefreshIcon,
   SettingsIcon,
@@ -47,6 +48,7 @@ function VpsDetailsModal({
   const isAdmin = user?.role === 'admin';
   const [copiedIp, setCopiedIp] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [editingName, setEditingName] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [importState, setImportState] = useState<ImportState>({ status: 'idle' });
@@ -137,9 +139,22 @@ function VpsDetailsModal({
     onRefresh?.();
   };
 
-  // Форма добавления VPS заменяет содержимое модалки.
+  const editingEntry = editingName ? statuses.find((entry) => entry.name === editingName) : null;
+
+  // Форма добавления/редактирования VPS заменяет содержимое модалки.
   if (adding) {
     return <VpsAddModal onClose={() => setAdding(false)} onAdded={handleAdded} />;
+  }
+  if (editingEntry) {
+    return (
+      <VpsAddModal
+        mode="edit"
+        initialEntry={editingEntry}
+        currentName={editingEntry.name}
+        onClose={() => setEditingName(null)}
+        onAdded={handleAdded}
+      />
+    );
   }
 
   // Кнопки-иконки в шапке модалки: «+» (добавить), импорт из JSON, «Обновить».
@@ -261,6 +276,17 @@ function VpsDetailsModal({
                     >
                       <SettingsIcon />
                     </a>
+                  )}
+                  {isAdmin && (
+                    <IconButton
+                      size="sm"
+                      plain
+                      label="Редактировать VPS"
+                      tooltip="Редактировать VPS"
+                      onClick={() => setEditingName(vps.name)}
+                    >
+                      <EditIcon />
+                    </IconButton>
                   )}
                   {isAdmin && (
                     <IconButton

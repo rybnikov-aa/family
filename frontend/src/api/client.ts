@@ -336,6 +336,17 @@ export async function importVps(data: { vps: VpsEntryInput[] }): Promise<VpsImpo
   return res.json() as Promise<VpsImportResult>;
 }
 
+/** Обновляет VPS по имени: `PATCH /api/vps/:name` (admin). */
+export async function updateVps(name: string, entry: VpsEntryInput): Promise<VpsEntryInput> {
+  const res = await apiFetch(`/vps/${encodeURIComponent(name)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<VpsEntryInput>;
+}
+
 /** Удаляет VPS по имени: `DELETE /api/vps/:name`. */
 export async function deleteVps(name: string): Promise<void> {
   const res = await apiFetch(`/vps/${encodeURIComponent(name)}`, {

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { getVpsStatuses } from '../services/vpsChecker';
-import { deleteVpsEntry, insertVpsEntry } from '../db/vpsRepository';
+import { deleteVpsEntry, insertVpsEntry, updateVpsEntry } from '../db/vpsRepository';
 import { isConstraintError } from '../db/errors';
 import { reloadVpsEntries, type VpsEntry, type VpsServiceConfig } from '../config/vps';
 
@@ -60,6 +60,43 @@ export async function createVpsController(req: Request, res: Response): Promise<
       return;
     }
     throw err; // прочие ошибки → errorHandler (500)
+  }
+}
+
+/**
+ * Обновление VPS: `PATCH /api/vps/:name` с телом `VpsEntry`.
+ * Параметр `:name` — текущее имя записи до редактирования; в JSON можно поменять `name`.
+ */
+export async function updateVpsController(req: Request, res: Response): Promise<void> {
+  const currentName = typeof req.params.name === 'string' ? req.params.name.trim() : '';
+  const entry = normalizeEntry((req.body ?? {}) as Record<string, unknown>);
+
+  if (currentName === '') {
+    res.status(400).json({ message: 'Не указано текущее имя VPS' });
+    return;
+  }
+
+  if (entry === null) {
+    res.status(400).json({ message: 'Поля country, name и ip обязательны' });
+    return;
+  }
+
+  try {
+    const updated = updateVpsEntry(currentName, entry);
+    reloadVpsEntries();
+
+    if (!updated) {
+      res.status(404).json({ message: `VPS «${currentName}» не найден` });
+      return;
+    }
+
+    res.json(entry);
+  } catch (err) {
+    if (isConstraintError(err)) {
+      res.status(409).json({ message: `VPS с именем «${entry.name}» уже существует` });
+      return;
+    }
+    throw err;
   }
 }
 

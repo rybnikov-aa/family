@@ -93,6 +93,47 @@ export function insertVpsEntry(entry: VpsEntry): void {
 }
 
 /**
+ * Обновляет VPS вместе с сервисами по текущему имени.
+ * Возвращает true, если запись существовала.
+ */
+export function updateVpsEntry(oldName: string, entry: VpsEntry): boolean {
+  const db = getDb();
+
+  db.exec('BEGIN');
+  try {
+    const current = db.prepare('SELECT id FROM vps WHERE name = ?').get(oldName) as
+      { id: number } | undefined;
+
+    if (!current) {
+      db.exec('ROLLBACK');
+      return false;
+    }
+
+    db.prepare('UPDATE vps SET country = ?, name = ?, ip = ?, panel = ? WHERE id = ?').run(
+      entry.country,
+      entry.name,
+      entry.ip,
+      entry.panel,
+      current.id,
+    );
+    db.prepare('DELETE FROM vps_services WHERE vps_id = ?').run(current.id);
+
+    const insertService = db.prepare(
+      'INSERT INTO vps_services (vps_id, name, type, address) VALUES (?, ?, ?, ?)',
+    );
+    for (const service of entry.services) {
+      insertService.run(current.id, service.name, service.type, service.address.trim());
+    }
+
+    db.exec('COMMIT');
+    return true;
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+}
+
+/**
  * Удаляет VPS вместе с сервисами (FK CASCADE) по имени.
  * Возвращает true, если запись существовала.
  */

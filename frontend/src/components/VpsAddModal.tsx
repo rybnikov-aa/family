@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import type { VpsServiceConfig } from '../api/client';
-import { createVps } from '../api/client';
+import type { VpsEntryInput, VpsServiceConfig } from '../api/client';
+import { createVps, updateVps } from '../api/client';
 import { COUNTRIES } from '../utils/countries';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 import Modal from './Modal';
@@ -31,22 +31,36 @@ const emptyService = (): ServiceDraft => ({
 interface VpsAddModalProps {
   /** Закрыть форму без сохранения */
   onClose: () => void;
-  /** Вызывается после успешного добавления VPS (для обновления списка) */
+  /** Вызывается после успешного сохранения VPS (для обновления списка) */
   onAdded: () => void;
+  /** Режим формы: создание или редактирование */
+  mode?: 'create' | 'edit';
+  /** Исходная запись при редактировании */
+  initialEntry?: VpsEntryInput;
+  /** Текущее имя записи до редактирования (URL-параметр) */
+  currentName?: string;
 }
 
 /**
- * Форма добавления VPS на мониторинг доступности.
+ * Форма добавления/редактирования VPS на мониторинг доступности.
  *
  * Поля: Расположение (выпадающий список), Имя, IP, Панель управления
  * и поле «Сервисы» — набор сервисов, редактируемый по кнопке с троеточием.
  */
-function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
-  const [country, setCountry] = useState('');
-  const [name, setName] = useState('');
-  const [ip, setIp] = useState('');
-  const [panel, setPanel] = useState('');
-  const [services, setServices] = useState<ServiceDraft[]>([]);
+function VpsAddModal({
+  onClose,
+  onAdded,
+  mode = 'create',
+  initialEntry,
+  currentName,
+}: VpsAddModalProps) {
+  const [country, setCountry] = useState(initialEntry?.country ?? '');
+  const [name, setName] = useState(initialEntry?.name ?? '');
+  const [ip, setIp] = useState(initialEntry?.ip ?? '');
+  const [panel, setPanel] = useState(initialEntry?.panel ?? '');
+  const [services, setServices] = useState<ServiceDraft[]>(
+    (initialEntry?.services ?? []).map((service, index) => ({ ...service, uid: index + 1 })),
+  );
   const [servicesOpen, setServicesOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,26 +95,42 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
         address: s.address.trim(),
       }));
 
+    const payload = {
+      country,
+      name: name.trim(),
+      ip: ip.trim(),
+      panel: panel.trim(),
+      services: validServices,
+    };
+
     setSubmitting(true);
     setError(null);
     try {
-      await createVps({
-        country,
-        name: name.trim(),
-        ip: ip.trim(),
-        panel: panel.trim(),
-        services: validServices,
-      });
+      if (mode === 'edit') {
+        await updateVps(currentName ?? initialEntry?.name ?? name.trim(), payload);
+      } else {
+        await createVps(payload);
+      }
       onAdded();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось добавить VPS');
+      setError(
+        err instanceof Error
+          ? err.message
+          : mode === 'edit'
+            ? 'Не удалось сохранить VPS'
+            : 'Не удалось добавить VPS',
+      );
       setSubmitting(false);
     }
   };
 
   return (
-    <Modal title="Добавить VPS" onClose={onClose} closeOnEscape={false}>
+    <Modal
+      title={mode === 'edit' ? 'Редактировать VPS' : 'Добавить VPS'}
+      onClose={onClose}
+      closeOnEscape={false}
+    >
       <form className="vps-form" onSubmit={handleSubmit}>
         <label className="field">
           <span className="field__label">Расположение</span>
@@ -191,7 +221,13 @@ function VpsAddModal({ onClose, onAdded }: VpsAddModalProps) {
             Отмена
           </Button>
           <Button type="submit" variant="primary" disabled={submitting}>
-            {submitting ? 'Добавление…' : 'Добавить'}
+            {submitting
+              ? mode === 'edit'
+                ? 'Сохранение…'
+                : 'Добавление…'
+              : mode === 'edit'
+                ? 'Сохранить'
+                : 'Добавить'}
           </Button>
         </div>
       </form>
