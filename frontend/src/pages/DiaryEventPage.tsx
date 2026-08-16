@@ -30,6 +30,14 @@ function DiaryEventPage() {
       : formatDateIso(event.dateStart)
     : '';
 
+  const contentImageNames = new Set(
+    Array.from(
+      event?.content.matchAll(/!\[[^\]]*\]\(diary-image:\/\/([a-z0-9._-]+)\)/g) ?? [],
+      (match) => match[1],
+    ),
+  );
+  const galleryImages = event ? event.images.filter((name) => !contentImageNames.has(name)) : [];
+
   return (
     <PageLayout>
       <section className="page">
@@ -81,9 +89,9 @@ function DiaryEventPage() {
               </div>
             )}
 
-            {event.images.length > 0 && (
+            {galleryImages.length > 0 && (
               <div className="diary-event__gallery">
-                {event.images.map((name) => (
+                {galleryImages.map((name) => (
                   <a
                     key={name}
                     className="diary-event__photo"
@@ -102,7 +110,7 @@ function DiaryEventPage() {
                 ))}
               </div>
             )}
-            {event.images.length === 0 && !event.cover && (
+            {galleryImages.length === 0 && !event.cover && (
               <div className="diary-event__gallery-empty">
                 <ImageIcon />
               </div>

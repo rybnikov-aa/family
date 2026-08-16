@@ -90,7 +90,9 @@ export function saveEventImage(folder: string, buffer: Buffer, fileName: string)
 /** Удаляет папку события целиком (удаление события/откат). */
 export function removeEventImages(folder: string): void {
   const dir = eventImagesDir(folder);
-  if (dir && existsSync(dir)) rmSync(dir, { recursive: true, force: true });
+  if (dir && existsSync(dir)) {
+    rmSync(dir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+  }
 }
 
 /** Удаляет одно изображение из папки события (вместе с его превью). */
@@ -99,9 +101,11 @@ export function removeEventImage(folder: string, fileName: string): void {
   const dir = eventImagesDir(folder);
   if (!dir) return;
   const path = join(dir, fileName);
-  if (existsSync(path)) rmSync(path, { force: true });
+  if (existsSync(path)) rmSync(path, { force: true, maxRetries: 3, retryDelay: 100 });
   const preview = previewFilePath(folder, fileName);
-  if (preview && existsSync(preview)) rmSync(preview, { force: true });
+  if (preview && existsSync(preview)) {
+    rmSync(preview, { force: true, maxRetries: 3, retryDelay: 100 });
+  }
 }
 
 /**

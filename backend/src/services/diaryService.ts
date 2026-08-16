@@ -108,9 +108,6 @@ function resolveContentImages(
 /** Строка БД → сводка события (обложка по умолчанию — первое изображение). */
 function rowToSummary(row: DiaryEventRow): DiaryEventSummary {
   const allImages = listEventImages(row.folder);
-  const contentImages = new Set<string>();
-  for (const match of row.content.matchAll(DIARY_IMAGE_RE)) contentImages.add(match[2]);
-  const images = allImages.filter((name) => !contentImages.has(name));
   const cover =
     row.cover && allImages.includes(row.cover)
       ? row.cover
@@ -125,7 +122,7 @@ function rowToSummary(row: DiaryEventRow): DiaryEventSummary {
     summary: row.summary,
     folder: row.folder,
     cover,
-    images,
+    images: allImages,
   };
 }
 

@@ -108,7 +108,7 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
 
   const insertImage = (image: FormImage) => {
     const textarea = contentRef.current;
-    const marker = `![Фото](diary-image://${image.id})`;
+    const marker = `![Фото](diary-image://${image.id})\n`;
     const start = textarea?.selectionStart ?? content.length;
     const end = textarea?.selectionEnd ?? content.length;
     const nextContent = `${content.slice(0, start)}${marker}${content.slice(end)}`;
