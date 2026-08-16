@@ -90,25 +90,29 @@ function DiaryEventPage() {
             )}
 
             {galleryImages.length > 0 && (
-              <div className="diary-event__gallery">
-                {galleryImages.map((name) => (
-                  <a
-                    key={name}
-                    className="diary-event__photo"
-                    href={diaryImageUrl(event.folder, name)}
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Открыть в полном размере"
-                  >
-                    {/* В галерее — превью; полный размер — только по клику (открытие на весь экран). */}
-                    <img
-                      src={diaryImageUrl(event.folder, name, true)}
-                      alt={event.title}
-                      loading="lazy"
-                    />
-                  </a>
-                ))}
-              </div>
+              <>
+                <div className="diary-event__gallery-separator" aria-hidden="true" />
+                <h3 className="diary-event__gallery-title">Фотографии</h3>
+                <div className="diary-event__gallery">
+                  {galleryImages.map((name) => (
+                    <a
+                      key={name}
+                      className="diary-event__photo"
+                      href={diaryImageUrl(event.folder, name)}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Открыть в полном размере"
+                    >
+                      {/* В галерее — превью; полный размер — только по клику (открытие на весь экран). */}
+                      <img
+                        src={diaryImageUrl(event.folder, name, true)}
+                        alt={event.title}
+                        loading="lazy"
+                      />
+                    </a>
+                  ))}
+                </div>
+              </>
             )}
             {galleryImages.length === 0 && !event.cover && (
               <div className="diary-event__gallery-empty">
