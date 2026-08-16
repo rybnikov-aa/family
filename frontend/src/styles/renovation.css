@@ -106,19 +106,22 @@
   font-variant-numeric: tabular-nums;
   margin-bottom: var(--space-3);
 }
-.renov-meta__progress-track {
+.renov-meta__progress-track,
+.renov-card__progress-track {
   height: 8px;
   border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--text) 10%, transparent);
   overflow: hidden;
 }
-.renov-meta__progress-fill {
+.renov-meta__progress-fill,
+.renov-card__progress-fill {
   height: 100%;
   border-radius: var(--radius-pill);
   background: var(--color-accent-orange);
   transition: width 0.3s ease;
 }
-.renov-meta__progress-caption {
+.renov-meta__progress-caption,
+.renov-card__progress-caption {
   display: flex;
   justify-content: space-between;
   gap: var(--space-3);
@@ -184,27 +187,6 @@
 /* Прогресс освоения бюджета — полоса под заголовком (карточки «Работы»/«Материалы») */
 .renov-card__progress {
   margin-bottom: var(--space-3);
-}
-.renov-card__progress-track {
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--text) 10%, transparent);
-  overflow: hidden;
-}
-.renov-card__progress-fill {
-  height: 100%;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent-orange);
-  transition: width 0.3s ease;
-}
-.renov-card__progress-caption {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-top: var(--space-1);
-  font-size: var(--font-size-caption);
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
 }
 .renov-card__body {
   display: flex;

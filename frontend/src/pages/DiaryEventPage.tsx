@@ -90,9 +90,11 @@ function DiaryEventPage() {
             )}
 
             {galleryImages.length > 0 && (
-              <>
-                <div className="diary-event__gallery-separator" aria-hidden="true" />
-                <h3 className="diary-event__gallery-title">Фотографии</h3>
+              <div className="diary-event__gallery-wrap">
+                <div className="diary-event__gallery-header">
+                  <h3 className="diary-event__gallery-title">Фотографии</h3>
+                  <span className="diary-event__gallery-line" aria-hidden="true" />
+                </div>
                 <div className="diary-event__gallery">
                   {galleryImages.map((name) => (
                     <a
@@ -112,7 +114,7 @@ function DiaryEventPage() {
                     </a>
                   ))}
                 </div>
-              </>
+              </div>
             )}
             {galleryImages.length === 0 && !event.cover && (
               <div className="diary-event__gallery-empty">
