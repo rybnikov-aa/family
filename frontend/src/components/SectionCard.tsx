@@ -60,7 +60,9 @@ function SectionCard({
         {body}
       </Link>
     ) : (
-      <a href={href} className={className} style={style}>
+      // Внешние ссылки (например, «Фотоархив» — инстанс Immich из настроек)
+      // открываются в новой вкладке с переключением на неё.
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className} style={style}>
         {body}
       </a>
     );

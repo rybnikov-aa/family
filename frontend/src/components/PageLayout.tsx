@@ -3,10 +3,11 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import StatusCard from './StatusCard';
 import ThemeToggle from './ThemeToggle';
 import IconButton from './IconButton';
-import { LogoutIcon, UserIcon, UsersIcon } from './icons';
+import { LogoutIcon, SettingsIcon, UserIcon, UsersIcon } from './icons';
 import { ROUTES } from '../routes';
 import { useHealth } from '../hooks/useHealth';
 import { useAuth } from '../hooks/useAuth';
+import { useImmichSettings } from '../hooks/useImmichSettings';
 import { APP_DOMAIN } from '../utils/brand';
 
 interface PageLayoutProps {
@@ -18,6 +19,8 @@ function PageLayout({ children }: PageLayoutProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  // Адрес инстанса Immich из админ-настроек (ссылка «Архив» в футере).
+  const immichUrl = useImmichSettings();
 
   // Фронтенд считается работоспособным, пока страница отрисована.
   const frontendValue = 'online';
@@ -91,13 +94,23 @@ function PageLayout({ children }: PageLayoutProps) {
                 {user.name}
               </Link>
               {user.role === 'admin' && (
-                <Link
-                  to={ROUTES.adminUsers}
-                  className="badge badge--link"
-                  title="Управление пользователями"
-                >
-                  админ
-                </Link>
+                <>
+                  <Link
+                    to={ROUTES.adminUsers}
+                    className="badge badge--link"
+                    title="Управление пользователями"
+                  >
+                    админ
+                  </Link>
+                  <Link
+                    to={ROUTES.adminSettings}
+                    className="user__settings"
+                    title="Настройки"
+                    aria-label="Настройки"
+                  >
+                    <SettingsIcon width="1.1rem" height="1.1rem" />
+                  </Link>
+                </>
               )}
               <IconButton label="Выйти" tooltip="Выйти" onClick={() => void logout()}>
                 <LogoutIcon />
@@ -120,7 +133,13 @@ function PageLayout({ children }: PageLayoutProps) {
           <Link to={ROUTES.diary}>Дневник</Link>
           <Link to={ROUTES.news}>Новости</Link>
           <Link to={ROUTES.projects}>Проекты</Link>
-          <a href="https://immich.rybnikov-aa-home.netcraze.link/">Архив</a>
+          {/* «Архив» — инстанс Immich из настроек; без адреса ссылка скрывается.
+              Открывается в новой вкладке с переключением на неё. */}
+          {immichUrl && (
+            <a href={immichUrl} target="_blank" rel="noopener noreferrer">
+              Архив
+            </a>
+          )}
         </span>
       </footer>
     </div>

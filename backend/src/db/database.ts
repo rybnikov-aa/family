@@ -52,6 +52,14 @@ function openDatabase(): DatabaseSync {
     );
 
     CREATE INDEX IF NOT EXISTS idx_vps_services_vps_id ON vps_services(vps_id);
+
+    -- Общие настройки приложения (key-value): админ-настройки подключения к
+    -- внешним сервисам (например, Immich: immich.baseUrl / immich.apiKey).
+    -- Репозиторий — db/settingsRepository.ts.
+    CREATE TABLE IF NOT EXISTS settings (
+      key   TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
   `);
 
   return db;

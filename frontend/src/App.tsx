@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 // Тяжёлые страницы (с модалками/отчётами) грузим лениво — отдельные чанки.
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'));
+const AdminSettingsPage = lazy(() => import('./pages/AdminSettingsPage'));
 const RenovationPage = lazy(() => import('./pages/RenovationPage'));
 import { ROUTES } from './routes';
 import { useAuth } from './hooks/useAuth';
@@ -37,7 +38,9 @@ function RouteLayout() {
                     ? 'Профиль'
                     : location.pathname === ROUTES.adminUsers
                       ? 'Пользователи'
-                      : 'Семейное пространство';
+                      : location.pathname === ROUTES.adminSettings
+                        ? 'Настройки'
+                        : 'Семейное пространство';
     document.title = pageTitle(section);
   }, [location.pathname]);
 
@@ -90,7 +93,10 @@ const router = createHashRouter([
           // Админ-разделы: доступны только роли `admin` (иначе — на главную).
           {
             element: <AdminGate />,
-            children: [{ path: ROUTES.adminUsers, element: <AdminUsersPage /> }],
+            children: [
+              { path: ROUTES.adminUsers, element: <AdminUsersPage /> },
+              { path: ROUTES.adminSettings, element: <AdminSettingsPage /> },
+            ],
           },
           // Неизвестные пути (например, старый якорь #sections) — на главную.
           { path: '*', element: <Navigate to={ROUTES.home} replace /> },

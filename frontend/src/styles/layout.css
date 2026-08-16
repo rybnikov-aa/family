@@ -102,3 +102,19 @@
   flex-shrink: 0;
   display: block;
 }
+/* Шестерёнка «Настройки» в шапке (админ) */
+.user__settings {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-faint);
+  padding: 2px;
+  border-radius: var(--radius-md);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+  text-decoration: none;
+}
+.user__settings:hover {
+  color: var(--link-hover);
+  background: var(--surface-hover);
+}

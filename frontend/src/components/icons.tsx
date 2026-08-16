@@ -220,6 +220,16 @@ export function CheckIcon(props: IconProps) {
   );
 }
 
+/** Крест — ошибка/закрыть */
+export function CrossIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
 /** Обновить */
 export function RefreshIcon(props: IconProps) {
   return (

@@ -146,6 +146,33 @@
   margin-top: 12px;
 }
 
+/* Админ-настройки: подключение к Immich */
+.immich-settings {
+  max-width: 460px;
+}
+/* Поле адреса с индикатором (галочка/крест) внутри */
+.immich-settings__input {
+  position: relative;
+}
+.immich-settings__input .input {
+  padding-right: 42px;
+}
+.immich-settings__status {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.immich-settings__status--ok {
+  color: var(--color-success);
+}
+.immich-settings__status--error {
+  color: var(--color-danger);
+}
+
 /* Hero */
 .hero {
   margin-bottom: var(--space-12);

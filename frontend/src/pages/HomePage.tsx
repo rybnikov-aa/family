@@ -6,7 +6,10 @@ import VpsDetailsModal from '../components/VpsDetailsModal';
 import { DiaryIcon, NewsIcon, PhotoIcon, PlansIcon, ProjectsIcon } from '../components/icons';
 import { ROUTES } from '../routes';
 import { useServices } from '../hooks/useServices';
+import { useImmichSettings } from '../hooks/useImmichSettings';
 
+// Разделы главной без «Фотоархива»: его адрес берётся из настроек Immich
+// (см. `useImmichSettings`) и добавляется динамически, если инстанс настроен.
 const sections = [
   {
     icon: NewsIcon,
@@ -23,14 +26,6 @@ const sections = [
     description: 'События, даты, маршруты. Хронология семьи.',
     tag: 'архив',
     href: ROUTES.diary,
-  },
-  {
-    icon: PhotoIcon,
-    color: '#a855f7',
-    title: 'Фотоархив',
-    description: 'Снимки, события, люди. Визуальный ряд.',
-    tag: 'медиатека',
-    href: 'https://immich.rybnikov-aa-home.netcraze.link/',
   },
   {
     icon: ProjectsIcon,
@@ -52,6 +47,21 @@ const sections = [
 function HomePage() {
   const { services, vps, loading, refresh } = useServices();
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const immichUrl = useImmichSettings();
+
+  // Карточка «Фотоархив» рендерится, только если в настройках задан адрес Immich.
+  const photoSection = immichUrl
+    ? [
+        {
+          icon: PhotoIcon,
+          color: '#a855f7',
+          title: 'Фотоархив',
+          description: 'Снимки, события, люди. Визуальный ряд.',
+          tag: 'медиатека',
+          href: immichUrl,
+        },
+      ]
+    : [];
 
   // Карточка VPS открывает модалку с детализацией доступности.
   const items = useMemo(
@@ -74,7 +84,7 @@ function HomePage() {
       <ServiceStats services={items} onRefresh={refresh} refreshing={loading} />
 
       <div id="sections" className="grid">
-        {sections.map((section) => (
+        {[...sections.slice(0, 2), ...photoSection, ...sections.slice(2)].map((section) => (
           <SectionCard key={section.title} {...section} />
         ))}
       </div>

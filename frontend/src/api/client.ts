@@ -853,3 +853,62 @@ export async function updateDiaryEvent(id: number, formData: FormData): Promise<
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<DiaryEventDetail>;
 }
+
+// ── Админ-настройки: подключение к Immich ───────────────────────────────────
+
+/**
+ * Настройки подключения к инстансу Immich (админка, `#/admin/settings`).
+ * API-ключ бэкенд клиенту не возвращает — только признак «ключ задан»
+ * (форма показывает placeholder, пустое поле = оставить прежний ключ).
+ */
+export interface ImmichSettings {
+  /** Нормализованный адрес API инстанса (с `/api`); `null` — не задан. */
+  baseUrl: string | null;
+  /** Задан ли API-ключ в БД. */
+  apiKeyConfigured: boolean;
+}
+
+/** Текущие настройки Immich: `GET /api/settings/immich` (admin). */
+export async function fetchImmichSettings(): Promise<ImmichSettings> {
+  const res = await apiFetch('/settings/immich');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<ImmichSettings>;
+}
+
+/** Версия сервера Immich (из проверки соединения). */
+export interface ImmichServerVersion {
+  major: number;
+  minor: number;
+  patch: number;
+}
+
+/**
+ * Результат проверки соединения с Immich. Бэкенд при успехе сам сохраняет
+ * реквизиты в БД; при ошибке БД не меняется. HTTP всегда 200 — это
+ * бизнес-результат проверки, а не ошибка сервера.
+ */
+export interface ImmichCheckResult {
+  ok: boolean;
+  /** Версия сервера при успехе. */
+  version?: ImmichServerVersion;
+  /** Сообщение об ошибке при неудаче. */
+  error?: string;
+}
+
+/**
+ * Проверяет соединение с Immich: `POST /api/settings/immich/check` (admin).
+ * `apiKey` можно не передавать, если ключ уже сохранён (проверка идёт
+ * сохранённым ключом, поле ключа в форме можно оставить пустым).
+ */
+export async function checkImmichSettings(
+  baseUrl: string,
+  apiKey?: string,
+): Promise<ImmichCheckResult> {
+  const res = await apiFetch('/settings/immich/check', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ baseUrl, apiKey: apiKey ?? '' }),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<ImmichCheckResult>;
+}

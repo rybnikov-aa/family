@@ -14,6 +14,8 @@ export const ROUTES = {
   projects: '/projects',
   profile: '/profile',
   adminUsers: '/admin/users',
+  /** Админ-настройки (подключение к Immich и т.п.). */
+  adminSettings: '/admin/settings',
   renovation: '/projects/renovation',
   /** Страница прикладного проекта (созданного через UI), например `/projects/dacha`. */
   project: '/projects/:slug',

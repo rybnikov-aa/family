@@ -9,6 +9,7 @@ import { vpsRouter } from './routes/vps';
 import { projectsRouter } from './routes/projects';
 import { renovationRouter } from './routes/renovation';
 import { diaryRouter } from './routes/diary';
+import { settingsRouter } from './routes/settings';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler';
 import { requireAuth } from './middlewares/auth';
 import { ensureBootstrapAdmin, authMaintenance } from './services/authService';
@@ -33,6 +34,10 @@ app.use('/api/projects', requireAuth, projectsRouter);
 app.use('/api/renovation', requireAuth, renovationRouter);
 // Раздел «Дневник»: события + изображения (своя БД diary.sqlite и каталог images/).
 app.use('/api/diary', requireAuth, diaryRouter);
+// Админ-настройки приложения (подключение к Immich и т.п.).
+// GET — любой авторизованный (адрес нужен для ссылок «Фотоархив»/«Архив»);
+// мутации (POST check) — только admin (requireAdmin внутри роутера).
+app.use('/api/settings', requireAuth, settingsRouter);
 
 // Создание первого администратора (если в env задан bootstrap-пароль).
 ensureBootstrapAdmin();
