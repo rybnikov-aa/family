@@ -285,18 +285,23 @@ const me = await getMyUser();
 
 - `getImmichCredentials()` — реквизиты из настроек (адрес + ключ), `null` — инстанс не настроен;
 - `searchImmichAssets({takenAfter, takenBefore, page, size})` — `POST /search/metadata`
-  (`type: IMAGE`, `order: desc`), фильтр по `originalMimeType`/расширению имени файла;
+  (`type: IMAGE`, `order: desc`), фильтр по `originalMimeType`/расширению имени файла.
+  **Даты передаются с часовым поясом** — Immich валидирует `takenAfter`/`takenBefore` через
+  `isoDatetimeToDate` с `offset: true` (без `Z`/смещения запрос отклоняется 400); `nextPage`
+  в v3 — строка-токен, нормализуется в число;
 - `fetchImmichAssetBinary(id, 'thumbnail'|'original')` — бинарный файл (поток);
 - `ImmichError` — ошибка с HTTP-статусом (400 — не настроен, 401 — ключ, 403 — права, 404 — не найден, 502 — апстрим).
 
 ### 6.2. Фронтенд
 
-- `components/ImmichPickerModal.tsx` — модалка-пикер: диапазон дат (по умолчанию последние
-  3 месяца), сетка миниатюр с мультивыбором, «Показать ещё» (пагинация), кнопка «Добавить N фото» —
-  скачивает оригиналы (`fetchImmichOriginal`) и отдаёт `File[]`.
+- `components/ImmichPickerModal.tsx` — модалка-пикер: диапазон дат (по умолчанию — даты
+  события, если заданы: `defaultFrom`/`defaultTo`; иначе последние 3 месяца), сетка миниатюр
+  с мультивыбором, «Показать ещё» (пагинация), кнопка «Добавить N фото» — скачивает оригиналы
+  (`fetchImmichOriginal`) и отдаёт `File[]`.
 - `DiaryEventModal.tsx` — кнопка «Из Immich» (видна, если инстанс настроен — `useImmichSettings`);
   выбранные файлы вливаются в форму как обычные загрузки (`addFiles`) — обложка, `keep`/`newIds`,
-  маркеры `diary-image://` работают без изменений.
+  маркеры `diary-image://` работают без изменений. В пикер передаются даты события
+  (`dateStart` → «снято с», `dateEnd` → «по»; без `dateEnd` — один день события).
 - `api/client.ts`: `fetchImmichSearchAssets`, `immichThumbnailUrl`, `fetchImmichOriginal`.
 
 ### 6.3. Права API-ключа и ограничения

@@ -239,6 +239,18 @@ function isAllowedImage(mime: unknown, fileName: unknown): boolean {
 }
 
 /**
+ * Дополняет ISO-дату часовым поясом. Immich валидирует `takenAfter`/`takenBefore`
+ * через `isoDatetimeToDate` с `offset: true` — без `Z`/смещения запрос отклоняется
+ * (400). Дата без пояса трактуется как UTC (для диапазона «снято с/по» достаточно).
+ */
+function withTimezoneOffset(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const v = value.trim();
+  if (/[zZ]$/.test(v) || /[+-]\d{2}:?\d{2}$/.test(v)) return v;
+  return `${v}Z`;
+}
+
+/**
  * Поиск фото в Immich: `POST <base>/search/metadata` (по диапазону дат съёмки,
  * только изображения). Возвращает ассеты, допустимые к импорту в событие.
  */
@@ -252,8 +264,10 @@ export async function searchImmichAssets(
   const size = Math.min(200, Math.max(1, params.size ?? 60));
 
   const body: Record<string, unknown> = { type: 'IMAGE', order: 'desc', page, size };
-  if (params.takenAfter) body.takenAfter = params.takenAfter;
-  if (params.takenBefore) body.takenBefore = params.takenBefore;
+  const takenAfter = withTimezoneOffset(params.takenAfter);
+  const takenBefore = withTimezoneOffset(params.takenBefore);
+  if (takenAfter) body.takenAfter = takenAfter;
+  if (takenBefore) body.takenBefore = takenBefore;
 
   const res = await immichFetch(creds.baseUrl, creds.apiKey, '/search/metadata', {
     method: 'POST',
@@ -265,7 +279,7 @@ export async function searchImmichAssets(
   if (!res.ok) throw new ImmichError(`Immich ответил статусом ${res.status}`);
 
   const data = (await res.json()) as {
-    assets?: { items?: unknown[]; total?: number; nextPage?: number };
+    assets?: { items?: unknown[]; total?: number; nextPage?: unknown };
   };
 
   const items: ImmichAssetSummary[] = (data.assets?.items ?? [])
@@ -285,10 +299,20 @@ export async function searchImmichAssets(
     }))
     .filter((item) => item.id !== '');
 
+  // В v3 `nextPage` — строка-токен ("2", …), в v2 — число; нормализуем в число.
+  let nextPage: number | null = null;
+  const rawNext = data.assets?.nextPage;
+  if (typeof rawNext === 'string') {
+    const n = Number(rawNext);
+    nextPage = Number.isFinite(n) && n > 0 ? n : null;
+  } else if (typeof rawNext === 'number' && rawNext > 0) {
+    nextPage = rawNext;
+  }
+
   return {
     items,
     total: typeof data.assets?.total === 'number' ? data.assets.total : items.length,
-    nextPage: typeof data.assets?.nextPage === 'number' ? data.assets.nextPage : null,
+    nextPage,
   };
 }
 

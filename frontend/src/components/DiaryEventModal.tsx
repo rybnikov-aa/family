@@ -354,11 +354,14 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
         </div>
       </form>
 
-      {/* Пикер фото из Immich (вариант B2): выбранные файлы — как обычные загрузки. */}
+      {/* Пикер фото из Immich (вариант B2): выбранные файлы — как обычные загрузки.
+          Даты фильтра по умолчанию — из дат события (для нового события без дат — 3 месяца). */}
       {pickerOpen && (
         <ImmichPickerModal
           onClose={() => setPickerOpen(false)}
           onPick={(files) => addFiles(files)}
+          defaultFrom={dateStart || undefined}
+          defaultTo={dateEnd || dateStart || undefined}
         />
       )}
     </Modal>

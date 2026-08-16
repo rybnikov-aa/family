@@ -25,24 +25,30 @@ interface ImmichPickerModalProps {
   onClose: () => void;
   /** Передаёт скачанные файлы для добавления в событие (далее закрывает модалку). */
   onPick: (files: File[]) => void;
+  /** Начальная дата фильтра «снято с» (ГГГГ-ММ-ДД); не задана → последние 3 месяца. */
+  defaultFrom?: string;
+  /** Начальная дата фильтра «по» (ГГГГ-ММ-ДД); не задана → сегодня. */
+  defaultTo?: string;
 }
 
 /**
  * Пикер фото из инстанса Immich (вариант B2, admin).
  *
- * Поиск фото по диапазону дат съёмки (по умолчанию — последние 3 месяца),
+ * Поиск фото по диапазону дат съёмки. Начальные даты фильтра — из дат события
+ * (если переданы `defaultFrom`/`defaultTo`), иначе — последние 3 месяца;
  * сетка миниатюр (прокси через бэкенд `/api/immich`), множественный выбор.
  * Кнопка «Добавить N фото» скачивает оригиналы и отдаёт их как `File[]` —
  * форма события добавляет их как обычные загруженные файлы.
  */
-function ImmichPickerModal({ onClose, onPick }: ImmichPickerModalProps) {
-  // Диапазон дат съёмки (по умолчанию — последние 3 месяца).
+function ImmichPickerModal({ onClose, onPick, defaultFrom, defaultTo }: ImmichPickerModalProps) {
+  // Диапазон дат съёмки: из дат события, если заданы, иначе — последние 3 месяца.
   const [takenAfter, setTakenAfter] = useState(() => {
+    if (defaultFrom) return defaultFrom;
     const d = new Date();
     d.setMonth(d.getMonth() - 3);
     return toDateInput(d);
   });
-  const [takenBefore, setTakenBefore] = useState(() => toDateInput(new Date()));
+  const [takenBefore, setTakenBefore] = useState(() => defaultTo ?? toDateInput(new Date()));
 
   const [items, setItems] = useState<ImmichAssetItem[]>([]);
   const [nextPage, setNextPage] = useState<number | null>(null);
@@ -211,7 +217,7 @@ function ImmichPickerModal({ onClose, onPick }: ImmichPickerModalProps) {
 
         {loading ? (
           <p className="immich-picker__empty">Загрузка…</p>
-        ) : items.length === 0 ? (
+        ) : !error && items.length === 0 ? (
           <p className="immich-picker__empty">Фото за выбранный период не найдены.</p>
         ) : (
           <>
