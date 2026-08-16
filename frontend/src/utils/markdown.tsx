@@ -11,7 +11,7 @@ import { Fragment, createElement, type ReactNode } from 'react';
 export type MarkdownImageResolver = (name: string) => { src: string; href: string } | null;
 
 const DIARY_IMAGE_TOKEN_RE = /!\[([^\]]*)\]\(diary-image:\/\/([a-z0-9._-]+)\)/g;
-const ONLY_IMAGES_LINE_RE = /^\s*(?:!\[[^\]]*\]\(diary-image:\/\/[a-z0-9._-]+\)\s*)+$/;
+const ONLY_IMAGES_LINE_RE = /^\s*(?:!\[[^\]]*\]\(diary-image:\/\/([a-z0-9._-]+)\)\s*)+$/;
 
 function renderInline(src: string, imageResolver?: MarkdownImageResolver): ReactNode[] {
   const regex =
@@ -26,7 +26,7 @@ function renderInline(src: string, imageResolver?: MarkdownImageResolver): React
     if (match.index > last) {
       out.push(<Fragment key={key++}>{src.slice(last, match.index)}</Fragment>);
     }
-    const image = match[2] ? imageResolver?.(match[2]) : null;
+    const image = match[1] && match[2] ? imageResolver?.(match[2]) : null;
     if (image) {
       out.push(
         <a
@@ -35,9 +35,8 @@ function renderInline(src: string, imageResolver?: MarkdownImageResolver): React
           href={image.href}
           target="_blank"
           rel="noreferrer"
-          title="Открыть в полном размере"
         >
-          <img src={image.src} alt={match[1] || 'Фотография'} loading="lazy" />
+          <img src={image.src} alt={match[1]} loading="lazy" />
         </a>,
       );
     } else if (match[4] !== undefined) {
@@ -91,21 +90,22 @@ export function renderMarkdown(markdown: string, imageResolver?: MarkdownImageRe
       continue;
     }
 
-    // Блок изображений (сетка на 2 столбца на всю ширину)
     if (ONLY_IMAGES_LINE_RE.test(trimmed)) {
       const imageLines: string[] = [];
       while (i < lines.length && ONLY_IMAGES_LINE_RE.test(lines[i].trim())) {
         imageLines.push(lines[i].trim());
         i++;
       }
+
       const combined = imageLines.join(' ');
-      DIARY_IMAGE_TOKEN_RE.lastIndex = 0;
       const imageMatches = Array.from(combined.matchAll(DIARY_IMAGE_TOKEN_RE));
       const gridItems: ReactNode[] = [];
+
       for (const match of imageMatches) {
         const alt = match[1];
         const name = match[2];
         const image = imageResolver?.(name);
+
         if (image) {
           gridItems.push(
             <a
@@ -121,6 +121,7 @@ export function renderMarkdown(markdown: string, imageResolver?: MarkdownImageRe
           );
         }
       }
+
       if (gridItems.length > 0) {
         blocks.push(
           <div key={key++} className="diary-markdown-grid">
