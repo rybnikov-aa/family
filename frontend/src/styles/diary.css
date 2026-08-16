@@ -423,6 +423,85 @@
   transform: translateY(-1px);
 }
 
+/* ── Пикер фото из Immich (вариант B2) ── */
+.immich-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.immich-picker__filters {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.immich-picker__filters .field {
+  min-width: 160px;
+}
+.immich-picker__filter-action {
+  padding-bottom: 2px;
+}
+.immich-picker__empty {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  padding: 12px 0;
+}
+.immich-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-3);
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 2px;
+}
+.immich-picker__item {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-muted);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.immich-picker__item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.immich-picker__item--selected {
+  border-color: var(--color-accent-blue);
+}
+.immich-picker__check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: #fff;
+  background: var(--color-accent-blue);
+  border-radius: var(--radius-pill);
+  pointer-events: none;
+}
+.immich-picker__check svg {
+  width: 14px;
+  height: 14px;
+}
+.immich-picker__more {
+  display: flex;
+  justify-content: center;
+}
+.immich-picker__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
 /* Даты события (начало + окончание) — два поля в ряд */
 .diary-dates {
   display: grid;

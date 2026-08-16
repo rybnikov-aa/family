@@ -8,6 +8,8 @@
  * и адрес, и ключ): 200 — ключ валиден, 401 — неверный ключ.
  */
 
+import { getSetting } from '../db/settingsRepository';
+
 /** Таймаут запроса к Immich (мс). */
 const REQUEST_TIMEOUT_MS = 8000;
 
@@ -151,4 +153,161 @@ export async function testImmichConnection(
   } finally {
     clearTimeout(timer);
   }
+}
+
+// ── Пикер фото (вариант B2): поиск, миниатюры, оригиналы ─────────────────────
+
+/** Ошибка взаимодействия с Immich с HTTP-статусом для ответа клиенту. */
+export class ImmichError extends Error {
+  constructor(
+    message: string,
+    readonly status: number = 502,
+  ) {
+    super(message);
+    this.name = 'ImmichError';
+  }
+}
+
+/** Реквизиты подключения к Immich из настроек; `null` — инстанс не настроен. */
+export function getImmichCredentials(): { baseUrl: string; apiKey: string } | null {
+  const baseUrl = getSetting('immich.baseUrl');
+  const apiKey = getSetting('immich.apiKey');
+  if (!baseUrl || !apiKey) return null;
+  return { baseUrl, apiKey };
+}
+
+/** Запрос к Immich с API-ключом (таймаут). Ключ никогда не уходит на фронтенд. */
+async function immichFetch(
+  baseUrl: string,
+  apiKey: string,
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const headers = new Headers(init.headers ?? {});
+    headers.set('x-api-key', apiKey);
+    return await fetch(`${baseUrl}${path}`, { ...init, headers, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new ImmichError('Таймаут: инстанс Immich не отвечает');
+    }
+    throw new ImmichError('Не удалось подключиться к Immich');
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Краткое описание ассета для пикера (вариант B2). */
+export interface ImmichAssetSummary {
+  id: string;
+  fileName: string;
+  /** MIME-тип (`image/jpeg` и т.п.) либо `null`. */
+  mimeType: string | null;
+  /** Дата съёмки (ISO) либо `null`. */
+  takenAt: string | null;
+}
+
+export interface ImmichSearchParams {
+  /** Граница «снято после» (ISO datetime). */
+  takenAfter?: string;
+  /** Граница «снято до» (ISO datetime). */
+  takenBefore?: string;
+  /** Страница (1-based). */
+  page?: number;
+  /** Размер страницы (по умолчанию 60, максимум 200). */
+  size?: number;
+}
+
+export interface ImmichSearchResult {
+  items: ImmichAssetSummary[];
+  total: number;
+  /** Номер следующей страницы или `null`. */
+  nextPage: number | null;
+}
+
+/** MIME, которые можно импортировать в событие (совпадает с `uploadImages.ts`). */
+const ALLOWED_IMAGE_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const IMAGE_EXT_RE = /\.(jpe?g|png|webp|gif)$/i;
+
+/** Проходит ли ассет фильтр «можно импортировать» (по MIME или расширению имени). */
+function isAllowedImage(mime: unknown, fileName: unknown): boolean {
+  if (typeof mime === 'string' && ALLOWED_IMAGE_MIME.has(mime.toLowerCase())) return true;
+  if (typeof fileName === 'string' && IMAGE_EXT_RE.test(fileName)) return true;
+  return false;
+}
+
+/**
+ * Поиск фото в Immich: `POST <base>/search/metadata` (по диапазону дат съёмки,
+ * только изображения). Возвращает ассеты, допустимые к импорту в событие.
+ */
+export async function searchImmichAssets(
+  params: ImmichSearchParams = {},
+): Promise<ImmichSearchResult> {
+  const creds = getImmichCredentials();
+  if (!creds) throw new ImmichError('Инстанс Immich не настроен', 400);
+
+  const page = Math.max(1, params.page ?? 1);
+  const size = Math.min(200, Math.max(1, params.size ?? 60));
+
+  const body: Record<string, unknown> = { type: 'IMAGE', order: 'desc', page, size };
+  if (params.takenAfter) body.takenAfter = params.takenAfter;
+  if (params.takenBefore) body.takenBefore = params.takenBefore;
+
+  const res = await immichFetch(creds.baseUrl, creds.apiKey, '/search/metadata', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (res.status === 401) throw new ImmichError('Неверный API-ключ Immich', 401);
+  if (res.status === 403) throw new ImmichError('Недостаточно прав API-ключа Immich', 403);
+  if (!res.ok) throw new ImmichError(`Immich ответил статусом ${res.status}`);
+
+  const data = (await res.json()) as {
+    assets?: { items?: unknown[]; total?: number; nextPage?: number };
+  };
+
+  const items: ImmichAssetSummary[] = (data.assets?.items ?? [])
+    .filter((raw): raw is Record<string, unknown> => Boolean(raw) && typeof raw === 'object')
+    .filter((item) => isAllowedImage(item.originalMimeType, item.originalFileName))
+    .map((item) => ({
+      id: typeof item.id === 'string' ? item.id : '',
+      fileName:
+        typeof item.originalFileName === 'string'
+          ? item.originalFileName
+          : typeof item.id === 'string'
+            ? item.id
+            : 'photo',
+      mimeType:
+        typeof item.originalMimeType === 'string' ? item.originalMimeType.toLowerCase() : null,
+      takenAt: typeof item.localDateTime === 'string' ? item.localDateTime : null,
+    }))
+    .filter((item) => item.id !== '');
+
+  return {
+    items,
+    total: typeof data.assets?.total === 'number' ? data.assets.total : items.length,
+    nextPage: typeof data.assets?.nextPage === 'number' ? data.assets.nextPage : null,
+  };
+}
+
+/**
+ * Возвращает Response от Immich для бинарного файла ассета (миниатюра/оригинал).
+ * Тело не читается — контроллер проксирует поток наружу.
+ */
+export async function fetchImmichAssetBinary(
+  assetId: string,
+  kind: 'thumbnail' | 'original',
+): Promise<Response> {
+  const creds = getImmichCredentials();
+  if (!creds) throw new ImmichError('Инстанс Immich не настроен', 400);
+  const suffix = kind === 'thumbnail' ? '?size=thumbnail' : '';
+  const path = `/assets/${encodeURIComponent(assetId)}/${kind}${suffix}`;
+  const res = await immichFetch(creds.baseUrl, creds.apiKey, path);
+  if (res.status === 401) throw new ImmichError('Неверный API-ключ Immich', 401);
+  if (res.status === 403) throw new ImmichError('Недостаточно прав API-ключа Immich', 403);
+  if (res.status === 404) throw new ImmichError('Ассет не найден', 404);
+  if (!res.ok) throw new ImmichError(`Immich ответил статусом ${res.status}`);
+  return res;
 }

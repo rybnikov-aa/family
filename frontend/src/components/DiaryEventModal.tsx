@@ -9,8 +9,10 @@ import {
 import Modal from './Modal';
 import Button from './Button';
 import IconButton from './IconButton';
-import { CheckIcon, TrashIcon, UploadIcon } from './icons';
+import ImmichPickerModal from './ImmichPickerModal';
+import { CheckIcon, PhotoIcon, TrashIcon, UploadIcon } from './icons';
 import { useEscapeClose } from '../hooks/useEscapeClose';
+import { useImmichSettings } from '../hooks/useImmichSettings';
 
 interface DiaryEventModalProps {
   /** Редактируемое событие; `null` — создание нового. */
@@ -61,6 +63,9 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   const [cover, setCover] = useState<string | null>(() => event?.cover ?? null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Пикер фото из Immich (вариант B2): доступен, если инстанс настроен.
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const immichUrl = useImmichSettings();
 
   // Счётчик клиентских id новых файлов + созданные object URL (для очистки).
   const newIdRef = useRef(0);
@@ -78,7 +83,11 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
 
   const handleFiles = (list: FileList | null) => {
     if (!list) return;
-    const files = Array.from(list);
+    addFiles(Array.from(list));
+  };
+
+  /** Добавляет файлы в список изображений формы (загрузка или пикер Immich). */
+  const addFiles = (files: File[]) => {
     if (files.length === 0) return;
     const added: FormImage[] = files.map((file) => {
       const id = `new-${newIdRef.current++}`;
@@ -232,6 +241,15 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
               onChange={(event) => handleFiles(event.target.files)}
             />
           </label>
+          {immichUrl && (
+            <Button
+              className="diary-photos__add"
+              icon={<PhotoIcon />}
+              onClick={() => setPickerOpen(true)}
+            >
+              Из Immich
+            </Button>
+          )}
           <span className="field__hint">
             Клик по фотографии — выбрать основную («Обложка»). JPG, PNG, WebP, GIF.
           </span>
@@ -335,6 +353,14 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
           </Button>
         </div>
       </form>
+
+      {/* Пикер фото из Immich (вариант B2): выбранные файлы — как обычные загрузки. */}
+      {pickerOpen && (
+        <ImmichPickerModal
+          onClose={() => setPickerOpen(false)}
+          onPick={(files) => addFiles(files)}
+        />
+      )}
     </Modal>
   );
 }

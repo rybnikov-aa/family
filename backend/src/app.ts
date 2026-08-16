@@ -10,8 +10,9 @@ import { projectsRouter } from './routes/projects';
 import { renovationRouter } from './routes/renovation';
 import { diaryRouter } from './routes/diary';
 import { settingsRouter } from './routes/settings';
+import { immichRouter } from './routes/immich';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler';
-import { requireAuth } from './middlewares/auth';
+import { requireAdmin, requireAuth } from './middlewares/auth';
 import { ensureBootstrapAdmin, authMaintenance } from './services/authService';
 
 // Express application. Exported so that `vite-plugin-node`
@@ -38,6 +39,8 @@ app.use('/api/diary', requireAuth, diaryRouter);
 // GET — любой авторизованный (адрес нужен для ссылок «Фотоархив»/«Архив»);
 // мутации (POST check) — только admin (requireAdmin внутри роутера).
 app.use('/api/settings', requireAuth, settingsRouter);
+// Пикер фото Immich (вариант B2) — прокси к инстансу; только admin.
+app.use('/api/immich', requireAdmin, immichRouter);
 
 // Создание первого администратора (если в env задан bootstrap-пароль).
 ensureBootstrapAdmin();

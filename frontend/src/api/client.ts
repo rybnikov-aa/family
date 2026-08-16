@@ -912,3 +912,54 @@ export async function checkImmichSettings(
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<ImmichCheckResult>;
 }
+
+// ── Immich: пикер фото (вариант B2) ─────────────────────────────────────────
+
+/** Ассет Immich для пикера (карточка в сетке выбора). */
+export interface ImmichAssetItem {
+  id: string;
+  fileName: string;
+  /** MIME-тип (`image/jpeg` и т.п.) либо `null`. */
+  mimeType: string | null;
+  /** Дата съёмки (ISO) либо `null`. */
+  takenAt: string | null;
+}
+
+/** Результат поиска фото в Immich. */
+export interface ImmichSearchResult {
+  items: ImmichAssetItem[];
+  total: number;
+  /** Номер следующей страницы или `null`. */
+  nextPage: number | null;
+}
+
+/**
+ * Поиск фото в Immich (для пикера): `GET /api/immich/search` (admin).
+ * `takenAfter`/`takenBefore` — границы диапазона дат съёмки (ISO datetime).
+ */
+export async function fetchImmichSearchAssets(params: {
+  takenAfter?: string;
+  takenBefore?: string;
+  page?: number;
+  size?: number;
+}): Promise<ImmichSearchResult> {
+  const qs = new URLSearchParams();
+  if (params.takenAfter) qs.set('takenAfter', params.takenAfter);
+  if (params.takenBefore) qs.set('takenBefore', params.takenBefore);
+  if (params.page) qs.set('page', String(params.page));
+  if (params.size) qs.set('size', String(params.size));
+  const query = qs.toString();
+  const res = await apiFetch(`/immich/search${query ? `?${query}` : ''}`);
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<ImmichSearchResult>;
+}
+
+/** URL миниатюры ассета Immich (раздаётся под авторизацией через прокси). */
+export function immichThumbnailUrl(assetId: string): string {
+  return `/api/immich/assets/${encodeURIComponent(assetId)}/thumbnail`;
+}
+
+/** Скачивает оригинал ассета Immich (ArrayBuffer) — для импорта в событие. */
+export async function fetchImmichOriginal(assetId: string): Promise<ArrayBuffer> {
+  return fetchFileBytes(`/api/immich/assets/${encodeURIComponent(assetId)}/original`);
+}
