@@ -122,7 +122,7 @@ function installDataArchive() {
 }
 
 function manageSanityUsers(command) {
-  const usersScript = join(target.backendDir, 'scripts', 'users.mjs');
+  const usersScript = 'scripts/users.mjs';
   const node = '$(command -v node || printf /usr/bin/node)';
   const commands = sanityUsers.map(({ username, password, name, role }) => {
     const args = `${shellQuote(username)} ${shellQuote(name)} ${shellQuote(role)}`;
