@@ -328,6 +328,9 @@
 .diary-photo--cover {
   border-color: var(--color-accent-blue);
 }
+.diary-photo--used {
+  border-color: color-mix(in srgb, var(--color-accent-blue) 60%, var(--border));
+}
 .diary-photo__select {
   display: block;
   width: 100%;
@@ -363,10 +366,103 @@
   width: 11px;
   height: 11px;
 }
+.diary-photo__used {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--font-size-2xs);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-strong);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 4px 8px;
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
 .diary-photo__remove {
   position: absolute;
   top: 4px;
   right: 4px;
+}
+.diary-photos__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.diary-form-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+.diary-form-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 12px 16px;
+  border: 0;
+  width: 100%;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 70%, var(--surface-muted));
+  text-align: left;
+  color: inherit;
+}
+.diary-form-section__toggle {
+  cursor: pointer;
+}
+.diary-form-section__toggle-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.diary-form-section__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+}
+.diary-form-section__title {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.diary-form-section__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+.diary-description-button {
+  flex-shrink: 0;
+}
+.diary-description-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.diary-description-preview pre {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
 }
 .diary-photos__add {
   cursor: pointer;
