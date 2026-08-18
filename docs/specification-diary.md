@@ -153,6 +153,11 @@ API — в [docs/specification-api.md](specification-api.md). Здесь — т�
   переносом строки в позицию курсора и скрывает уже вставленные фотографии из списка выбора (при
   удалении маркеров из текста фото возвращаются в список выбора). Все загруженные фотографии остаются
   в общем списке формы и сохраняются при редактировании. Сборка multipart — `buildDiaryFormData()` в `api/client.ts`.
+  При сохранении с новыми файлами форма показывает два прогресс-бара: «Фото N из M · <имя>»
+  (прогресс загрузки текущего файла) и «Общий прогресс». Отправка multipart идёт через
+  `XMLHttpRequest` (`uploadDiaryRequest` в `api/client.ts`): прогресс текущего файла выводится из
+  общего прогресса тела запроса по известным размерам файлов (`deriveDiaryUploadProgress`),
+  колбэк `onProgress` сигнализирует состояние через тип `DiaryUploadProgress`.
 - Хуки: `hooks/useDiaryEvents.ts` (список), `hooks/useDiaryEvent.ts` (деталь, перезагрузка при смене id).
 - Стили — `styles/diary.css` (импортируется в `index.css`). URL изображения —
   `diaryImageUrl(folder, file, preview)` в `api/client.ts`: `preview=true` — уменьшенная копия

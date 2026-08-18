@@ -841,13 +841,78 @@ export function buildDiaryFormData(input: DiaryEventInput): FormData {
   return fd;
 }
 
+/** Прогресс загрузки изображений события (для двух полосок в форме). */
+export interface DiaryUploadProgress {
+  /** Индекс текущего загружаемого файла (0-based). */
+  currentIndex: number;
+  /** Имя текущего загружаемого файла. */
+  currentName: string;
+  /** Прогресс загрузки текущего файла (0–100). */
+  currentPercent: number;
+  /** Общий прогресс загрузки всех файлов (0–100). */
+  overallPercent: number;
+  /** Число загружаемых файлов. */
+  totalFiles: number;
+}
+
+/**
+ * Из общего прогресса тела multipart-запроса выводит прогресс текущего файла
+ * и общий прогресс. Границы файлов оцениваются по известным размерам файлов:
+ * не-файловые байты (заголовки частей, текстовые поля, закрывающая граница)
+ * распределяются по слотам равномерно — для реальных изображений (сотни КБ —
+ * МБ) погрешность оценки пренебрежимо мала.
+ */
+function deriveDiaryUploadProgress(
+  fileSizes: number[],
+  files: File[],
+  loaded: number,
+  total: number,
+): DiaryUploadProgress {
+  const overallPercent = Math.min(100, Math.max(0, Math.round((loaded / total) * 100)));
+  if (fileSizes.length === 0) {
+    return {
+      currentIndex: 0,
+      currentName: '',
+      currentPercent: overallPercent,
+      overallPercent,
+      totalFiles: 0,
+    };
+  }
+  const filesBytes = fileSizes.reduce((a, b) => a + b, 0);
+  const overheadPerFile = Math.max(0, (total - filesBytes) / fileSizes.length);
+  let slotStart = 0;
+  let currentIndex = fileSizes.length - 1;
+  let currentPercent = 100;
+  for (let i = 0; i < fileSizes.length; i++) {
+    const slotSize = fileSizes[i] + overheadPerFile;
+    if (loaded <= slotStart + slotSize) {
+      currentIndex = i;
+      const within = Math.min(slotSize, Math.max(0, loaded - slotStart));
+      currentPercent = Math.min(100, Math.max(0, Math.round((within / slotSize) * 100)));
+      break;
+    }
+    slotStart += slotSize;
+  }
+  return {
+    currentIndex,
+    currentName: files[currentIndex]?.name ?? '',
+    currentPercent,
+    overallPercent,
+    totalFiles: fileSizes.length,
+  };
+}
+
 /** Отправляет multipart-форму с отслеживанием прогресса загрузки файлов. */
 async function uploadDiaryRequest(
   method: 'POST' | 'PATCH',
   path: string,
   formData: FormData,
-  onProgress?: (percent: number) => void,
+  onProgress?: (progress: DiaryUploadProgress) => void,
 ): Promise<DiaryEventDetail> {
+  // Новые файлы в порядке добавления — по их размерам выводим прогресс текущего файла.
+  const files = formData.getAll('images').filter((v): v is File => v instanceof File);
+  const fileSizes = files.map((f) => f.size);
+
   return new Promise<DiaryEventDetail>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open(method, `${API_BASE}${path}`, true);
@@ -855,8 +920,7 @@ async function uploadDiaryRequest(
 
     xhr.upload.addEventListener('progress', (event) => {
       if (!event.lengthComputable) return;
-      const percent = Math.min(100, Math.max(0, Math.round((event.loaded / event.total) * 100)));
-      onProgress?.(percent);
+      onProgress?.(deriveDiaryUploadProgress(fileSizes, files, event.loaded, event.total));
     });
 
     xhr.addEventListener('load', () => {
@@ -893,7 +957,7 @@ async function uploadDiaryRequest(
 /** Создаёт событие: `POST /api/diary` (multipart, admin). */
 export async function createDiaryEvent(
   formData: FormData,
-  onProgress?: (percent: number) => void,
+  onProgress?: (progress: DiaryUploadProgress) => void,
 ): Promise<DiaryEventDetail> {
   return uploadDiaryRequest('POST', '/diary', formData, onProgress);
 }
@@ -902,7 +966,7 @@ export async function createDiaryEvent(
 export async function updateDiaryEvent(
   id: number,
   formData: FormData,
-  onProgress?: (percent: number) => void,
+  onProgress?: (progress: DiaryUploadProgress) => void,
 ): Promise<DiaryEventDetail> {
   return uploadDiaryRequest('PATCH', `/diary/${id}`, formData, onProgress);
 }

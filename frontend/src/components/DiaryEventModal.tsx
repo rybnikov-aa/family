@@ -5,6 +5,7 @@ import {
   diaryImageUrl,
   updateDiaryEvent,
   type DiaryEventDetail,
+  type DiaryUploadProgress,
 } from '../api/client';
 import Modal from './Modal';
 import Button from './Button';
@@ -62,7 +63,7 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   );
   const [cover, setCover] = useState<string | null>(() => event?.cover ?? null);
   const [submitting, setSubmitting] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<DiaryUploadProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [descriptionEditorOpen, setDescriptionEditorOpen] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<
@@ -180,18 +181,24 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
 
     setSubmitting(true);
     setError(null);
-    const hasNewFiles = images.some((img) => img.file !== null);
-    setUploadProgress(hasNewFiles ? 0 : null);
+    const newFiles = images.filter((img) => img.file !== null);
+    setUploadProgress(
+      newFiles.length > 0
+        ? {
+            currentIndex: 0,
+            currentName: newFiles[0]?.file?.name ?? '',
+            currentPercent: 0,
+            overallPercent: 0,
+            totalFiles: newFiles.length,
+          }
+        : null,
+    );
 
     try {
       if (event) {
-        await updateDiaryEvent(event.id, formData, (percent) => {
-          setUploadProgress((prev) => (prev === null ? 0 : percent));
-        });
+        await updateDiaryEvent(event.id, formData, (progress) => setUploadProgress(progress));
       } else {
-        await createDiaryEvent(formData, (percent) => {
-          setUploadProgress((prev) => (prev === null ? 0 : percent));
-        });
+        await createDiaryEvent(formData, (progress) => setUploadProgress(progress));
       }
       setUploadProgress(null);
       onSaved();
@@ -435,19 +442,38 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
           {submitting && uploadProgress !== null && (
             <div className="diary-upload-progress" aria-live="polite" aria-atomic="true">
               <div className="diary-upload-progress__header">
-                <span>Загрузка изображений</span>
-                <span>{uploadProgress}%</span>
+                <span>
+                  Фото {uploadProgress.currentIndex + 1} из {uploadProgress.totalFiles}
+                  {uploadProgress.currentName ? ` · ${uploadProgress.currentName}` : ''}
+                </span>
+                <span>{uploadProgress.currentPercent}%</span>
               </div>
               <div
                 className="diary-upload-progress__track"
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-valuenow={uploadProgress}
+                aria-valuenow={uploadProgress.currentPercent}
               >
                 <span
                   className="diary-upload-progress__fill"
-                  style={{ width: `${uploadProgress}%` }}
+                  style={{ width: `${uploadProgress.currentPercent}%` }}
+                />
+              </div>
+              <div className="diary-upload-progress__header diary-upload-progress__header--overall">
+                <span>Общий прогресс</span>
+                <span>{uploadProgress.overallPercent}%</span>
+              </div>
+              <div
+                className="diary-upload-progress__track"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={uploadProgress.overallPercent}
+              >
+                <span
+                  className="diary-upload-progress__fill"
+                  style={{ width: `${uploadProgress.overallPercent}%` }}
                 />
               </div>
             </div>
