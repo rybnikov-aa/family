@@ -158,6 +158,9 @@ CSS: `.modal-backdrop`, `.modal`, `.modal--wide`, `.modal--pdf`, `.modal__head`,
 Использует `Modal` с `className="modal--pdf"` (шире и компактнее). Воркер pdf.js подключается
 через `import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'`.
 
+API pdf.js v6 (грабли): `render()` требует `<canvas>` (canvasContext опционален); `destroy()`
+живёт на `PDFDocumentLoadingTask` — у `PDFDocumentProxy` его НЕТ (TS2339).
+
 Мобильная адаптация: при открытии страница автоматически вписывается по ширине сцены
 (автоподгонка на `resize`/`orientationchange`, масштаб кнопками `+`/`−` не сбрасывает) — на узких
 экранах это предотвращает обрезание левого края страницы. В сцене страница центрируется через

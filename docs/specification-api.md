@@ -18,7 +18,7 @@
 
 Кроме `/api/health` и `POST /api/auth/login` **все** эндпоинты требуют действующую сессию (httpOnly-cookie `sid`): отсутствие/истёкшая сессия → **401**.
 
-Мутирующие операции (`POST /api/vps`, `POST /api/vps/import`, `DELETE /api/vps/:name`, `POST /api/projects`, а также все эндпоинты `/api/auth/admin/*`, мутации `/api/diary`, `POST /api/settings/immich/check` и пикер `/api/immich/*`) доступны только роли `admin`; иначе — **403**. Чтение `/api/settings/immich` — любому авторизованному (адрес нужен для ссылок «Фотоархив»/«Архив» в UI; ключ не возвращается).
+Мутирующие операции (`POST`/`PATCH`/`DELETE /api/vps*`, `POST`/`PATCH`/`DELETE /api/projects`, мутации «Ремонта» (`POST /api/renovation/pdf*`, `POST /estimate/addendum*`, `PUT /api/renovation/meta`, `PUT /api/renovation/materials-budget`), мутации `/api/diary`, все эндпоинты `/api/auth/admin/*`, `POST /api/settings/immich/check` и пикер `/api/immich/*`) доступны только роли `admin`; иначе — **403**. Чтение `/api/settings/immich` — любому авторизованному (адрес нужен для ссылок «Фотоархив»/«Архив» в UI; ключ не возвращается).
 
 - **Сессия:** cookie `sid` — httpOnly, `SameSite=Lax`, `Secure` в проде (`NODE_ENV=production`), срок `SESSION_TTL_HOURS` (по умолчанию 168 ч). В БД хранится только SHA-256 от токена.
 - **Пароли** проверяются через scrypt (constant-time).
@@ -61,6 +61,7 @@
 | ------ | ----------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------- |
 | GET    | `/api/vps`        | Статусы доступности всех VPS + их сервисов | `refresh=1` — форсированная перепроверка (обход кэша)                                       |
 | POST   | `/api/vps`        | Добавить VPS на мониторинг (admin)         | Тело — `VpsEntry` (`{country, name, ip, panel, services[]}`)                                |
+| PATCH  | `/api/vps/:name`  | Редактировать VPS по имени (admin)         | Тело — `VpsEntry`; ответ — обновлённая запись                                               |
 | POST   | `/api/vps/import` | Импорт VPS из JSON (admin)                 | Тело — `{ "vps": [VpsEntry, …] }` (или голый массив); ответ — `{imported, skipped, errors}` |
 | DELETE | `/api/vps/:name`  | Удалить VPS по имени (admin)               | —; ответ — 204 (404 — если не найдено)                                                      |
 

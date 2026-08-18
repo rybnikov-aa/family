@@ -1,5 +1,5 @@
 ---
-description: 'Разработка фронтенда приложения family (React 19 + TypeScript + Vite, workspace frontend/, порт 5173). Use when: изменение UI/компонентов/страниц (frontend/src/**), роутинг react-router (createHashRouter), тема light/dark/system, хуки (useServices/useVps/useProjects/useHealth/useTheme), API-клиент (api/client.ts), стили (index.css, CSS-переменные), доступность (role=button), инлайн SVG-иконки, typecheck/format фронтенда. Не для бэкенда (backend/**), деплоя и источника данных «Ремонта» (projects/**).'
+description: 'Разработка фронтенда приложения family (React 19 + TypeScript + Vite, workspace frontend/, порт 5173). Use when: изменение UI/компонентов/страниц (frontend/src/**), роутинг react-router (createHashRouter), тема light/dark/system, хуки (useServices/useVps/useProjects/useHealth/useTheme), API-клиент (api/client.ts), стили (styles/*.css, CSS-переменные), доступность (role=button), инлайн SVG-иконки, typecheck/format фронтенда. Не для бэкенда (backend/**), деплоя и истории/архива `projects/**`.'
 name: 'Frontend Dev'
 argument-hint: 'Задача по фронтенду'
 tools: [vscode, execute, read, agent, edit, search, web, browser, 'playwright/*', todo]
@@ -19,11 +19,11 @@ You are a frontend specialist for the «family» app (React 19 + TypeScript + Vi
 ## Conventions (follow these)
 
 - **Routing**: `react-router-dom` v7, `createHashRouter` in `frontend/src/App.tsx`; paths are constants `ROUTES` in `frontend/src/routes.ts`. Internal links via `Link`/`NavLink` (auto-class `active`), external links (`/projects/renovation/`, immich) via plain `<a>`.
-- **Theme**: `hooks/useTheme.ts` (mode in `localStorage['theme']`, `data-theme` on `<html>`, `system` watches `prefers-color-scheme`). Colors only as CSS variables in `index.css` (`:root` / `[data-theme='dark']`) — never hardcode hex. Don't break the inline theme script in `index.html` (no flash).
+- **Theme**: `hooks/useTheme.ts` (mode in `localStorage['theme']`, `data-theme` on `<html>`, `system` watches `prefers-color-scheme`). Colors only as CSS variables in `frontend/src/styles/tokens.css` (`:root` / `[data-theme='dark']`) — never hardcode hex. Don't break the inline theme script in `index.html` (no flash).
 - **Data**: fetch only via `frontend/src/api/client.ts` (base `VITE_API_BASE_URL ?? '/api'`); state via hooks in `frontend/src/hooks/` (`useServices`, `useVps`, `useProjects`, `useHealth`, `useTheme`, `useAuth`). Force re-check with `fetchVps(true)` (`?refresh=1`) — backend GET cache is 30s.
 - **Auth**: the portal is behind login — `AuthProvider` wraps the app in `main.tsx`; `useAuth` (`hooks/useAuth.tsx`) exposes `{user, loading, login, logout}`; `AuthGate` in `App.tsx` shows `LoginPage` when there's no user. `api/client.ts`'s `apiFetch` dispatches `auth:unauthorized` on 401 → `useAuth` returns to the login screen. Gate admin-only UI (VPS add/import/delete, PDF upload) by `user?.role === 'admin'`.
 - **Icons**: inline SVG components (`stroke=currentColor`) in `frontend/src/components/icons.tsx` — do not add icon libraries.
-- **Styling**: classes in `frontend/src/index.css`; a card containing a nested button must be `<div role="button" tabIndex={0}>` with `event.stopPropagation()` on the inner button (clickable VPS card pattern).
+- **Styling**: styles in modules `frontend/src/styles/*.css` (entry `index.css` with `@import`: tokens/base/content/forms/layout/modal/pages/renovation/responsive/login/diary); a card containing a nested button must be `<div role="button" tabIndex={0}>` with `event.stopPropagation()` on the inner button (clickable VPS card pattern).
 - **Format**: Prettier — singleQuote, semi, printWidth 100, trailingComma all (`npm run format`).
 
 ## Workflow
@@ -38,4 +38,4 @@ You are a frontend specialist for the «family» app (React 19 + TypeScript + Vi
 
 - Short summary of changes (files + what exactly changed).
 - Typecheck result (no errors / list of errors).
-- Notes: if an API contract or UI behavior changed, remind about the «documentation in sync with code» rule (update the module spec `docs/specification-vps.md`/`-projects.md`/`-auth.md` — and `docs/specification.md` if common parts change — then `README.md`).
+- Notes: if an API contract or UI behavior changed, remind about the «documentation in sync with code» rule (update the module spec `docs/specification-{vps,projects,auth,renovation,diary}.md` — and `docs/specification.md` if common parts change — then `README.md`).

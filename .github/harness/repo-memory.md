@@ -27,3 +27,9 @@ When working from different PCs:
 ## Session note
 
 This repository-backed memory is the default mechanism for cross-device continuity. It is intended to replace silent dependence on local-only memory.
+
+## Operational notes (synced from local repo memory, 2026-08-18)
+
+- **Renovation: server DB row ids ≠ local** (auto-increment, e.g. addendum №2 is id=123 locally but id=11 on the server). When fixing renovation data directly on the server, find rows by `label`/`pdf_path`/type+date, NOT by id. Re-import of an already-imported document is blocked by idempotency (type+date → 409) and there is no delete endpoint — fix wrong imported data via direct `UPDATE` on `server/data/renovation.sqlite` (`renovation_docs`, `renovation_doc_items`, `estimate_versions`). Details: `docs/specification-renovation.md`.
+- **Server diagnostics for protected routes without an account** — temporary session row in the auth DB `sessions` (`token_hash` = SHA-256 hex, admin `user_id`, future `expires_at`) + `curl -b "sid=<token>"`. Details: `docs/server.md`.
+- **pdf.js v6 API gotchas** — `render()` needs a `<canvas>`; `destroy()` lives on `PDFDocumentLoadingTask`, not `PDFDocumentProxy` (TS2339). Details: `docs/frontend-design.md`.

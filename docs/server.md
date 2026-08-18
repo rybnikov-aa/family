@@ -31,6 +31,10 @@
 - **SQLite-база VPS** (`server/data/vps.sqlite`) — runtime-данные, наполняется через форму добавления VPS в UI (`POST /api/vps`), импорт из JSON (`POST /api/vps/import`), удаление — кнопка-корзина (`DELETE /api/vps/:name`). Путь — `DB_PATH` (по умолчанию `data/vps.sqlite`). Каждый домен — в своей БД: авторизация (`users`/`sessions`) — `server/data/auth.sqlite` (`AUTH_DB_PATH`), прикладные проекты (`projects`) — `server/data/projects.sqlite` (`PROJECTS_DB_PATH`), «Ремонт» — `server/data/renovation.sqlite`, «Дневник» — `server/data/diary.sqlite`. При деплое папки `data/`, `docs/`, `images/` и файл `.env` **не удаляются**.
 - **Авторизация** — весь портал (SPA и API) закрыт входом: без действующей сессии API отвечает 401, фронтенд показывает экран входа. Вход/выход/текущий пользователь — `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Сессия — httpOnly `SameSite=Lax` cookie `sid` (в проде `Secure`), в БД хранится только SHA-256 от токена; срок жизни — `SESSION_TTL_HOURS`. Роли: `admin` (управление VPS + создание проектов) и `user` (чтение). **Первый администратор** создаётся при старте из `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей); дальнейшие учётки — CLI `npm run user -w backend` (`add`/`list`/`set-role`/`remove`). Скрипт `scripts/users.mjs` входит в деплой, поэтому на сервере его можно запускать прямо из каталога бэкенда. `/api/health` остаётся публичным (для диагностики).
 - Для диагностики API, требующего авторизации, в curl нужна cookie сессии: `curl -c ck -X POST http://127.0.0.1:3000/api/auth/login -H 'Content-Type: application/json' -d '{"username":"…","password":"…"}'`, затем `curl -b ck http://127.0.0.1:3000/api/vps`.
+- Проверка защищённого роута на сервере без учётки — **временная сессия**: вставить строку в
+  `sessions` БД авторизации (`AUTH_DB_PATH`): `token_hash` = SHA-256 hex токена, `user_id` — админа,
+  `expires_at` — в будущем; затем `curl -b "sid=<токен>" http://127.0.0.1:3000/api/...`; после
+  проверки сессию удалить.
 
 **Управление пользователями на сервере:**
 

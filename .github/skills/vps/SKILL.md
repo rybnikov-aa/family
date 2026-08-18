@@ -21,9 +21,9 @@ user-invocable: true
 1. **node:sqlite**: конфликт UNIQUE определять по `(err.errcode & 0xff) === 19` (`isConstraintError`), НЕ по `err.code` (`ERR_SQLITE_ERROR`). Нет `db.transaction()` → ручные `BEGIN`/`COMMIT`/`ROLLBACK`. Строки — `Record<string, SQLOutputValue>` → двойной каст `as unknown as MyRow`. `mkdirSync(dirname(DB_PATH), {recursive:true})` обязателен до `new DatabaseSync()`.
 2. **Live-binding**: после любой INSERT/DELETE обязательно вызывать `reloadVpsEntries()` (перечитывает `vpsEntries` из БД в памяти; работает и в CJS-бандле).
 3. **Кэш 30с**: `GET /api/vps` кэшируется на 30с. Чтобы UI сразу увидел изменения — `fetchVps(true)` (`?refresh=1`), обычно через `onRefresh()`.
-4. **`npm run typecheck` — единственный gate**: `noUnusedLocals`/`noUnusedParameters` включены → неиспользуемые переменные/параметры = ошибки (TS6133); неиспользуемые параметры называть `_req`/`_next`.
+4. **`npm run typecheck` — единственный gate** (см. AGENTS.md правило 3): `noUnusedLocals`/`noUnusedParameters` включены → неиспользуемые переменные/параметры = ошибки (TS6133).
 5. **Авторизация**: `GET /api/vps` требует действующую сессию (httpOnly-cookie `sid`; без неё — 401); мутации (`POST /api/vps`, импорт, `DELETE`) — только роль `admin` (иначе 403). UI скрывает админ-кнопки для не-админа (`useAuth().user?.role === 'admin'`). При ручной диагностике через curl — сначала логин и cookie: `curl -c ck -X POST http://127.0.0.1:3000/api/auth/login -H 'Content-Type: application/json' -d '{"username":"…","password":"…"}'`, затем `curl -b ck …`.
-6. **Документация синхронно с кодом**: при изменении требований/API/UI обновлять `docs/specification-vps.md` (сначала — спецификация), затем `README.md` и `docs/server.md` при необходимости. Общие правила проекта — в [AGENTS.md](../../../AGENTS.md).
+6. **Документация синхронно с кодом** (см. AGENTS.md правило 1): при изменении требований/API/UI обновлять `docs/specification-vps.md` (сначала — спецификация), затем `README.md`/`docs/server.md` при необходимости. Общие правила проекта — в [AGENTS.md](../../../AGENTS.md).
 
 ## Процедуры
 

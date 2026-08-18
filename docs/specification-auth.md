@@ -23,7 +23,7 @@
 - 11.3 Вход: `POST /api/auth/login` с `{username, password}`; при успехе сервер создаёт сессию и ставит httpOnly `SameSite=Lax` cookie (`Secure` — в проде).
 - 11.4 Выход: `POST /api/auth/logout` удаляет сессию на сервере и cookie; после выхода доступ с тем же cookie — 401.
 - 11.5 Текущий пользователь: `GET /api/auth/me` (`{user: {id, username, name, role}}`).
-- 11.6 Роли: `user` — чтение портала; `admin` — дополнительно управление VPS (добавление/импорт/удаление), создание проектов и управление пользователями (админ-панель). Бэкенд проверяет роль (`403`), UI скрывает недоступные действия.
+- 11.6 Роли: `user` — чтение портала; `admin` — дополнительно мутации VPS, проектов, «Ремонта» и «Дневника», настройки Immich и управление пользователями (админ-панель). Бэкенд проверяет роль (`403`), UI скрывает недоступные действия.
 - 11.7 Срок жизни сессии — `SESSION_TTL_HOURS` (по умолчанию 168 ч = 7 суток); просроченные сессии удаляются при обращении.
 - 11.8 Первый администратор создаётся при старте из env `AUTH_BOOTSTRAP_PASSWORD` (если в БД нет пользователей); дальнейшие учётки — CLI `npm run user -w backend` (add/list/set-role/remove) **или админ-панель** (добавление/удаление/смена пароля).
 - 11.9 Админ-панель пользователей доступна только роли `admin` и открывается по клику на бейдж «админ» в шапке; она позволяет просматривать список учётных записей, добавлять пользователя, удалять пользователя (кроме собственной учётки) и принудительно задавать пароль (без подтверждения текущим).
@@ -39,24 +39,25 @@
 ## 2. Данные (SQLite: `users` и `sessions`)
 
 Таблицы авторизации живут в **отдельной БД** `backend/data/auth.sqlite` (путь — `env.AUTH_DB_PATH`, по умолчанию `data/auth.sqlite`; это **не** `DB_PATH` — БД VPS). Схема — `backend/src/db/authDatabase.ts` (синглтон `getAuthDb()`), создаётся автоматически `CREATE TABLE IF NOT EXISTS`:
+
+```sql
 CREATE TABLE users (
-id INTEGER PRIMARY KEY AUTOINCREMENT,
-username TEXT NOT NULL UNIQUE,
-name TEXT NOT NULL,
-password_hash TEXT NOT NULL,
-role TEXT NOT NULL DEFAULT 'user', -- 'admin' | 'user'
-created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'user', -- 'admin' | 'user'
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE sessions (
-id INTEGER PRIMARY KEY AUTOINCREMENT,
-token_hash TEXT NOT NULL UNIQUE, -- SHA-256 от токена (сам токен в БД не храним)
-user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-created_at TEXT NOT NULL DEFAULT (datetime('now')),
-expires_at TEXT NOT NULL
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  token_hash TEXT NOT NULL UNIQUE, -- SHA-256 от токена (сам токен в БД не храним)
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  expires_at TEXT NOT NULL
 );
-
-````
+```
 
 **Наполнение.** Пользователи вручную SQL не наполняются:
 
@@ -94,7 +95,7 @@ expires_at TEXT NOT NULL
 - **`services/authService.ts`** — пользователи, хэширование scrypt (формат `scrypt$N$r$p$<salt>$<hash>`), сессии (создание/поиск/удаление, очистка просроченных), `ensureBootstrapAdmin()` (первый админ из `AUTH_BOOTSTRAP_PASSWORD` при пустой `users`); управление пользователями для админ-панели: `listUsers`, `createUser`, `deleteUser`, `setUserPassword`.
 - **`middlewares/auth.ts`** — `requireAuth` (401 без действующей сессии; читает cookie без cookie-parser), `requireAdmin` (403 для роли не `admin`); заполняют `req.user`.
 - **`controllers/authController.ts`, `routes/auth.ts`** — вход/выход/текущий пользователь, профиль, а также админ-эндпоинты `/api/auth/admin/users*` (список/создание/удаление/смена пароля).
-- **Применение:** `requireAuth` на роутах `/api/vps` и `/api/projects` (в `app.ts`), `requireAdmin` на мутациях VPS, загрузке PDF и всех `/api/auth/admin/*`; `/api/health` и `POST /api/auth/login` — публичны; `ensureBootstrapAdmin()` вызывается при старте.
+- **Применение:** `requireAuth` на роутах `/api/vps`, `/api/projects`, `/api/renovation`, `/api/diary`, `/api/settings` и `/api/immich` (в `app.ts`), `requireAdmin` на мутациях этих модулей и всех `/api/auth/admin/*`; `/api/health` и `POST /api/auth/login` — публичны; `ensureBootstrapAdmin()` вызывается при старте.
 - **CLI:** `backend/scripts/users.mjs` (`npm run user -w backend`).
 
 ---
@@ -181,7 +182,7 @@ expires_at TEXT NOT NULL
 
 | Требование           | Критерии приёмки | Реализация                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | -------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| FR-11 Авторизация    | §6               | `backend/services/authService.ts`, `backend/middlewares/auth.ts`, `backend/controllers/authController.ts`, `backend/routes/auth.ts`, `backend/db/authDatabase.ts`, `backend/scripts/users.mjs`, `frontend/hooks/useAuth.tsx`, `frontend/pages/LoginPage.tsx`, `frontend/App.tsx`, `frontend/main.tsx`, `frontend/api/client.ts`, `PageLayout.tsx`, `VpsDetailsModal.tsx`, `ProjectsPage.tsx`, `icons.tsx`, `index.css`                                                                                                                                                                                                                                           |
+| FR-11 Авторизация    | §6               | `backend/services/authService.ts`, `backend/middlewares/auth.ts`, `backend/controllers/authController.ts`, `backend/routes/auth.ts`, `backend/db/authDatabase.ts`, `backend/scripts/users.mjs`, `frontend/hooks/useAuth.tsx`, `frontend/pages/LoginPage.tsx`, `frontend/App.tsx`, `frontend/main.tsx`, `frontend/api/client.ts`, `PageLayout.tsx`, `VpsDetailsModal.tsx`, `ProjectsPage.tsx`, `icons.tsx`, `index.css`                                                                                                                                                                                                                                       |
 | FR-12 Профиль        | §6.7–6.8         | `backend/controllers/authController.ts` (`updateProfileController`), `backend/routes/auth.ts` (`PATCH /api/auth/profile`), `backend/services/authService.ts` (`updateUserProfile`), `frontend/pages/ProfilePage.tsx`, `frontend/routes.ts`, `frontend/App.tsx`, `frontend/hooks/useAuth.tsx` (`updateProfile`), `frontend/api/client.ts` (`updateProfile`), `frontend/components/PageLayout.tsx`, `frontend/components/icons.tsx` (`UserIcon`), `index.css`                                                                                                                                                                                                  |
 | FR-11.9 Админ-панель | §6.9–6.10        | `backend/services/authService.ts` (`listUsers`/`createUser`/`deleteUser`/`setUserPassword`), `backend/controllers/authController.ts` (`admin*Controller`), `backend/routes/auth.ts` (`/api/auth/admin/users*`), `frontend/pages/AdminUsersPage.tsx`, `frontend/components/AdminUserAddModal.tsx`, `frontend/components/AdminUserPasswordModal.tsx`, `frontend/components/PageLayout.tsx` (кликабельный бейдж «админ»), `frontend/App.tsx` (`AdminGate`, роут `#/admin/users`), `frontend/routes.ts` (`ROUTES.adminUsers`), `frontend/api/client.ts` (`fetchAdminUsers`/`createAdminUser`/`setAdminUserPassword`/`deleteAdminUser`), `icons.tsx`, `index.css` |
 
@@ -197,7 +198,7 @@ npm run user -w backend -- add papa Папа admin
 npm run user -w backend -- list
 npm run user -w backend -- set-role mama admin
 npm run user -w backend -- remove mama
-````
+```
 
 На сервере (скрипт входит в деплой — `server/scripts/users.mjs`; в неинтерактивной SSH-сессии node не в PATH, поэтому полным путём):
 

@@ -1,5 +1,5 @@
 ---
-description: 'Разработка бэкенда приложения family (Node + Express 5 + Vite, workspace backend/, порт 3000). Use when: изменение API-роутов/контроллеров/сервисов (backend/src/**), SQLite (node:sqlite, db/), проверка доступности VPS (services/vpsChecker), обработка ошибок (middlewares/errorHandler), конфигурация (config/env.ts), node:sqlite-грабли, typecheck/format бэкенда, read-only диагностика на сервере (pm2, curl /api/health, ssh). Не для фронтенда (frontend/**), правки скриптов деплоя и источника данных «Ремонта» (projects/**).'
+description: 'Разработка бэкенда приложения family (Node + Express 5 + Vite, workspace backend/, порт 3000). Use when: изменение API-роутов/контроллеров/сервисов (backend/src/**), SQLite (node:sqlite, db/), проверка доступности VPS (services/vpsChecker), обработка ошибок (middlewares/errorHandler), конфигурация (config/env.ts), node:sqlite-грабли, typecheck/format бэкенда, read-only диагностика на сервере (pm2, curl /api/health, ssh). Не для фронтенда (frontend/**), правки скриптов деплоя и истории/архива `projects/**`.'
 name: 'Backend Dev'
 argument-hint: 'Задача по бэкенду'
 tools: [read, search, edit, execute, todo, web]
@@ -29,8 +29,8 @@ You are a backend specialist for the «family» app (Node + Express 5 + Vite via
 - **Live-binding**: after INSERT/DELETE of VPS always call `reloadVpsEntries()` (`config/vps.ts` re-reads from DB; works in ESM dev and CJS bundle).
 - **Caching**: `GET /api/vps` is cached 30s (`services/vpsChecker.ts`); `GET /api/projects` has no
   filesystem scan cache — data comes from the DB/registry (see `services/projectsService.ts`).
-- **Config**: env vars only via `config/env.ts` (`PORT`, `NODE_ENV`, `CORS_ORIGIN`, `DB_PATH`, `AUTH_*`, `RENOVATION_*`); real `.env` values never override already-set process env.
-- **Auth**: the whole portal is behind login — `requireAuth` is applied to `/api/vps` and `/api/projects` in `app.ts`; mutations (POST/DELETE VPS, import, PDF upload) need `requireAdmin` (`middlewares/auth.ts`). `/api/health` and `POST /api/auth/login` are public. Auth logic lives in `services/authService.ts` (scrypt password hashing, sessions in SQLite — token stored as SHA-256, httpOnly `SameSite=Lax` cookie `sid`, `Secure` in prod). User management: bootstrap admin via `AUTH_BOOTSTRAP_PASSWORD` (on empty `users`), or CLI `npm run user -w backend` (`scripts/users.mjs`: add/list/set-role/remove). Protected endpoints return 401 without a session and 403 for non-admin.
+- **Config**: env vars only via `config/env.ts` (`PORT`, `NODE_ENV`, `CORS_ORIGIN`, `DB_PATH`, `AUTH_DB_PATH`, `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `PROJECTS_DB_PATH`, `RENOVATION_*`, `DIARY_DB_PATH`, `DIARY_IMAGES_DIR`); real `.env` values never override already-set process env.
+- **Auth**: the whole portal is behind login — `requireAuth` is applied to `/api/vps`, `/api/projects`, `/api/renovation`, `/api/diary`, `/api/settings` and `/api/immich` in `app.ts`; mutations (VPS, projects, renovation, diary, Immich picker) need `requireAdmin` (`middlewares/auth.ts`). `/api/health` and `POST /api/auth/login` are public. Auth logic lives in `services/authService.ts` (scrypt password hashing, sessions in SQLite — token stored as SHA-256, httpOnly `SameSite=Lax` cookie `sid`, `Secure` in prod). User management: bootstrap admin via `AUTH_BOOTSTRAP_PASSWORD` (on empty `users`), or CLI `npm run user -w backend` (`scripts/users.mjs`: add/list/set-role/remove). Protected endpoints return 401 without a session and 403 for non-admin.
 - **Errors**: controllers map validation → 400 and duplicate name → 409 themselves; unexpected errors are re-thrown to `errorHandler` (500). 404 — `notFoundHandler`.
 - **VPS work**: consult the `vps` skill (`.github/skills/vps/SKILL.md`) for procedures, schema and checker details.
 - **Format**: Prettier — singleQuote, semi, printWidth 100, trailingComma all (`npm run format`).
@@ -47,4 +47,4 @@ You are a backend specialist for the «family» app (Node + Express 5 + Vite via
 
 - Short summary of changes (files + what exactly changed).
 - Typecheck result (no errors / list of errors).
-- Notes: if an API contract or config schema changed, remind about the «documentation in sync with code» rule (update the module spec `docs/specification-vps.md`/`-projects.md`/`-auth.md` — and `docs/specification.md` if common parts change — first, then `README.md`, and `.env.example` if env vars changed).
+- Notes: if an API contract or config schema changed, remind about the «documentation in sync with code» rule (update the module spec `docs/specification-{vps,projects,auth,renovation,diary}.md` — and `docs/specification.md`/`docs/adr.md` if common parts change — first, then `README.md`, and `.env.example` if env vars changed).

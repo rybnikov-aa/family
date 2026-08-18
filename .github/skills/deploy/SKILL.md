@@ -122,7 +122,7 @@ node .github/skills/deploy/scripts/check-server.mjs [--host <хост>] [--user 
 - `server/docs/` (загруженные PDF «Ремонта», `docs/renovation/`).
 - `server/images/` (изображения событий «Дневника», уникальная подпапка `images/<folder>/` на событие).
 - `public_html/.well-known` и прочие подпапки фронтенда вне репозитория.
-- Существующий статичный архив `public_html/projects/` (legacy, не обновляется).
+- Статичный архив `public_html/projects/` на сервере удалён (все проекты — в приложении; `projects/` репозитория на сервер не копируется).
 
 ## Справочник
 

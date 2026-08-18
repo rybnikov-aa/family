@@ -25,12 +25,10 @@ graph TD
 │   │   ├── backend-dev.agent.md      # бэкенд-разработчик (Express/SQLite)
 │   │   └── fullstack-dev.agent.md    # сквозные фичи (бэкенд + фронтенд)
 │   └── skills/               # скиллы (загружаются по запросу)
-│       # Навыки project-renovation-* архивированы: projects/skills-archive/ (история)
 │       ├── vps/              # VPS-мониторинг: SKILL.md, справочник, scripts/list-vps.mjs
 │       ├── deploy/           # деплой и диагностика сервера: SKILL.md, справочник
-│       ├── project-import/   # создание проекта (через UI/БД, не статика)
-│       └── parse-pdf/        # конвертация PDF → HTML (общий, для любых проектов)
-│       # Навыки project-renovation-* архивированы: projects/skills-archive/ (история)
+│       └── project-import/   # создание проекта (через UI/БД, не статика)
+│       # Архивные навыки (parse-pdf, project-renovation-*): projects/skills-archive/ (история)
 ├── README.md
 ├── docs/                     # спецификация и справочники (см. «Документация»)
 │   ├── specification.md      # общая спецификация (SDD) + модульные specification-{vps,projects,auth,renovation,diary}.md
@@ -49,7 +47,7 @@ graph TD
 │   │   ├── Reports/          # отчёты: report_work, report_materials (итоговый — на index.html)
 │   │   ├── Materials/        # заказы материалов (report_*.html) + взаиморасчёты по материалам
 │   │   └── Works/            # акты работ (act_*.html) + взаиморасчёты по работам
-│   ├── skills-archive/       # архивированные навыки project-renovation-* (история)
+│   ├── skills-archive/       # архивированные навыки: parse-pdf, project-renovation-* (история)
 │   └── agents-archive/       # архивированные агенты Projects Dev/Explorer (история)
 │
 ├── frontend/                 # React + TypeScript + Vite
@@ -86,7 +84,7 @@ graph TD
 
 ## Установка
 
-Требуется Node.js **20+** и npm **10+**.
+Требуется Node.js **≥ 22.5** и npm **10+** (бэкенд использует встроенный `node:sqlite`).
 
 ```bash
 npm install
@@ -94,22 +92,22 @@ npm install
 
 ## Запуск
 
-| Команда                   | Описание                                                                    |
-| ------------------------- | --------------------------------------------------------------------------- |
-| `npm run dev`             | Запуск фронтенда и бэкенда одновременно                                     |
-| `npm run dev:frontend`    | Только фронтенд (http://localhost:5173)                                     |
-| `npm run dev:backend`     | Только бэкенд (http://localhost:3000)                                       |
-| `npm run build`           | Сборка фронтенда и бэкенда                                                  |
-| `npm start`               | Запуск собранного бэкенда (`backend/dist/app.cjs`)                          |
-| `npm run typecheck`       | Проверка типов во всех воркспейсах                                          |
-| `npm run format`          | Форматирование кода через Prettier                                          |
-| `npm run user -w backend` | Управление пользователями авторизации (`add`, `list`, `set-role`, `remove`) |
+| Команда                    | Описание                                                                    |
+| -------------------------- | --------------------------------------------------------------------------- |
+| `npm run dev`              | Запуск фронтенда и бэкенда одновременно                                     |
+| `npm run dev:frontend`     | Только фронтенд (http://localhost:5173)                                     |
+| `npm run dev:backend`      | Только бэкенд (http://localhost:3000)                                       |
+| `npm run build`            | Сборка фронтенда и бэкенда                                                  |
+| `npm run start -w backend` | Запуск собранного бэкенда (`backend/dist/app.cjs`)                          |
+| `npm run typecheck`        | Проверка типов во всех воркспейсах                                          |
+| `npm run format`           | Форматирование кода через Prettier                                          |
+| `npm run user -w backend`  | Управление пользователями авторизации (`add`, `list`, `set-role`, `remove`) |
 
 ## Как это работает
 
 - **Фронтенд** запускается через Vite dev-сервер на порту `5173`. Запросы к `/api/*` проксируются на бэкенд (`vite.config.ts`), поэтому в разработке не нужен CORS.
-- **Бэкенд** запускается через Vite c плагином `vite-plugin-node` — Express-приложение получает горячую перезагрузку при изменении кода. Приложение экспортируется из `src/app.ts`; при прямом запуске собранного `dist/app.cjs` (`npm start`) оно само стартует сервер на порту из `PORT`.
-- **Хранилище VPS** — SQLite (встроенный `node:sqlite`, без новых зависимостей). Файл БД — `backend/data/vps.sqlite` (путь через `DB_PATH`), наполняется вручную, через форму добавления VPS в UI (`POST /api/vps`), редактируется по кнопке карандаша в модалке детализации (`PATCH /api/vps/:name`), импортом из JSON-файла структуры `vps.json` (`POST /api/vps/import`) или удаляется через кнопку-корзину (`DELETE /api/vps/:name`); схема таблиц создаётся автоматически при первом обращении. В git не попадает, при деплое не затирается.
+- **Бэкенд** запускается через Vite c плагином `vite-plugin-node` — Express-приложение получает горячую перезагрузку при изменении кода. Приложение экспортируется из `src/app.ts`; при прямом запуске собранного `dist/app.cjs` (`npm run start -w backend`) оно само стартует сервер на порту из `PORT`.
+- **Хранилище VPS** — SQLite (встроенный `node:sqlite`, без новых зависимостей). Файл БД — `backend/data/vps.sqlite` (путь через `DB_PATH`), наполняется вручную, через форму добавления VPS в UI (`POST /api/vps`), редактируется по кнопке карандаша в модалке детализации (`PATCH /api/vps/:name`), импортом из JSON-файла в формате `vps.json` (`POST /api/vps/import`) или удаляется через кнопку-корзину (`DELETE /api/vps/:name`); схема таблиц создаётся автоматически при первом обращении. В git не попадает, при деплое не затирается.
 - **Раздел «Проекты»** — все проекты прикладные (`kind: 'app'`): встроенный реестр `backend/src/config/appProjects.ts` («Ремонт») + записи БД `projects` (созданные через UI; отдельная БД `backend/data/projects.sqlite`, путь — `PROJECTS_DB_PATH`). Список динамический: `GET /api/projects` = реестр + БД (без сканирования файловой системы). Страницы проектов — маршруты приложения (`#/projects/<slug>`), наследуют стиль и тему приложения.
 - **Данные «Ремонта» (этапы 1–7)** — отчётность в отдельной БД `backend/data/renovation.sqlite` (путь — `RENOVATION_DB_PATH`, не путать с `DB_PATH` — это базы разных модулей; у каждого домена своя БД в `backend/data/`, все сохраняются при деплое). Домен — `backend/src/services/renovation/domain/` (чистые типы + деньги в копейках). Наполнение — **штатное, через импорт PDF в приложении** (`POST /api/renovation/pdf` → черновик → подтверждение); seed из статичных HTML убран. Просмотр — read-API `/api/renovation/*` и страница `#/projects/renovation` (сводка Работы /
   Материалы + отчёты по ссылкам «Ход работ»/«Закупка материалов» — открываются в модальном окне). Импорт PDF (этап 3) — кнопка «Импорт PDF» на странице «Ремонт» (admin): `pdfplumber` через Python-subprocess, черновик → подтверждение; подтверждённый PDF сохраняется в `RENOVATION_DOCS_DIR` (по умолчанию `docs/renovation`, на сервере — `server/docs/renovation`, сохраняется при деплое) и раздаётся через `GET /api/renovation/docs/:file`; «Отчёт №N» в «Блоке 2. Материалы» и в отчёте «Материалы» — ссылки на исходные PDF, просмотр — встроенный pdf.js (`PdfViewerModal`). Доп. соглашения (этап 4) — кнопка «Доп. соглашение» (admin): дифф по наименованиям (было/стало, добавление/удаление), подтверждение → старая смета `current` замораживается как `history`, создаётся новая `current` с пересчитанными итогами (см. `docs/specification-renovation.md`).
@@ -156,14 +154,14 @@ node scripts/users.mjs add mama Мама user
 
 В проекте три независимых «пространства» переменных окружения. У каждого есть шаблон `.env.example` (в git, документированный) и, при необходимости, реальный `.env` (в git не попадает). Реальные `.env` не переопределяют уже заданные переменные окружения процесса.
 
-| Файл            | Кто читает                                  | Переменные                                                                                                                                                            |
-| --------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Корневой `.env` | `scripts/deploy.mjs` (деплой)               | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH`, `DEPLOY_PM2_HOME`, `DEPLOY_PDF_SETUP` |
-| `backend/.env`  | Бэкенд (`src/config/env.ts` через `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `AUTH_DB_PATH`, `PROJECTS_DB_PATH`, `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `AUTH_BOOTSTRAP_*`, `RENOVATION_*`         |
-| `frontend/.env` | Vite (только `VITE_*`)                      | `VITE_API_BASE_URL`                                                                                                                                                   |
+| Файл            | Кто читает                                  | Переменные                                                                                                                                                                                         |
+| --------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Корневой `.env` | `scripts/deploy.mjs` (деплой)               | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH`, `DEPLOY_PM2_HOME`, `DEPLOY_PDF_SETUP`                              |
+| `backend/.env`  | Бэкенд (`src/config/env.ts` через `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `AUTH_DB_PATH`, `PROJECTS_DB_PATH`, `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `AUTH_BOOTSTRAP_*`, `RENOVATION_*`, `DIARY_DB_PATH`, `DIARY_IMAGES_DIR` |
+| `frontend/.env` | Vite (только `VITE_*`)                      | `VITE_API_BASE_URL`                                                                                                                                                                                |
 
 - **Корневой `.env` / `.env.example`** — конфигурация **деплоя** (SSH-хост, пользователь, пути на сервере, имя pm2-приложения). Загружается `scripts/deploy.mjs` собственным мини-загрузчиком. Шаблон — `.env.example` в корне.
-- **`backend/.env.example`** — конфигурация **рантайма бэкенда**: порт API (`PORT`), разрешённый CORS-origin (`CORS_ORIGIN`), окружение (`NODE_ENV`), пути к раздельным SQLite-базам (`DB_PATH` — `data/vps.sqlite`, БД VPS; `AUTH_DB_PATH` — `data/auth.sqlite`, авторизация; `PROJECTS_DB_PATH` — `data/projects.sqlite`, прикладные проекты), а также авторизация: `AUTH_COOKIE_NAME` (имя cookie сессии, `sid`), `SESSION_TTL_HOURS` (срок жизни сессии, 168 ч), `AUTH_BOOTSTRAP_PASSWORD`/`AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME` (создание первого администратора при старте, если в БД нет пользователей). Модуль «Ремонт» — `RENOVATION_DB_PATH`/`RENOVATION_DOCS_DIR` (каталог загруженных PDF)/`RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT`. В dev подхватывается `dotenv` из `backend/.env`; в проде — из `server/.env`, который сохраняется при деплое. Переменной `PROJECTS_DIR` больше нет — проекты хранятся в БД.
+- **`backend/.env.example`** — конфигурация **рантайма бэкенда**: порт API (`PORT`), разрешённый CORS-origin (`CORS_ORIGIN`), окружение (`NODE_ENV`), пути к раздельным SQLite-базам (`DB_PATH` — `data/vps.sqlite`, БД VPS; `AUTH_DB_PATH` — `data/auth.sqlite`, авторизация; `PROJECTS_DB_PATH` — `data/projects.sqlite`, прикладные проекты), а также авторизация: `AUTH_COOKIE_NAME` (имя cookie сессии, `sid`), `SESSION_TTL_HOURS` (срок жизни сессии, 168 ч), `AUTH_BOOTSTRAP_PASSWORD`/`AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME` (создание первого администратора при старте, если в БД нет пользователей). Модуль «Ремонт» — `RENOVATION_DB_PATH`/`RENOVATION_DOCS_DIR` (каталог загруженных PDF)/`RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT`; модуль «Дневник» — `DIARY_DB_PATH` (БД событий)/`DIARY_IMAGES_DIR` (каталог изображений). В dev подхватывается `dotenv` из `backend/.env`; в проде — из `server/.env`, который сохраняется при деплое. Переменной `PROJECTS_DIR` больше нет — проекты хранятся в БД.
 - **`frontend/.env.example`** — конфигурация **фронтенда**: только переменные с префиксом `VITE_`. `VITE_API_BASE_URL` задаёт базовый URL API (пусто → Vite dev-прокси `/api` → `:3000`), используется в `src/api/client.ts`.
 
 Общее правило: `.env.example` — документированный шаблон в git; реальный `.env` — локальный/серверный, в git не попадает (см. `.gitignore`).
@@ -174,12 +172,13 @@ node scripts/users.mjs add mama Мама user
 
 | Файл                               | Назначение                                                                                                                                           |
 | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `docs/specification.md`            | Общая спецификация (SDD): обзор, архитектура, конфигурация, ADR, карта файлов + указатель на модульные                                               |
+| `docs/specification.md`            | Общая спецификация (SDD): обзор, архитектура, конфигурация, карта файлов + указатель на модульные                                                    |
+| `docs/adr.md`                      | Решения и обоснования (ADR-1…ADR-24): альтернативы, обоснования                                                                                      |
 | `docs/specification-api.md`        | Спецификация API: все эндпоинты, матрица доступа, форматы ответов, коды ошибок                                                                       |
 | `docs/specification-vps.md`        | Спецификация модуля VPS-мониторинг (FR-1…FR-9, критерии, сценарии)                                                                                   |
 | `docs/specification-projects.md`   | Спецификация модуля «Проекты» (FR-10, критерии, сценарии, проект «Ремонт»)                                                                           |
 | `docs/specification-auth.md`       | Спецификация модуля «Авторизация» (FR-11, критерии, сценарии, управление пользователями)                                                             |
-| `docs/specification-renovation.md` | Спецификация data-слоя модуля «Ремонт» (домен, отдельная БД, seed-импорт, верификация)                                                               |
+| `docs/specification-renovation.md` | Спецификация data-слоя модуля «Ремонт» (домен, отдельная БД, импорт PDF, верификация)                                                                |
 | `docs/immich.md`                   | Справочник по интеграции с Immich (фотоархив): API внешнего сервиса, варианты использования для фото «Дневника», шаг 1 — админ-настройки подключения |
 | `docs/server.md`                   | Справочник по серверу: пути, nginx, SSL, деплой, диагностика                                                                                         |
 
