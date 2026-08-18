@@ -15,6 +15,8 @@ import type { PdfExtraction, PdfTable } from './pdfExtractor';
 
 export interface DraftItem {
   position: number | null;
+  /** Раздел документа («Раздел 5. Электрика») — из строки «Раздел N. …». */
+  section: string | null;
   name: string;
   unit: string | null;
   price: number | null;
@@ -119,6 +121,7 @@ function parseItemTables(
   let total: number | null = null;
   let needsReview = false;
   let seenHeader = false;
+  let currentSection: string | null = null;
 
   for (const table of extraction.tables) {
     const headerIdx = findHeaderRow(table);
@@ -140,8 +143,15 @@ function parseItemTables(
       }
       if (name === '' && sumText === '') continue;
 
+      // Строка «Раздел N. …» в колонке наименования задаёт раздел следующих позиций.
+      if (SECTION_RE.test(name)) {
+        currentSection = name;
+        continue;
+      }
+
       items.push({
         position: parsePosition(row[0]),
+        section: currentSection,
         name: name || (row[0] ?? ''),
         unit: cell(row, cols.unit) || null,
         price: parseKopecks(cell(row, cols.price)),
@@ -165,22 +175,84 @@ function parsePosition(first: string | undefined): number | null {
 const HEADER_RE =
   /наименование|сумма|количество|объем|объём|цена|внесено|использовано|остаток|обоснование|единиц/i;
 
-/** Одна строка: «2 Провод ПВС 4х0.75 мм ГОСТ ККЗ м.п. 71,40 45,00 3 213,00». */
-const SINGLE_LINE_ITEM = /^(\d+)\s+(.+?)\s+(\S+)\s+([\d\s.,]+)$/;
+/** Одна строка: «2. Провод ПВС 4х0.75 мм ГОСТ ККЗ м.п. 71,40 45,00 3 213,00». */
+const SINGLE_LINE_ITEM = /^(\d+)\.?\s+(.+?)\s+(\S+)\s+([\d\s.,]+)$/;
 
 /** Продолжение многострочной позиции: «1 м.п. 91,00 60,00 5 460,00» (номер+ед+числа). */
-const CONTINUATION_ROW = /^(\d+)\s+(\S+)\s+([\d\s.,]+)$/;
+const CONTINUATION_ROW = /^(\d+)\.?\s+(\S+)\s+([\d\s.,]+)$/;
 
 /** Строка «11 Доставка - - - 6 000,00» (без цены/количества). */
 const DASH_ROW =
   /^(\d+)\s+(Доставка|Подъем|Подъём|доставка|подъем|подъём)\s+-?\s+-?\s+-?\s+([\d\s.,]+)$/;
 
+const ITEM_START_RE = /^\d+\.?\s+/;
+
+/** Подзаголовок раздела («Раздел 5. Электрика») — не позиция и не имя. */
+const SECTION_RE = /^раздел\s*\d/i;
+
+/** Строка накладных расходов («Накладные расходы 5%: …») — не позиция. */
+const OVERHEAD_RE = /^накладные/i;
+
+function appendWrappedLine(line: string, continuation: string): string {
+  if (continuation.startsWith('.') || (line.endsWith('.') && /^\d/.test(continuation))) {
+    return line + continuation;
+  }
+  if (/[а-яё]{4}$/i.test(line) && /^[а-яё]/i.test(continuation)) {
+    return line + continuation;
+  }
+  return `${line} ${continuation}`;
+}
+
+function isCompleteItemLine(line: string): boolean {
+  const match = line.match(CONTINUATION_ROW) ?? line.match(SINGLE_LINE_ITEM);
+  if (!match) return false;
+  const fields = parseNumFields(match[match.length - 1]);
+  return fields.price != null && fields.qty != null && fields.sum != null;
+}
+
+/** Склеивает переносы, попавшие внутрь строки позиции при извлечении текста PDF. */
+function joinWrappedItemLines(text: string): string[] {
+  const lines: string[] = [];
+  let itemLine: string | null = null;
+
+  const flush = () => {
+    if (itemLine) lines.push(itemLine);
+    itemLine = null;
+  };
+
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (line === '') continue;
+    // Шапка таблицы и подзаголовки разделов — отдельными строками: их текст
+    // не должен склеиваться с именем позиции (иначе в имя попадает «Цена за…»).
+    if (HEADER_RE.test(line) || SECTION_RE.test(line)) {
+      flush();
+      lines.push(line);
+      continue;
+    }
+    if (ITEM_START_RE.test(line)) {
+      flush();
+      itemLine = line;
+    } else if (itemLine && isCompleteItemLine(itemLine)) {
+      flush();
+      lines.push(line);
+    } else if (itemLine && !/^итого|^подписи|^страница/i.test(line)) {
+      itemLine = appendWrappedLine(itemLine, line);
+    } else {
+      flush();
+      lines.push(line);
+    }
+  }
+  flush();
+  return lines;
+}
+
 /**
  * Разбор числового хвоста позиции «цена кол-во сумма». Три поля, но в сумме
  * (реже — в цене/количестве) возможен пробел-разделитель тысяч («5 460,00»),
  * поэтому токенов бывает больше трёх. Жадный regex с `[\d\s.,]+` тут неверно
- * склеивает поля («91,00 60,00 5 460,00» → цена=null, кол-во=5, сумма=460,00),
- * поэтому разбираем по токенам и выбираем вариант, где цена×кол-во = сумма.
+ * склеивает поля («735,00 153,00 112 455,00»), поэтому перебираем границы
+ * трёх полей и выбираем вариант, где цена×кол-во = сумма.
  */
 function parseNumFields(tail: string): {
   price: number | null;
@@ -188,35 +260,39 @@ function parseNumFields(tail: string): {
   sum: number | null;
 } {
   const toks = tail.trim().split(/\s+/).filter(Boolean);
-  if (toks.length === 3) {
-    return { price: parseKopecks(toks[0]), qty: parseKopecks(toks[1]), sum: parseKopecks(toks[2]) };
+  const candidates: { price: number | null; qty: number | null; sum: number | null }[] = [];
+
+  for (let priceEnd = 1; priceEnd <= toks.length - 2; priceEnd += 1) {
+    for (let qtyEnd = priceEnd + 1; qtyEnd <= toks.length - 1; qtyEnd += 1) {
+      candidates.push({
+        price: parseKopecks(toks.slice(0, priceEnd).join(' ')),
+        qty: parseKopecks(toks.slice(priceEnd, qtyEnd).join(' ')),
+        sum: parseKopecks(toks.slice(qtyEnd).join(' ')),
+      });
+    }
   }
-  if (toks.length === 4) {
-    const candidates = [
-      { price: toks[0], qty: toks[1], sum: `${toks[2]} ${toks[3]}` },
-      { price: toks[0], qty: `${toks[1]} ${toks[2]}`, sum: toks[3] },
-      { price: `${toks[0]} ${toks[1]}`, qty: toks[2], sum: toks[3] },
-    ].map((c) => ({
-      price: parseKopecks(c.price),
-      qty: parseKopecks(c.qty),
-      sum: parseKopecks(c.sum),
-    }));
-    // Сверка «цена × кол-во = сумма» (в копейках: price*qty/100) — верный вариант.
-    const verified = candidates.find(
-      (c) =>
-        c.price != null &&
-        c.qty != null &&
-        c.sum != null &&
-        Math.abs((c.price * c.qty) / 100 - c.sum) < 2,
-    );
-    return verified ?? candidates[0];
-  }
-  // Неоднозначный набор — защитный fallback по токенам.
-  return {
-    price: parseKopecks(toks[0]),
-    qty: parseKopecks(toks[1]),
-    sum: parseKopecks(toks[toks.length - 1]),
-  };
+
+  // Сверка «цена × кол-во = сумма» (в копейках: price*qty/100) — верный вариант.
+  const verified = candidates.find(
+    (c) =>
+      c.price != null &&
+      c.qty != null &&
+      c.sum != null &&
+      Math.abs((c.price * c.qty) / 100 - c.sum) < 2,
+  );
+  return (
+    verified ?? {
+      price: parseKopecks(toks[0]),
+      qty: parseKopecks(toks[1]),
+      sum: parseKopecks(toks.slice(2).join(' ')),
+    }
+  );
+}
+
+/** Числовая строка позиции: «1 ед. 735.00 153.00 112 455.00» (CONTINUATION_ROW),
+ * «2. Монтаж… ед. 890.00 44.00 39 160.00» (SINGLE_LINE_ITEM) или «11 Доставка …». */
+function isItemNumberLine(line: string): boolean {
+  return CONTINUATION_ROW.test(line) || SINGLE_LINE_ITEM.test(line) || DASH_ROW.test(line);
 }
 
 /** Построчный разбор заказа/акта из текста (для PDF без линий таблицы). */
@@ -229,29 +305,44 @@ function parseItemText(
   let needsReview = false;
   let pending: string | null = null; // копим многострочное наименование
   let seenHeader = false; // прошли шапку таблицы — дальше строки позиций
+  let seenTotal = false; // встретили «Итого…» — дальше проза документа
+  let currentSection: string | null = null; // «Раздел N. …» для следующих позиций
 
-  const lines = text.split('\n');
+  const lines = joinWrappedItemLines(text);
   const totalRe = /итого[^\d]*([\d\s.,]+)/i;
   const num = (s: string) => {
     const n = Number.parseInt(s.replace(/[^\d]/g, ''), 10);
     return Number.isNaN(n) ? null : n;
   };
 
-  for (const raw of lines) {
+  for (let i = 0; i < lines.length; i += 1) {
+    const raw = lines[i];
     const line = raw.trim();
     if (line === '') continue;
     if (/^подписи|^страница/i.test(line)) break;
     if (line.startsWith('[')) continue; // метка «[стр. N]»
 
+    // Подзаголовок раздела задаёт раздел следующих позиций; строка накладных —
+    // не позиция и не продолжение имени. Новый раздел после «Итого» сбрасывает
+    // seenTotal (дальше снова могут идти позиции).
+    if (SECTION_RE.test(line)) {
+      currentSection = line;
+      seenTotal = false;
+      continue;
+    }
+    if (OVERHEAD_RE.test(line)) continue;
+
     const totalMatch = line.match(totalRe);
     if (totalMatch) {
       const t = parseKopecks(totalMatch[1]);
       if (t != null) total = t;
+      seenTotal = true;
       continue;
     }
 
     if (HEADER_RE.test(line)) {
       seenHeader = true;
+      pending = null; // всё до шапки — проза документа («1. Подрядчик выполнил…»), не имя позиции
       continue;
     }
 
@@ -259,6 +350,7 @@ function parseItemText(
     if (dash) {
       items.push({
         position: num(dash[1]),
+        section: currentSection,
         name: dash[2],
         unit: null,
         price: null,
@@ -276,6 +368,7 @@ function parseItemText(
       const name = pending ? pending : `позиция ${cont[1]}`;
       items.push({
         position: num(cont[1]),
+        section: currentSection,
         name: name.trim(),
         unit: cont[2],
         price: fields.price,
@@ -291,6 +384,7 @@ function parseItemText(
       const fields = parseNumFields(single[4]);
       items.push({
         position: num(single[1]),
+        section: currentSection,
         name: single[2].trim(),
         unit: single[3],
         price: fields.price,
@@ -301,19 +395,31 @@ function parseItemText(
       continue;
     }
 
-    if (/^\d+\.?\s/.test(line)) {
-      // Строка начинается с номера, но не разобралась — вероятно многострочная позиция.
+    // Строка с номером: до шапки — проза акта («1. Подрядчик выполнил…»), после
+    // «Итого» — тоже проза («2. Всего выполнено…»); только после шапки и до итога
+    // это начало многострочной позиции.
+    if (ITEM_START_RE.test(line)) {
+      if (seenTotal || !seenHeader) continue;
       needsReview = true;
       warnings.push(`Строка «${line.slice(0, 60)}…» не разобрана как позиция`);
       pending = line;
       continue;
     }
 
-    // Строка без номера: продолжение многострочного наименования, а до первой
-    // позиции (после шапки) — начало её наименования (накапливаем в pending).
-    if (pending) pending += ' ' + line;
-    else if (items.length > 0) items[items.length - 1].name += ' ' + line;
-    else if (seenHeader) pending = line;
+    // Строка без номера. После «Итого» это проза документа («Всего выполнено…»).
+    if (seenTotal) continue;
+
+    // Продолжение имени последней позиции, если:
+    //  - строка идёт сразу после числовой строки («кабель» после «1 ед. 735.00 …»), либо
+    //  - следующая строка не числовая («до 10 см», за которой идёт имя следующей позиции).
+    // Иначе — если перед следующей строкой стоит числовая строка, это НАЧАЛО имени новой
+    // позиции («Формирование дверного проема…», перед «2. ед. 2 700.00 …»): копим в pending.
+    const prevWasNumber = i > 0 && isItemNumberLine(lines[i - 1].trim());
+    const nextIsNumber = i + 1 < lines.length && isItemNumberLine(lines[i + 1].trim());
+    if (pending) pending = appendWrappedLine(pending, line);
+    else if (items.length > 0 && (prevWasNumber || !nextIsNumber)) {
+      items[items.length - 1].name += ' ' + line;
+    } else if (seenHeader) pending = line;
   }
 
   if (items.length === 0) needsReview = true;

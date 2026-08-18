@@ -328,7 +328,7 @@ export function confirmPdfController(req: Request, res: Response): void {
       }
       const items: RenovationDocItem[] = draft.items.map((i) => ({
         position: i.position,
-        section: '',
+        section: i.section ?? '',
         name: i.name,
         unit: i.unit,
         price: i.price,
@@ -372,7 +372,7 @@ export function confirmPdfController(req: Request, res: Response): void {
         pdfPath,
         items: draft.items.map((i) => ({
           position: i.position,
-          section: '',
+          section: i.section ?? '',
           name: i.name,
           unit: i.unit,
           price: i.price,

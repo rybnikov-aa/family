@@ -10,6 +10,7 @@ const STATUS_LABEL: Record<ReportWorkRow['status'], string> = {
   done: 'выполнено',
   partial: 'отклонение',
   notdone: 'не выполнено',
+  added: 'добавлено',
 };
 
 function qtyText(v: number | null): string {
@@ -55,6 +56,9 @@ function WorkReportView({ reports }: Props) {
         </span>
         <span className="renov-rp__lg">
           <span className="renov-rp__dot renov-rp__dot--notdone" /> не выполнено
+        </span>
+        <span className="renov-rp__lg">
+          <span className="renov-rp__dot renov-rp__dot--added" /> добавлено
         </span>
       </div>
 
@@ -104,8 +108,10 @@ function WorkSection({ title, rows }: { title: string; rows: ReportWorkRow[] }) 
   const planQty = rows.reduce((s, r) => s + (r.planQty ?? 0), 0);
   const factQty = rows.reduce((s, r) => s + (r.factQty ?? 0), 0);
   const qtyPercent = planQty > 0 ? Math.round((factQty / planQty) * 1000) / 10 : null;
-  // Выполненные строки группы (есть факт — done/partial) из общего числа строк.
-  const doneInGroup = rows.filter((r) => r.status === 'done' || r.status === 'partial').length;
+  // Выполненные строки группы (есть факт — done/partial/added) из общего числа строк.
+  const doneInGroup = rows.filter(
+    (r) => r.status === 'done' || r.status === 'partial' || r.status === 'added',
+  ).length;
   const totalInGroup = rows.length;
   return (
     <>

@@ -9,8 +9,21 @@ if (!username || !password) {
   process.exit(2);
 }
 
+async function fetchWithRetry(url, options) {
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+  throw lastError;
+}
+
 async function request(path, options = {}) {
-  const response = await fetch(`${baseUrl}${path}`, options);
+  const response = await fetchWithRetry(`${baseUrl}${path}`, options);
   const text = await response.text();
   let body = text;
   try {

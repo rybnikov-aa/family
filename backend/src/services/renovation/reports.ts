@@ -13,7 +13,7 @@ import type { RenovationMeta, SettlementAct } from './domain/types';
  * с позициями и итогами). Чистые функции без Express; суммы — копейки.
  */
 
-export type WorkRowStatus = 'done' | 'partial' | 'notdone';
+export type WorkRowStatus = 'done' | 'partial' | 'notdone' | 'added';
 
 export interface ReportWorkRow {
   position: number | null;
@@ -47,6 +47,7 @@ export interface ReportWork {
     done: number;
     partial: number;
     notdone: number;
+    added: number;
   };
   settlements: {
     works:
@@ -109,7 +110,9 @@ export function buildWorkReport(): ReportWork {
   const acts = listRenovationDocs('work_act').filter((d) => d.type === 'work_act');
   const meta = getRenovationMeta();
 
-  // Факт по актам: нормализованное имя → сумма по всем актам.
+  // Факт по актам: нормализованное имя → сумма по всем актам. Сначала считаем
+  // строки только по смете, затем добавляем отдельные строки актов, которых нет
+  // в смете (новые/добавленные объёмы по факту).
   const factByKey = new Map<string, { qty: number; sum: number }>();
   for (const act of acts) {
     for (const it of act.items) {
@@ -124,20 +127,58 @@ export function buildWorkReport(): ReportWork {
   }
 
   const items = current?.items ?? [];
+  const estimateKeys = new Set(items.map((item) => normalizeName(item.name)));
+  const addedByKey = new Map<
+    string,
+    {
+      section: string;
+      name: string;
+      unit: string | null;
+      qty: number;
+      sum: number;
+    }
+  >();
+
+  for (const act of acts) {
+    for (const it of act.items) {
+      if (it.kind !== 'row') continue;
+      const key = normalizeName(it.name);
+      if (key === '' || estimateKeys.has(key)) continue;
+      const prev = addedByKey.get(key) ?? {
+        section: it.section || 'Прочее',
+        name: it.name,
+        unit: it.unit,
+        qty: 0,
+        sum: 0,
+      };
+      prev.section = prev.section || it.section || 'Прочее';
+      prev.name = it.name;
+      prev.unit = it.unit ?? prev.unit;
+      prev.qty += it.qty ?? 0;
+      prev.sum += it.sum ?? 0;
+      addedByKey.set(key, prev);
+    }
+  }
+
   const sections: ReportWork['sections'] = [];
   const order = new Map<string, number>();
-  for (const item of items) {
-    if (!order.has(item.section)) {
-      order.set(item.section, sections.length);
-      sections.push({ title: item.section, rows: [] });
+  const ensureSection = (title: string) => {
+    if (!order.has(title)) {
+      order.set(title, sections.length);
+      sections.push({ title, rows: [] });
     }
+    return order.get(title)!;
+  };
+
+  for (const item of items) {
+    ensureSection(item.section);
     const key = normalizeName(item.name);
     const fact = factByKey.get(key);
     const factSum = fact?.sum ?? null;
     const factQty = fact?.qty ?? null;
     const diff = factSum != null && item.sum != null ? factSum - item.sum : null;
     const status: WorkRowStatus = fact ? (diff === 0 ? 'done' : 'partial') : 'notdone';
-    sections[order.get(item.section)!].rows.push({
+    sections[ensureSection(item.section)].rows.push({
       position: item.position,
       section: item.section,
       name: item.name,
@@ -153,12 +194,30 @@ export function buildWorkReport(): ReportWork {
     });
   }
 
+  for (const row of addedByKey.values()) {
+    const sectionIndex = ensureSection(row.section);
+    sections[sectionIndex].rows.push({
+      position: null,
+      section: row.section,
+      name: row.name,
+      unit: row.unit,
+      change: 'new',
+      planPrice: null,
+      planQty: null,
+      planSum: null,
+      factQty: row.qty,
+      factSum: row.sum,
+      diff: null,
+      status: 'added',
+    });
+  }
+
   // Итоги шапки — с накладными, как в сводке (overview.ts): план = итог сметы
   // (total включает накладные), факт = сумма итогов актов с накладными. Позиции
   // ниже — без накладных (накладные не привязаны к отдельным строкам).
   const planSum = current?.total ?? items.reduce((s, i) => s + (i.sum ?? 0), 0);
   const factSum = acts.reduce((s, a) => s + (a.totalWithOverhead ?? 0), 0);
-  const counts = { done: 0, partial: 0, notdone: 0 };
+  const counts = { done: 0, partial: 0, notdone: 0, added: 0 };
   for (const s of sections) {
     for (const r of s.rows) counts[r.status] += 1;
   }
@@ -190,6 +249,7 @@ export function buildWorkReport(): ReportWork {
       done: counts.done,
       partial: counts.partial,
       notdone: counts.notdone,
+      added: counts.added,
     },
     settlements: { works: settleSummary(latestWorks) },
   };

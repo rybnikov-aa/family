@@ -654,7 +654,7 @@ export async function confirmRenovationAddendum(
 
 // ── Отчёты (этап 5) ─────────────────────────────────────────────────────────
 
-export type WorkRowStatus = 'done' | 'partial' | 'notdone';
+export type WorkRowStatus = 'done' | 'partial' | 'notdone' | 'added';
 
 export interface ReportWorkRow {
   position: number | null;
@@ -687,6 +687,7 @@ export interface RenovationWorkReport {
     done: number;
     partial: number;
     notdone: number;
+    added: number;
   };
   settlements: {
     works: {

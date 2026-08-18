@@ -162,6 +162,25 @@ function runSanity(user) {
   });
 }
 
+async function waitForTestApi() {
+  const baseUrl = process.env.PIPELINE_TEST_URL ?? 'https://test.rybnikov.su';
+  const healthUrl = new URL('/api/health', baseUrl);
+  const attempts = 20;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetch(healthUrl, { signal: AbortSignal.timeout(2_000) });
+      if (response.ok) {
+        console.log(`[pipeline] Тестовый API готов (${attempt}/${attempts})`);
+        return;
+      }
+    } catch {
+      // После замены SQLite-файлов PM2 может ещё освобождать старое соединение.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new Error(`Тестовый API не готов: ${healthUrl}`);
+}
+
 function printConfig() {
   console.log(JSON.stringify({ source, target, mainDeploy, syncFiles }, null, 2));
 }
@@ -183,6 +202,7 @@ async function main() {
   console.log('[pipeline] Этап 2/4: инициализация данных тестового сервера');
   createDataArchive();
   installDataArchive();
+  await waitForTestApi();
   console.log('[pipeline] Создание временных пользователей test и user');
   manageSanityUsers('add');
   console.log('[pipeline] Этап 3/4: sanity-тесты на тестовом сервере');
