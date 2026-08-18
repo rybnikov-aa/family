@@ -62,6 +62,7 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   );
   const [cover, setCover] = useState<string | null>(() => event?.cover ?? null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [descriptionEditorOpen, setDescriptionEditorOpen] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<
@@ -179,16 +180,26 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
 
     setSubmitting(true);
     setError(null);
+    const hasNewFiles = images.some((img) => img.file !== null);
+    setUploadProgress(hasNewFiles ? 0 : null);
+
     try {
       if (event) {
-        await updateDiaryEvent(event.id, formData);
+        await updateDiaryEvent(event.id, formData, (percent) => {
+          setUploadProgress((prev) => (prev === null ? 0 : percent));
+        });
       } else {
-        await createDiaryEvent(formData);
+        await createDiaryEvent(formData, (percent) => {
+          setUploadProgress((prev) => (prev === null ? 0 : percent));
+        });
       }
+      setUploadProgress(null);
       onSaved();
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось сохранить событие');
+      setUploadProgress(null);
+    } finally {
       setSubmitting(false);
     }
   };
@@ -420,6 +431,27 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
               </div>
             )}
           </section>
+
+          {submitting && uploadProgress !== null && (
+            <div className="diary-upload-progress" aria-live="polite" aria-atomic="true">
+              <div className="diary-upload-progress__header">
+                <span>Загрузка изображений</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div
+                className="diary-upload-progress__track"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={uploadProgress}
+              >
+                <span
+                  className="diary-upload-progress__fill"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           {error && <div className="alert alert--error">{error}</div>}
 

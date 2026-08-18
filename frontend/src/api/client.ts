@@ -841,18 +841,70 @@ export function buildDiaryFormData(input: DiaryEventInput): FormData {
   return fd;
 }
 
+/** Отправляет multipart-форму с отслеживанием прогресса загрузки файлов. */
+async function uploadDiaryRequest(
+  method: 'POST' | 'PATCH',
+  path: string,
+  formData: FormData,
+  onProgress?: (percent: number) => void,
+): Promise<DiaryEventDetail> {
+  return new Promise<DiaryEventDetail>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, `${API_BASE}${path}`, true);
+    xhr.withCredentials = true;
+
+    xhr.upload.addEventListener('progress', (event) => {
+      if (!event.lengthComputable) return;
+      const percent = Math.min(100, Math.max(0, Math.round((event.loaded / event.total) * 100)));
+      onProgress?.(percent);
+    });
+
+    xhr.addEventListener('load', () => {
+      try {
+        const responseText = xhr.responseText;
+        const data = responseText ? (JSON.parse(responseText) as { message?: string }) : null;
+        if (xhr.status >= 200 && xhr.status < 300) {
+          if (!responseText) {
+            resolve({} as DiaryEventDetail);
+            return;
+          }
+          resolve(data as DiaryEventDetail);
+          return;
+        }
+
+        reject(new Error(data?.message ?? `Request failed with status ${xhr.status}`));
+      } catch {
+        reject(new Error(`Request failed with status ${xhr.status}`));
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      reject(new Error('Не удалось загрузить изображение'));
+    });
+
+    xhr.addEventListener('abort', () => {
+      reject(new Error('Загрузка была отменена'));
+    });
+
+    xhr.send(formData);
+  });
+}
+
 /** Создаёт событие: `POST /api/diary` (multipart, admin). */
-export async function createDiaryEvent(formData: FormData): Promise<DiaryEventDetail> {
-  const res = await apiFetch('/diary', { method: 'POST', body: formData });
-  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
-  return res.json() as Promise<DiaryEventDetail>;
+export async function createDiaryEvent(
+  formData: FormData,
+  onProgress?: (percent: number) => void,
+): Promise<DiaryEventDetail> {
+  return uploadDiaryRequest('POST', '/diary', formData, onProgress);
 }
 
 /** Обновляет событие: `PATCH /api/diary/:id` (multipart, admin). */
-export async function updateDiaryEvent(id: number, formData: FormData): Promise<DiaryEventDetail> {
-  const res = await apiFetch(`/diary/${id}`, { method: 'PATCH', body: formData });
-  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
-  return res.json() as Promise<DiaryEventDetail>;
+export async function updateDiaryEvent(
+  id: number,
+  formData: FormData,
+  onProgress?: (percent: number) => void,
+): Promise<DiaryEventDetail> {
+  return uploadDiaryRequest('PATCH', `/diary/${id}`, formData, onProgress);
 }
 
 // ── Админ-настройки: подключение к Immich ───────────────────────────────────
