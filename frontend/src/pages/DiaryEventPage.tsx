@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import DiaryEventModal from '../components/DiaryEventModal';
+import Button from '../components/Button';
 import IconButton from '../components/IconButton';
-import { DiaryIcon, EditIcon, ImageIcon } from '../components/icons';
+import { DiaryIcon, DocIcon, EditIcon, ImageIcon } from '../components/icons';
 import { diaryImageUrl } from '../api/client';
 import { useDiaryEvent } from '../hooks/useDiaryEvent';
 import { useAuth } from '../hooks/useAuth';
@@ -22,6 +23,7 @@ function DiaryEventPage() {
   const { event, error, loading, reload } = useDiaryEvent(id);
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
 
   const dateLabel = event
@@ -59,6 +61,13 @@ function DiaryEventPage() {
               </div>
               {isAdmin && (
                 <div className="page__head-actions">
+                  <Button
+                    variant="secondary"
+                    icon={<DocIcon />}
+                    onClick={() => navigate(`/diary/${event.id}/edit`)}
+                  >
+                    Редактировать описание
+                  </Button>
                   <IconButton
                     label="Редактировать событие"
                     tooltip="Редактировать"

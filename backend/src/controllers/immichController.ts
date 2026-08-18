@@ -38,7 +38,8 @@ export async function immichSearchController(req: Request, res: Response): Promi
 
 /**
  * Проксирует бинарный файл ассета Immich (миниатюра/оригинал) потоком.
- * Копирует Content-Type апстрима; тело не буферизуется (важно для оригиналов).
+ * Копирует Content-Type и Content-Length апстрима (длина — для прогресс-бара
+ * скачивания оригиналов в пикере); тело не буферизуется (важно для оригиналов).
  */
 async function proxyBinary(
   req: Request,
@@ -54,6 +55,9 @@ async function proxyBinary(
     const upstream = await fetchImmichAssetBinary(id, kind);
     const contentType = upstream.headers.get('content-type');
     if (contentType) res.setHeader('Content-Type', contentType);
+    // Прокидываем размер — клиентский прогресс-бар скачивания знает длину файла.
+    const contentLength = upstream.headers.get('content-length');
+    if (contentLength) res.setHeader('Content-Length', contentLength);
     if (upstream.body) {
       const webStream = upstream.body as unknown as Parameters<typeof Readable.fromWeb>[0];
       Readable.fromWeb(webStream).pipe(res);

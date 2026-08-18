@@ -11,6 +11,8 @@ export const ROUTES = {
   diary: '/diary',
   /** Страница события «Дневника», например `/diary/3`. */
   diaryEvent: '/diary/:id',
+  /** Редактор подробного описания события «Дневника», например `/diary/3/edit`. */
+  diaryEventEdit: '/diary/:id/edit',
   projects: '/projects',
   profile: '/profile',
   adminUsers: '/admin/users',

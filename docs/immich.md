@@ -275,11 +275,11 @@ const me = await getMyUser();
 Роутер `/api/immich` (`routes/immich.ts`, `controllers/immichController.ts`) монтируется
 в `app.ts` под `requireAdmin`.
 
-| Метод | Путь                               | Назначение                                                                                                             |
-| ----- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| GET   | `/api/immich/search`               | Поиск фото (`POST /search/metadata`): диапазон дат съёмки, только изображения, допустимые к импорту (JPG/PNG/WebP/GIF) |
-| GET   | `/api/immich/assets/:id/thumbnail` | Миниатюра (`GET /assets/{id}/thumbnail?size=thumbnail`) — прокси потоком                                               |
-| GET   | `/api/immich/assets/:id/original`  | Оригинал (`GET /assets/{id}/original`) — прокси потоком                                                                |
+| Метод | Путь                               | Назначение                                                                                                                             |
+| ----- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| GET   | `/api/immich/search`               | Поиск фото (`POST /search/metadata`): диапазон дат съёмки, только изображения, допустимые к импорту (JPG/PNG/WebP/GIF)                 |
+| GET   | `/api/immich/assets/:id/thumbnail` | Миниатюра (`GET /assets/{id}/thumbnail?size=thumbnail`) — прокси потоком                                                               |
+| GET   | `/api/immich/assets/:id/original`  | Оригинал (`GET /assets/{id}/original`) — прокси потоком; прокидывает `Content-Length` апстрима (для прогресс-бара скачивания в пикере) |
 
 Расширение сервиса — `services/immichService.ts`:
 
@@ -297,7 +297,9 @@ const me = await getMyUser();
 - `components/ImmichPickerModal.tsx` — модалка-пикер: диапазон дат (по умолчанию — даты
   события, если заданы: `defaultFrom`/`defaultTo`; иначе последние 3 месяца), сетка миниатюр
   с мультивыбором, «Показать ещё» (пагинация), кнопка «Добавить N фото» — скачивает оригиналы
-  (`fetchImmichOriginal`) и отдаёт `File[]`.
+  (`fetchImmichOriginal`, байты через `onProgress`) и отдаёт `File[]`. Во время скачивания
+  пикер показывает прогресс-бар `components/UploadProgress.tsx` («Фото N из M · имя»
+  и «Общий прогресс»).
 - `DiaryEventModal.tsx` — кнопка «Из Immich» (видна, если инстанс настроен — `useImmichSettings`);
   выбранные файлы вливаются в форму как обычные загрузки (`addFiles`) — обложка, `keep`/`newIds`,
   маркеры `diary-image://` работают без изменений. В пикер передаются даты события

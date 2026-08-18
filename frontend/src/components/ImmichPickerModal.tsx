@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import Modal from './Modal';
 import Button from './Button';
+import UploadProgress from './UploadProgress';
 import { CheckIcon } from './icons';
 import {
   fetchImmichOriginal,
   fetchImmichSearchAssets,
   immichThumbnailUrl,
   type ImmichAssetItem,
+  type ImmichDownloadProgress,
   type ImmichSearchResult,
 } from '../api/client';
 
@@ -57,6 +59,7 @@ function ImmichPickerModal({ onClose, onPick, defaultFrom, defaultTo }: ImmichPi
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<ImmichDownloadProgress | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   /** Поиск по текущему диапазону дат (границы — в локальном времени). */
@@ -144,12 +147,48 @@ function ImmichPickerModal({ onClose, onPick, defaultFrom, defaultTo }: ImmichPi
     if (adding || selected.size === 0) return;
     setAdding(true);
     setMessage(null);
+    setDownloadProgress({
+      currentIndex: 0,
+      currentName: '',
+      currentPercent: 0,
+      overallPercent: 0,
+      totalFiles: 0,
+    });
     const files: File[] = [];
     let skipped = 0;
-    for (const item of items) {
-      if (!selected.has(item.id)) continue;
+    const chosen = items.filter((item) => selected.has(item.id));
+    const totalFiles = chosen.length;
+    let completed = 0;
+    for (let i = 0; i < chosen.length; i++) {
+      const item = chosen[i];
+      // Доля завершённых файлов — нижняя граница общего прогресса.
+      const baseOverall = totalFiles > 0 ? Math.round((completed / totalFiles) * 100) : 0;
+      setDownloadProgress({
+        currentIndex: i,
+        currentName: item.fileName,
+        currentPercent: 0,
+        overallPercent: baseOverall,
+        totalFiles,
+      });
       try {
-        const bytes = await fetchImmichOriginal(item.id);
+        const bytes = await fetchImmichOriginal(item.id, (loaded, totalBytes) => {
+          const currentPercent =
+            totalBytes > 0
+              ? Math.min(100, Math.max(0, Math.round((loaded / totalBytes) * 100)))
+              : 100;
+          const currentFraction = totalBytes > 0 ? Math.min(1, loaded / totalBytes) : 1;
+          setDownloadProgress({
+            currentIndex: i,
+            currentName: item.fileName,
+            currentPercent,
+            overallPercent:
+              totalFiles > 0
+                ? Math.min(100, Math.round(((completed + currentFraction) / totalFiles) * 100))
+                : 0,
+            totalFiles,
+          });
+        });
+        completed += 1;
         if (bytes.byteLength > MAX_IMPORT_SIZE) {
           skipped += 1;
           continue;
@@ -158,10 +197,12 @@ function ImmichPickerModal({ onClose, onPick, defaultFrom, defaultTo }: ImmichPi
           new File([bytes], item.fileName, { type: item.mimeType ?? 'application/octet-stream' }),
         );
       } catch {
+        completed += 1;
         skipped += 1;
       }
     }
     setAdding(false);
+    setDownloadProgress(null);
 
     if (files.length === 0) {
       setMessage(
@@ -252,6 +293,8 @@ function ImmichPickerModal({ onClose, onPick, defaultFrom, defaultTo }: ImmichPi
             )}
           </>
         )}
+
+        {adding && downloadProgress !== null && <UploadProgress {...downloadProgress} />}
 
         <div className="immich-picker__actions">
           <Button

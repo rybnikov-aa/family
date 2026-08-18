@@ -82,19 +82,13 @@ export function PhotoIcon(props: IconProps) {
   );
 }
 
-/** Immich — официальный логотип */
+/**
+ * Immich — официальный логотип. viewBox обрезан до области логотипа (96×96),
+ * чтобы по размеру иконка соответствовала остальным (CSS задаёт размер).
+ */
 export function ImmichIcon(props: IconProps) {
   return (
-    <svg
-      viewBox="0 0 125 119"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      preserveAspectRatio="xMidYMid meet"
-      width={18}
-      height={18}
-      style={{ display: 'block' }}
-      {...props}
-    >
+    <svg viewBox="15 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <g clipPath="url(#immich-clip)">
         <path
           d="M110.5 48C110.5 21.7665 89.2335 0.5 63 0.5C36.7665 0.5 15.5 21.7665 15.5 48C15.5 74.2335 36.7665 95.5 63 95.5C89.2335 95.5 110.5 74.2335 110.5 48Z"
@@ -127,7 +121,7 @@ export function ImmichIcon(props: IconProps) {
       </g>
       <defs>
         <clipPath id="immich-clip">
-          <rect width="96" height="96" fill="white" transform="translate(15)" />
+          <rect width="96" height="96" fill="white" />
         </clipPath>
       </defs>
     </svg>

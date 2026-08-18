@@ -25,21 +25,58 @@ async function errorMessage(res: Response, fallback: string): Promise<string> {
 }
 
 /**
+ * Читает тело ответа потоком, сообщая прогресс (по `Content-Length` апстрима;
+ * если размер неизвестен — `total: 0`). Возвращает полный ArrayBuffer.
+ */
+async function streamBodyWithProgress(
+  res: Response,
+  onProgress: (loaded: number, total: number) => void,
+): Promise<ArrayBuffer> {
+  if (!res.body) return res.arrayBuffer();
+  const total = Number(res.headers.get('content-length')) || 0;
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let loaded = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value) {
+      chunks.push(value);
+      loaded += value.byteLength;
+      onProgress(loaded, total);
+    }
+  }
+  const out = new Uint8Array(loaded);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return out.buffer as ArrayBuffer;
+}
+
+/**
  * Скачивает файл по серверному пути (для встроенного просмотра PDF).
  * Для путей `/api/*` идёт через `apiFetch` (та же обработка 401 → вход);
  * прочие пути (например статичный архив `/projects/...`) — обычным fetch.
+ * При переданном `onProgress` тело читается потоком с прогрессом.
  */
-export async function fetchFileBytes(path: string): Promise<ArrayBuffer> {
+export async function fetchFileBytes(
+  path: string,
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<ArrayBuffer> {
   if (path.startsWith('/api/')) {
     const res = await apiFetch(path.slice('/api'.length));
     if (!res.ok) {
       throw new Error(await errorMessage(res, `Ошибка загрузки файла (${res.status})`));
     }
-    return res.arrayBuffer();
+    if (!onProgress) return res.arrayBuffer();
+    return streamBodyWithProgress(res, onProgress);
   }
   const res = await fetch(path);
   if (!res.ok) throw new Error(`Ошибка загрузки файла (${res.status})`);
-  return res.arrayBuffer();
+  if (!onProgress) return res.arrayBuffer();
+  return streamBodyWithProgress(res, onProgress);
 }
 
 export interface HealthResponse {
@@ -1076,7 +1113,28 @@ export function immichThumbnailUrl(assetId: string): string {
   return `/api/immich/assets/${encodeURIComponent(assetId)}/thumbnail`;
 }
 
-/** Скачивает оригинал ассета Immich (ArrayBuffer) — для импорта в событие. */
-export async function fetchImmichOriginal(assetId: string): Promise<ArrayBuffer> {
-  return fetchFileBytes(`/api/immich/assets/${encodeURIComponent(assetId)}/original`);
+/** Прогресс скачивания оригиналов Immich (для прогресс-бара пикера). */
+export interface ImmichDownloadProgress {
+  /** Индекс текущего скачиваемого файла (0-based, среди выбранных). */
+  currentIndex: number;
+  /** Имя текущего скачиваемого файла. */
+  currentName: string;
+  /** Прогресс скачивания текущего файла (0–100). */
+  currentPercent: number;
+  /** Общий прогресс скачивания всех файлов (0–100). */
+  overallPercent: number;
+  /** Число скачиваемых файлов. */
+  totalFiles: number;
+}
+
+/**
+ * Скачивает оригинал ассета Immich (ArrayBuffer) — для импорта в событие.
+ * `onProgress(loaded, total)` сообщает байты текущего файла (total = 0, если
+ * размер неизвестен).
+ */
+export async function fetchImmichOriginal(
+  assetId: string,
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<ArrayBuffer> {
+  return fetchFileBytes(`/api/immich/assets/${encodeURIComponent(assetId)}/original`, onProgress);
 }

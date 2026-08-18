@@ -12,6 +12,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'));
 const AdminSettingsPage = lazy(() => import('./pages/AdminSettingsPage'));
 const RenovationPage = lazy(() => import('./pages/RenovationPage'));
+const DiaryDescriptionEditPage = lazy(() => import('./pages/DiaryDescriptionEditPage'));
 import { ROUTES } from './routes';
 import { useAuth } from './hooks/useAuth';
 import { pageTitle } from './utils/brand';
@@ -96,6 +97,8 @@ const router = createHashRouter([
             children: [
               { path: ROUTES.adminUsers, element: <AdminUsersPage /> },
               { path: ROUTES.adminSettings, element: <AdminSettingsPage /> },
+              // Редактор описания события — мутация, только admin.
+              { path: ROUTES.diaryEventEdit, element: <DiaryDescriptionEditPage /> },
             ],
           },
           // Неизвестные пути (например, старый якорь #sections) — на главную.

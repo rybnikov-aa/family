@@ -11,10 +11,11 @@ import Modal from './Modal';
 import Button from './Button';
 import IconButton from './IconButton';
 import ImmichPickerModal from './ImmichPickerModal';
+import UploadProgress from './UploadProgress';
 import { CheckIcon, ImmichIcon, TrashIcon, UploadIcon } from './icons';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 import { useImmichSettings } from '../hooks/useImmichSettings';
-import { renderMarkdown } from '../utils/markdown';
+import { useNavigate } from 'react-router-dom';
 
 interface DiaryEventModalProps {
   /** Редактируемое событие; `null` — создание нового. */
@@ -65,7 +66,6 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   const [submitting, setSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<DiaryUploadProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [descriptionEditorOpen, setDescriptionEditorOpen] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<
     Record<'info' | 'photos' | 'description', boolean>
   >({
@@ -82,6 +82,7 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   const objectUrlsRef = useRef<string[]>([]);
 
   useEscapeClose(onClose);
+  const navigate = useNavigate();
 
   // Освобождаем object URL при размонтировании.
   useEffect(() => {
@@ -131,19 +132,12 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
       (match) => match[1],
     ),
   );
-  const galleryImages = images.filter((img) => !contentImageNames.has(img.id));
-  const resolveDiaryPreviewImage = (name: string) => {
-    const direct = images.find((img) => img.id === name);
-    if (direct) {
-      return { src: direct.preview, href: direct.preview };
-    }
-    if (event?.folder) {
-      return {
-        src: diaryImageUrl(event.folder, name, true),
-        href: diaryImageUrl(event.folder, name),
-      };
-    }
-    return null;
+
+  /** Открывает расширенный редактор описания: закрывает форму и ведёт на страницу. */
+  const handleOpenEditor = () => {
+    if (!event) return;
+    onClose();
+    navigate(`/diary/${event.id}/edit`);
   };
 
   const handleSubmit = async (eventForm: FormEvent) => {
@@ -373,111 +367,59 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
           </section>
 
           <section className="diary-form-section">
-            <button
-              type="button"
-              className="diary-form-section__header diary-form-section__toggle"
-              onClick={() =>
-                setCollapsedSections((prev) => ({ ...prev, description: !prev.description }))
-              }
-              aria-expanded={!collapsedSections.description}
-            >
-              <h4 className="diary-form-section__title">Подробное описание</h4>
-              <span className="diary-form-section__toggle-group">
+            <div className="diary-form-section__head">
+              <button
+                type="button"
+                className="diary-form-section__header diary-form-section__toggle"
+                onClick={() =>
+                  setCollapsedSections((prev) => ({ ...prev, description: !prev.description }))
+                }
+                aria-expanded={!collapsedSections.description}
+              >
+                <h4 className="diary-form-section__title">Подробное описание</h4>
                 <span className="diary-form-section__chevron" aria-hidden="true">
                   {collapsedSections.description ? '＋' : '−'}
                 </span>
+              </button>
+              {event && (
                 <Button
                   type="button"
                   variant="secondary"
                   className="diary-description-button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setDescriptionEditorOpen(true);
-                  }}
+                  onClick={handleOpenEditor}
                 >
-                  Редактировать описание
+                  Открыть расширенный редактор
                 </Button>
-              </span>
-            </button>
+              )}
+            </div>
             {!collapsedSections.description && (
               <div className="diary-form-section__body">
-                {content.trim() ? (
-                  <div className="diary-description-preview">
-                    <div className="field__hint">
-                      Содержимое добавлено и отображается в виде просмотра.
-                    </div>
-                    <div className="markdown diary-description-preview__content">
-                      {renderMarkdown(content, (name) => resolveDiaryPreviewImage(name) ?? null)}
-                    </div>
-                    {galleryImages.length > 0 && (
-                      <div className="diary-event__gallery-wrap diary-description-preview__gallery">
-                        <div className="diary-event__gallery-header">
-                          <h5 className="diary-event__gallery-title">Дополнительные фотографии</h5>
-                          <span className="diary-event__gallery-line" aria-hidden="true" />
-                        </div>
-                        <div className="diary-event__gallery">
-                          {galleryImages.map((img) => (
-                            <a
-                              key={img.id}
-                              className="diary-event__photo"
-                              href={img.preview}
-                              target="_blank"
-                              rel="noreferrer"
-                              title="Открыть в полном размере"
-                            >
-                              <img src={img.preview} alt="" loading="lazy" />
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                {event ? (
+                  <div className="field__hint">
+                    {content.trim()
+                      ? 'Подробное описание добавлено. Для вставки фотографий в текст и просмотра результата используйте расширенный редактор.'
+                      : 'Подробное описание пока не добавлено. Расширенный редактор позволяет вставлять фотографии в текст и смотреть живой предпросмотр.'}
                   </div>
                 ) : (
-                  <div className="field__hint">Текст ещё не добавлен.</div>
+                  <>
+                    <textarea
+                      className="input"
+                      rows={5}
+                      value={content}
+                      onChange={(descriptionEvent) => setContent(descriptionEvent.target.value)}
+                      placeholder="## День первый&#10;&#10;Подробный рассказ о событии: заголовки, списки, ссылки."
+                    />
+                    <span className="field__hint">
+                      Черновик подробного описания (markdown). Для вставки фотографий в текст после
+                      сохранения события откройте расширенный редактор.
+                    </span>
+                  </>
                 )}
               </div>
             )}
           </section>
 
-          {submitting && uploadProgress !== null && (
-            <div className="diary-upload-progress" aria-live="polite" aria-atomic="true">
-              <div className="diary-upload-progress__header">
-                <span>
-                  Фото {uploadProgress.currentIndex + 1} из {uploadProgress.totalFiles}
-                  {uploadProgress.currentName ? ` · ${uploadProgress.currentName}` : ''}
-                </span>
-                <span>{uploadProgress.currentPercent}%</span>
-              </div>
-              <div
-                className="diary-upload-progress__track"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={uploadProgress.currentPercent}
-              >
-                <span
-                  className="diary-upload-progress__fill"
-                  style={{ width: `${uploadProgress.currentPercent}%` }}
-                />
-              </div>
-              <div className="diary-upload-progress__header diary-upload-progress__header--overall">
-                <span>Общий прогресс</span>
-                <span>{uploadProgress.overallPercent}%</span>
-              </div>
-              <div
-                className="diary-upload-progress__track"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={uploadProgress.overallPercent}
-              >
-                <span
-                  className="diary-upload-progress__fill"
-                  style={{ width: `${uploadProgress.overallPercent}%` }}
-                />
-              </div>
-            </div>
-          )}
+          {submitting && uploadProgress !== null && <UploadProgress {...uploadProgress} />}
 
           {error && <div className="alert alert--error">{error}</div>}
 
@@ -502,106 +444,7 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
           />
         )}
       </Modal>
-
-      {descriptionEditorOpen && (
-        <DiaryDescriptionEditorModal
-          value={content}
-          images={images}
-          onClose={() => setDescriptionEditorOpen(false)}
-          onSave={(nextContent) => {
-            setContent(nextContent);
-            setDescriptionEditorOpen(false);
-          }}
-        />
-      )}
     </>
-  );
-}
-
-interface DiaryDescriptionEditorModalProps {
-  value: string;
-  images: FormImage[];
-  onClose: () => void;
-  onSave: (nextContent: string) => void;
-}
-
-function DiaryDescriptionEditorModal({
-  value,
-  images,
-  onClose,
-  onSave,
-}: DiaryDescriptionEditorModalProps) {
-  const [draft, setDraft] = useState(value);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const insertImage = (image: FormImage) => {
-    const textarea = textareaRef.current;
-    const marker = `![Фото](diary-image://${image.id})\n`;
-    const start = textarea?.selectionStart ?? draft.length;
-    const end = textarea?.selectionEnd ?? draft.length;
-    const nextContent = `${draft.slice(0, start)}${marker}${draft.slice(end)}`;
-    setDraft(nextContent);
-    requestAnimationFrame(() => {
-      textarea?.focus();
-      textarea?.setSelectionRange(start + marker.length, start + marker.length);
-    });
-  };
-
-  const availableImages = images.filter(
-    (image) =>
-      !new RegExp(
-        `!\\[[^\\]]*\\]\\(diary-image:\/\\/${image.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`,
-      ).test(draft),
-  );
-
-  return (
-    <Modal title="Подробное описание" onClose={onClose} wide>
-      <div className="vps-form">
-        <textarea
-          ref={textareaRef}
-          className="input input--area"
-          rows={12}
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          placeholder="## День первый&#10;&#10;Подробный рассказ о событии: заголовки, списки, ссылки."
-        />
-        <span className="field__hint">
-          Markdown: ## заголовки, **жирный**, *курсив*, - списки, [ссылки](url).
-        </span>
-
-        {availableImages.length > 0 && (
-          <div className="diary-photos__insert">
-            <span className="field__hint">Вставить фотографию в описание:</span>
-            <div className="diary-photos__insert-list">
-              {availableImages.map((img) => {
-                const imageNumber = images.indexOf(img) + 1;
-                return (
-                  <button
-                    key={`insert-${img.id}`}
-                    type="button"
-                    className="diary-photos__insert-item"
-                    aria-label={`Вставить Фото ${imageNumber} в описание`}
-                    onClick={() => insertImage(img)}
-                  >
-                    <span className="diary-photos__insert-label">Фото {imageNumber}</span>
-                    <img src={img.preview} alt="" />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        <div className="vps-form__actions">
-          <Button variant="secondary" onClick={onClose}>
-            Отмена
-          </Button>
-          <Button variant="primary" onClick={() => onSave(draft)}>
-            Сохранить описание
-          </Button>
-        </div>
-      </div>
-    </Modal>
   );
 }
 
