@@ -14,7 +14,7 @@ import DiaryPhotoUploadActions from './DiaryPhotoUploadActions';
 import DiaryPhotosModal from './DiaryPhotosModal';
 import ImmichPickerModal from './ImmichPickerModal';
 import UploadProgress from './UploadProgress';
-import { DocIcon, EditIcon } from './icons';
+import { DocIcon, ImagesIcon } from './icons';
 import { extractDiaryImageNames, stripDiaryImage } from '../utils/diaryImages';
 import type { FormImage } from '../types/diary';
 import { useEscapeClose } from '../hooks/useEscapeClose';
@@ -303,7 +303,7 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
                   tooltip="Редактировать фотографии"
                   onClick={() => setPhotosEditorOpen(true)}
                 >
-                  <EditIcon />
+                  <ImagesIcon />
                 </IconButton>
                 <DiaryPhotoUploadActions
                   immichAvailable={Boolean(immichUrl)}

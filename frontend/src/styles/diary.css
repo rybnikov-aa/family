@@ -169,30 +169,34 @@
 }
 
 /* ── Страница события ── */
-.diary-event__head .diary-pill {
-  margin-top: 6px;
-}
-.diary-event__cover {
-  width: 100%;
-  max-width: 900px;
-  border-radius: var(--radius-2xl);
-  overflow: hidden;
-  border: 1px solid var(--border);
+/* Hero-блок: превью основного фото слева, дата и краткое описание справа */
+.diary-event__hero {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+  padding-bottom: var(--space-6);
   margin-bottom: var(--space-6);
-  background: var(--surface-muted);
+  /* Отделяет hero (фото + краткое описание) от подробного описания */
+  border-bottom: 1px solid var(--border);
 }
-.diary-event__cover img {
-  display: block;
-  width: 100%;
-  max-height: 520px;
-  object-fit: cover;
+.diary-event__hero-cover {
+  flex: 0 0 280px;
+  width: 280px;
+}
+.diary-event__hero-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
 }
 .diary-event__summary {
   font-size: var(--font-size-md);
   color: var(--text-muted);
   line-height: 1.6;
   max-width: 760px;
-  margin-bottom: var(--space-6);
+  margin: 0;
 }
 .diary-event__content {
   margin-bottom: var(--space-8);
@@ -733,5 +737,17 @@
   }
   .diary-blocks--cards {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Адаптивность hero-блока страницы события: на узких экранах — колонкой */
+@media (max-width: 640px) {
+  .diary-event__hero {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .diary-event__hero-cover {
+    flex: 1 1 auto;
+    width: 100%;
   }
 }

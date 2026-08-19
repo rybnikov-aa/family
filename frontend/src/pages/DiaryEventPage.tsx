@@ -2,18 +2,23 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import DiaryEventModal from '../components/DiaryEventModal';
+import DiaryPhotosModal from '../components/DiaryPhotosModal';
+import ImmichPickerModal from '../components/ImmichPickerModal';
 import IconButton from '../components/IconButton';
-import { DiaryIcon, DocIcon, EditIcon, ImageIcon } from '../components/icons';
-import { diaryImageUrl } from '../api/client';
+import { DiaryIcon, DocIcon, EditIcon, ImageIcon, ImagesIcon } from '../components/icons';
+import { buildDiaryFormData, diaryImageUrl, updateDiaryEvent } from '../api/client';
 import { useDiaryEvent } from '../hooks/useDiaryEvent';
 import { useAuth } from '../hooks/useAuth';
+import { useImmichSettings } from '../hooks/useImmichSettings';
+import { stripDiaryImage } from '../utils/diaryImages';
 import { renderMarkdown } from '../utils/markdown';
 import { formatDateIso } from '../utils/money';
+import type { FormImage } from '../types/diary';
 
 /**
- * Страница события «Дневника» (`#/diary/:id`): обложка, название, дата (pill),
- * краткое описание, подробное описание (markdown) и галерея фотографий.
- * Редактирование — кнопки-иконки с подсказками «описание» и «карандаш» (admin).
+ * Страница события «Дневника» (`#/diary/:id`): hero-блок (превью обложки,
+ * дата и краткое описание), подробное описание (markdown) и галерея фотографий.
+ * Действия admin — кнопки-иконки: «карандаш», «описание», «Фотографии».
  */
 function DiaryEventPage() {
   const params = useParams();
@@ -24,6 +29,10 @@ function DiaryEventPage() {
   const isAdmin = user?.role === 'admin';
   const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
+  const [photosOpen, setPhotosOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [photoSaving, setPhotoSaving] = useState(false);
+  const immichUrl = useImmichSettings();
 
   const dateLabel = event
     ? event.dateEnd
@@ -38,6 +47,65 @@ function DiaryEventPage() {
     ),
   );
   const galleryImages = event ? event.images.filter((name) => !contentImageNames.has(name)) : [];
+
+  /** Сохраняет изменения фотосета события (PATCH): добавление, смена обложки, удаление. */
+  const savePhotos = async (changes: {
+    extra?: { id: string; file: File }[];
+    keep?: string[];
+    content?: string;
+    cover: string | null;
+  }) => {
+    if (!event || photoSaving) return;
+    setPhotoSaving(true);
+    try {
+      const formData = buildDiaryFormData({
+        title: event.title,
+        dateStart: event.dateStart,
+        dateEnd: event.dateEnd,
+        summary: event.summary,
+        content: changes.content ?? event.content,
+        cover: changes.cover,
+        images: [
+          ...(changes.keep ?? event.images).map((name) => ({ id: name, file: null })),
+          ...(changes.extra ?? []),
+        ],
+        keep: changes.keep ?? event.images,
+      });
+      await updateDiaryEvent(event.id, formData);
+      reload();
+    } catch {
+      window.alert('Не удалось сохранить фотографии. Попробуйте ещё раз.');
+    } finally {
+      setPhotoSaving(false);
+    }
+  };
+
+  const handleAddFiles = (files: File[]) => {
+    if (!event) return;
+    const extra = files.map((file, index) => ({ id: `new-${index}`, file }));
+    void savePhotos({ extra, cover: event.cover });
+  };
+
+  const handleSelectCover = (id: string) => {
+    void savePhotos({ cover: id });
+  };
+
+  const handleRemoveImage = (id: string) => {
+    if (!event) return;
+    // Фото добавлено в текст описания (бейдж «В тексте»): удаление вырежет маркер и из текста.
+    if (contentImageNames.has(id)) {
+      const proceed = window.confirm(
+        'Фотография добавлена в текст описания и будет удалена и из текста. Удалить?',
+      );
+      if (!proceed) return;
+    }
+    const keep = event.images.filter((name) => name !== id);
+    void savePhotos({
+      keep,
+      content: stripDiaryImage(event.content, id),
+      cover: event.cover === id ? (keep[0] ?? null) : event.cover,
+    });
+  };
 
   return (
     <PageLayout>
@@ -54,12 +122,16 @@ function DiaryEventPage() {
               </span>
               <div>
                 <h2>{event.title}</h2>
-                <div className="page__sub">
-                  <span className="diary-pill">{dateLabel}</span>
-                </div>
               </div>
               {isAdmin && (
                 <div className="page__head-actions">
+                  <IconButton
+                    label="Редактировать событие"
+                    tooltip="Редактировать"
+                    onClick={() => setEditOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
                   <IconButton
                     label="Редактировать описание"
                     tooltip="Редактировать описание"
@@ -68,23 +140,34 @@ function DiaryEventPage() {
                     <DocIcon />
                   </IconButton>
                   <IconButton
-                    label="Редактировать событие"
-                    tooltip="Редактировать"
-                    onClick={() => setEditOpen(true)}
+                    label="Фотографии"
+                    tooltip="Фотографии"
+                    onClick={() => setPhotosOpen(true)}
                   >
-                    <EditIcon />
+                    <ImagesIcon />
                   </IconButton>
                 </div>
               )}
             </div>
 
-            {event.cover && (
-              <div className="diary-event__cover">
-                <img src={diaryImageUrl(event.folder, event.cover, true)} alt="" />
+            <div className="diary-event__hero">
+              {event.cover && (
+                <a
+                  className="diary-event__photo diary-event__hero-cover"
+                  href={diaryImageUrl(event.folder, event.cover)}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Открыть в полном размере"
+                >
+                  {/* Превью обложки; полный размер — по клику (открытие на весь экран). */}
+                  <img src={diaryImageUrl(event.folder, event.cover, true)} alt={event.title} />
+                </a>
+              )}
+              <div className="diary-event__hero-info">
+                <span className="diary-pill">{dateLabel}</span>
+                <p className="diary-event__summary">{event.summary}</p>
               </div>
-            )}
-
-            <p className="diary-event__summary">{event.summary}</p>
+            </div>
 
             {event.content.trim() === '' ? (
               <div className="news-empty">Подробное описание пока не добавлено.</div>
@@ -135,6 +218,34 @@ function DiaryEventPage() {
 
       {editOpen && event && (
         <DiaryEventModal event={event} onClose={() => setEditOpen(false)} onSaved={reload} />
+      )}
+
+      {photosOpen && event && (
+        <DiaryPhotosModal
+          images={event.images.map((name): FormImage => ({
+            id: name,
+            file: null,
+            preview: diaryImageUrl(event.folder, name, true),
+          }))}
+          cover={event.cover}
+          usedImageNames={contentImageNames}
+          immichAvailable={Boolean(immichUrl)}
+          onClose={() => setPhotosOpen(false)}
+          onAddFiles={handleAddFiles}
+          onOpenImmich={() => setPickerOpen(true)}
+          onSelectCover={handleSelectCover}
+          onRemoveImage={handleRemoveImage}
+          isForeground={!pickerOpen}
+        />
+      )}
+
+      {pickerOpen && event && (
+        <ImmichPickerModal
+          onClose={() => setPickerOpen(false)}
+          onPick={handleAddFiles}
+          defaultFrom={event.dateStart || undefined}
+          defaultTo={event.dateEnd || event.dateStart || undefined}
+        />
       )}
     </PageLayout>
   );
