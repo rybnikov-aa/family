@@ -389,12 +389,6 @@
   top: 4px;
   right: 4px;
 }
-.diary-photos__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-}
 .diary-upload-progress {
   display: flex;
   flex-direction: column;
@@ -477,6 +471,12 @@
   flex: 1;
   border-bottom: 0;
   background: transparent;
+}
+.diary-form-section__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
 }
 .diary-form-section__chevron {
   display: inline-flex;

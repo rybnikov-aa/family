@@ -13,7 +13,7 @@ import IconButton from './IconButton';
 import Tooltip from './Tooltip';
 import ImmichPickerModal from './ImmichPickerModal';
 import UploadProgress from './UploadProgress';
-import { CheckIcon, DocIcon, ImmichIcon, TrashIcon, UploadIcon } from './icons';
+import { CheckIcon, DocIcon, ImagePlusIcon, ImageUpIcon, TrashIcon } from './icons';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 import { useImmichSettings } from '../hooks/useImmichSettings';
 import { useNavigate } from 'react-router-dom';
@@ -81,6 +81,7 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   // Счётчик клиентских id новых файлов + созданные object URL (для очистки).
   const newIdRef = useRef(0);
   const objectUrlsRef = useRef<string[]>([]);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEscapeClose(onClose);
   const navigate = useNavigate();
@@ -284,98 +285,6 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
           </section>
 
           <section className="diary-form-section">
-            <button
-              type="button"
-              className="diary-form-section__header diary-form-section__toggle"
-              onClick={() => setCollapsedSections((prev) => ({ ...prev, photos: !prev.photos }))}
-              aria-expanded={!collapsedSections.photos}
-            >
-              <h4 className="diary-form-section__title">Фотографии</h4>
-              <span className="diary-form-section__chevron" aria-hidden="true">
-                {collapsedSections.photos ? '＋' : '−'}
-              </span>
-            </button>
-            {!collapsedSections.photos && (
-              <div className="diary-form-section__body">
-                <div className="field">
-                  <div className="diary-photos">
-                    {images.length === 0 && (
-                      <div className="diary-photos__empty">Фотографии ещё не добавлены</div>
-                    )}
-                    {images.map((img) => {
-                      const isInDescription = contentImageNames.has(img.id);
-                      return (
-                        <div
-                          key={img.id}
-                          className={`diary-photo${cover === img.id ? ' diary-photo--cover' : ''}${
-                            isInDescription ? ' diary-photo--used' : ''
-                          }`}
-                        >
-                          <Tooltip content="Сделать основной фотографией">
-                            <button
-                              type="button"
-                              className="diary-photo__select"
-                              aria-pressed={cover === img.id}
-                              onClick={() => setCover(img.id)}
-                            >
-                              <img src={img.preview} alt="" />
-                            </button>
-                          </Tooltip>
-                          {cover === img.id && (
-                            <span className="diary-photo__badge">
-                              <CheckIcon /> Обложка
-                            </span>
-                          )}
-                          {isInDescription && <span className="diary-photo__used">В тексте</span>}
-                          <span className="diary-photo__remove">
-                            <IconButton
-                              label="Удалить фотографию"
-                              tooltip="Удалить"
-                              size="sm"
-                              plain
-                              danger
-                              onClick={() => removeImage(img.id)}
-                            >
-                              <TrashIcon />
-                            </IconButton>
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="diary-photos__actions">
-                    <label className="btn btn--secondary diary-photos__add">
-                      <span className="btn__icon" aria-hidden="true">
-                        <UploadIcon />
-                      </span>
-                      <span>Добавить фото</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        hidden
-                        onChange={(event) => handleFiles(event.target.files)}
-                      />
-                    </label>
-                    {immichUrl && (
-                      <Button
-                        className="diary-photos__add"
-                        icon={<ImmichIcon />}
-                        onClick={() => setPickerOpen(true)}
-                      >
-                        Immich
-                      </Button>
-                    )}
-                  </div>
-                  <span className="field__hint">
-                    Клик по фотографии — выбрать основную («Обложка»). JPG, PNG, WebP, GIF.
-                  </span>
-                </div>
-              </div>
-            )}
-          </section>
-
-          <section className="diary-form-section">
             <div className="diary-form-section__head">
               <button
                 type="button"
@@ -427,10 +336,6 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
             )}
           </section>
 
-          {submitting && uploadProgress !== null && <UploadProgress {...uploadProgress} />}
-
-          {error && <div className="alert alert--error">{error}</div>}
-
           <div className="vps-form__actions">
             <Button variant="secondary" onClick={onClose}>
               Отмена
@@ -439,6 +344,106 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
               {submitting ? 'Сохранение…' : event ? 'Сохранить' : 'Добавить'}
             </Button>
           </div>
+
+          {submitting && uploadProgress !== null && <UploadProgress {...uploadProgress} />}
+
+          {error && <div className="alert alert--error">{error}</div>}
+
+          <section className="diary-form-section">
+            <div className="diary-form-section__head">
+              <button
+                type="button"
+                className="diary-form-section__header diary-form-section__toggle"
+                onClick={() => setCollapsedSections((prev) => ({ ...prev, photos: !prev.photos }))}
+                aria-expanded={!collapsedSections.photos}
+              >
+                <h4 className="diary-form-section__title">Фотографии</h4>
+                <span className="diary-form-section__chevron" aria-hidden="true">
+                  {collapsedSections.photos ? '＋' : '−'}
+                </span>
+              </button>
+              <div className="diary-form-section__actions">
+                <IconButton
+                  label="Добавить фото с диска"
+                  tooltip="Добавить фото с диска"
+                  onClick={() => photoInputRef.current?.click()}
+                >
+                  <ImageUpIcon />
+                </IconButton>
+                {immichUrl && (
+                  <IconButton
+                    label="Добавить фото из Immich"
+                    tooltip="Добавить фото из Immich"
+                    onClick={() => setPickerOpen(true)}
+                  >
+                    <ImagePlusIcon />
+                  </IconButton>
+                )}
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  hidden
+                  onChange={(event) => handleFiles(event.target.files)}
+                />
+              </div>
+            </div>
+            {!collapsedSections.photos && (
+              <div className="diary-form-section__body">
+                <div className="field">
+                  <div className="diary-photos">
+                    {images.length === 0 && (
+                      <div className="diary-photos__empty">Фотографии ещё не добавлены</div>
+                    )}
+                    {images.map((img) => {
+                      const isInDescription = contentImageNames.has(img.id);
+                      return (
+                        <div
+                          key={img.id}
+                          className={`diary-photo${cover === img.id ? ' diary-photo--cover' : ''}${
+                            isInDescription ? ' diary-photo--used' : ''
+                          }`}
+                        >
+                          <Tooltip content="Сделать основной фотографией">
+                            <button
+                              type="button"
+                              className="diary-photo__select"
+                              aria-pressed={cover === img.id}
+                              onClick={() => setCover(img.id)}
+                            >
+                              <img src={img.preview} alt="" />
+                            </button>
+                          </Tooltip>
+                          {cover === img.id && (
+                            <span className="diary-photo__badge">
+                              <CheckIcon /> Обложка
+                            </span>
+                          )}
+                          {isInDescription && <span className="diary-photo__used">В тексте</span>}
+                          <span className="diary-photo__remove">
+                            <IconButton
+                              label="Удалить фотографию"
+                              tooltip="Удалить"
+                              size="sm"
+                              plain
+                              danger
+                              onClick={() => removeImage(img.id)}
+                            >
+                              <TrashIcon />
+                            </IconButton>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <span className="field__hint">
+                    Клик по фотографии — выбрать основную («Обложка»). JPG, PNG, WebP, GIF.
+                  </span>
+                </div>
+              </div>
+            )}
+          </section>
         </form>
 
         {/* Пикер фото из Immich (вариант B2): выбранные файлы — как обычные загрузки.
