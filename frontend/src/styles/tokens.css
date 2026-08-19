@@ -45,6 +45,7 @@
   /* ── Дизайн-система: фокус-кольца ── */
   --focus-ring: 2px solid var(--link-hover);
   --focus-ring-soft: 0 0 0 3px color-mix(in srgb, var(--link-hover) 12%, transparent);
+  --layer-tooltip: 200;
 
   /* ── Дизайн-система: бумага документов (просмотр PDF) — белая в обеих темах ── */
   --color-paper: #ffffff;

@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import Tooltip from './Tooltip';
 
-interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'title'> {
   /** Доступное имя кнопки (aria-label). */
   label: string;
   /** Всплывающая подсказка; если задана — показывается по наведению/фокусу. */
@@ -22,7 +23,7 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 /**
  * Квадратная кнопка-иконка — единый паттерн для: выхода, закрытия модалки,
  * обновления, «+», импорта, копирования, удаления и т.п.
- * Подсказка задаётся через `tooltip` (data-tooltip).
+ * Подсказка задаётся через `tooltip` и выводится общим portal-примитивом.
  */
 function IconButton({
   label,
@@ -49,18 +50,13 @@ function IconButton({
     .join(' ');
 
   return (
-    <button
-      type="button"
-      className={classes}
-      aria-label={label}
-      title={tooltip ?? label}
-      data-tooltip={tooltip}
-      {...rest}
-    >
-      <span className="icon-btn__icon" aria-hidden="true">
-        {children}
-      </span>
-    </button>
+    <Tooltip content={tooltip ?? label}>
+      <button type="button" className={classes} aria-label={label} {...rest}>
+        <span className="icon-btn__icon" aria-hidden="true">
+          {children}
+        </span>
+      </button>
+    </Tooltip>
   );
 }
 

@@ -87,7 +87,8 @@ graph TD
 и `16px` у полей форм (анти-зум iOS).
 
 Фокус-кольца — токены `--focus-ring` (outline) и `--focus-ring-soft` (box-shadow), применены во всех
-`focus-visible`/`focus` (Фаза 5/A2).
+`focus-visible`/`focus` (Фаза 5/A2). Слой всплывающих подсказок — `--layer-tooltip: 200`;
+он располагается над интерфейсом и модалками.
 
 ### Текст и границы (консолидированные лестницы)
 
@@ -120,7 +121,7 @@ CSS: `.btn`, `.btn--primary`, `.btn__icon`.
 | Проп       | Тип                    | По умолчанию | Описание                                           |
 | ---------- | ---------------------- | ------------ | -------------------------------------------------- |
 | `label`    | `string`               | —            | Доступное имя (`aria-label`)                       |
-| `tooltip`  | `string`               | —            | Всплывающая подсказка (`data-tooltip`)             |
+| `tooltip`  | `string`               | —            | Всплывающая подсказка через `Tooltip`              |
 | `size`     | `'md' \| 'sm' \| 'xs'` | `md`         | 32 / 24 / 20 px                                    |
 | `plain`    | `boolean`              | `false`      | Прозрачный фон (плотные списки)                    |
 | `danger`   | `boolean`              | `false`      | Красный при наведении (удаление)                   |
@@ -128,7 +129,18 @@ CSS: `.btn`, `.btn--primary`, `.btn__icon`.
 | `spinning` | `boolean`              | `false`      | Вращение иконки (индикация обновления)             |
 | `children` | `ReactNode`            | —            | Иконка (inline SVG) или текст (✕)                  |
 
-CSS: `.icon-btn`, модификаторы `--sm/--xs/--plain/--danger/--active/--spinning`, подсказка `.icon-btn[data-tooltip]::after`.
+CSS: `.icon-btn`, модификаторы `--sm/--xs/--plain/--danger/--active/--spinning`.
+Подсказка выводится `Tooltip` (`components/Tooltip.tsx`) в portal поверх `document.body`, поэтому не
+дублируется с нативным `title` и не обрезается контейнерами с `overflow`. `IconButton` показывает
+подсказку из `tooltip`, а при отсутствии пропа — из `label`; для других иконок-ссылок использовать
+`Tooltip` с тем же текстом, что и `aria-label`.
+
+### `Tooltip` (`components/Tooltip.tsx`)
+
+Единая всплывающая подсказка для кнопок-иконок и иконок-ссылок. Примитив открывается по наведению
+и фокусу, рендерится portal-слоем в `document.body` с `position: fixed`, центрируется у элемента и
+не выходит за границы viewport. Нативный атрибут `title` для таких контролов не использовать: он
+показывается отдельным стилем браузера и создаёт дублирование.
 
 ### `Modal` (`components/Modal.tsx`)
 

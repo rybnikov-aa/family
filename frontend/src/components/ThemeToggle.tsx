@@ -1,5 +1,6 @@
 import { useTheme, type ThemeMode } from '../hooks/useTheme';
 import { MonitorIcon, MoonIcon, SunIcon } from './icons';
+import Tooltip from './Tooltip';
 
 const options: { mode: ThemeMode; label: string; Icon: typeof SunIcon }[] = [
   { mode: 'light', label: 'светлая', Icon: SunIcon },
@@ -15,23 +16,23 @@ function ThemeToggle() {
       {options.map((option) => {
         const active = theme === option.mode;
         return (
-          <button
-            key={option.mode}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            aria-label={option.label}
-            title={option.label}
-            className={`theme-toggle__option${active ? ' theme-toggle__option--active' : ''}`}
-            onClick={() => setTheme(option.mode)}
-          >
-            <span
-              className={`theme-toggle__icon theme-toggle__icon--${option.mode}`}
-              aria-hidden="true"
+          <Tooltip key={option.mode} content={option.label}>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={active}
+              aria-label={option.label}
+              className={`theme-toggle__option${active ? ' theme-toggle__option--active' : ''}`}
+              onClick={() => setTheme(option.mode)}
             >
-              <option.Icon />
-            </span>
-          </button>
+              <span
+                className={`theme-toggle__icon theme-toggle__icon--${option.mode}`}
+                aria-hidden="true"
+              >
+                <option.Icon />
+              </span>
+            </button>
+          </Tooltip>
         );
       })}
     </div>

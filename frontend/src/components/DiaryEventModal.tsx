@@ -10,6 +10,7 @@ import {
 import Modal from './Modal';
 import Button from './Button';
 import IconButton from './IconButton';
+import Tooltip from './Tooltip';
 import ImmichPickerModal from './ImmichPickerModal';
 import UploadProgress from './UploadProgress';
 import { CheckIcon, DocIcon, ImmichIcon, TrashIcon, UploadIcon } from './icons';
@@ -113,6 +114,13 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   const removeImage = (id: string) => {
     const img = images.find((i) => i.id === id);
     if (!img) return;
+    // Фото добавлено в текст описания (бейдж «В тексте»): удаление вырежет маркер и из текста.
+    if (contentImageNames.has(id)) {
+      const proceed = window.confirm(
+        'Фотография добавлена в текст описания и будет удалена и из текста. Удалить?',
+      );
+      if (!proceed) return;
+    }
     if (img.file) {
       URL.revokeObjectURL(img.preview);
       objectUrlsRef.current = objectUrlsRef.current.filter((url) => url !== img.preview);
@@ -303,15 +311,16 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
                             isInDescription ? ' diary-photo--used' : ''
                           }`}
                         >
-                          <button
-                            type="button"
-                            className="diary-photo__select"
-                            aria-pressed={cover === img.id}
-                            title="Сделать основной фотографией"
-                            onClick={() => setCover(img.id)}
-                          >
-                            <img src={img.preview} alt="" />
-                          </button>
+                          <Tooltip content="Сделать основной фотографией">
+                            <button
+                              type="button"
+                              className="diary-photo__select"
+                              aria-pressed={cover === img.id}
+                              onClick={() => setCover(img.id)}
+                            >
+                              <img src={img.preview} alt="" />
+                            </button>
+                          </Tooltip>
                           {cover === img.id && (
                             <span className="diary-photo__badge">
                               <CheckIcon /> Обложка

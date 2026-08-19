@@ -15,6 +15,7 @@ import {
 import VpsAddModal from './VpsAddModal';
 import Modal from './Modal';
 import IconButton from './IconButton';
+import Tooltip from './Tooltip';
 import { availabilityState, overallAvailability, vpsAvailability } from '../utils/availability';
 import { useAuth } from '../hooks/useAuth';
 
@@ -266,16 +267,17 @@ function VpsDetailsModal({
                 </span>
                 <span className="modal__vps-head-actions">
                   {vps.panel && (
-                    <a
-                      className="icon-btn icon-btn--sm icon-btn--plain"
-                      href={vps.panel}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-tooltip="Панель управления хостера"
-                      aria-label="Панель управления хостера"
-                    >
-                      <SettingsIcon />
-                    </a>
+                    <Tooltip content="Панель управления хостера">
+                      <a
+                        className="icon-btn icon-btn--sm icon-btn--plain"
+                        href={vps.panel}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Панель управления хостера"
+                      >
+                        <SettingsIcon />
+                      </a>
+                    </Tooltip>
                   )}
                   {isAdmin && (
                     <IconButton

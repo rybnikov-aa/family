@@ -77,7 +77,6 @@ const StatItem = memo(function StatItem({ service, onRefresh, refreshing }: Stat
             service.onClick?.();
           }
         }}
-        title={`Детали: ${service.label}`}
       >
         <StatItemBody service={service} onRefresh={onRefresh} refreshing={refreshing} />
       </div>
