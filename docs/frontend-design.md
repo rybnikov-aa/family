@@ -155,10 +155,14 @@ CSS: `.icon-btn`, модификаторы `--sm/--xs/--plain/--danger/--active/
 | `actions`         | `ReactNode`  | —            | Кнопки-иконки справа от заголовка          |
 | `closeOnEscape`   | `boolean`    | `true`       | Закрытие по Escape                         |
 | `closeOnBackdrop` | `boolean`    | `true`       | Закрытие по клику на подложку              |
+| `isForeground`    | `boolean`    | `true`       | Верхний диалог: focus-trap и Escape        |
 
 Доступность: диалог получает фокус при открытии, `aria-labelledby` на заголовок, фокус ловится
 внутри (Tab/Shift+Tab) и возвращается элементу, открывшему модалку; прокрутка страницы блокируется
 (`body { overflow: hidden }`).
+
+Для нескольких одновременно открытых модалок у фоновых передавать `isForeground={false}`: только
+верхний диалог удерживает фокус и реагирует на Escape.
 
 CSS: `.modal-backdrop`, `.modal`, `.modal--wide`, `.modal--pdf`, `.modal__head`, `.modal__head-actions`.
 

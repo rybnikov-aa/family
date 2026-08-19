@@ -1,4 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
+
+let activeEscapeClose: (() => void) | null = null;
 
 /**
  * Закрытие по Escape. Используется модалками и вложенными оверлеями.
@@ -9,12 +11,18 @@ export function useEscapeClose(onClose: () => void, enabled = true): void {
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!enabled) return;
+    const previous = activeEscapeClose;
+    const close = () => onCloseRef.current();
+    activeEscapeClose = close;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onCloseRef.current();
+      if (event.key === 'Escape' && activeEscapeClose === close) close();
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      if (activeEscapeClose === close) activeEscapeClose = previous;
+    };
   }, [enabled]);
 }

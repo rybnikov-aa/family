@@ -10,10 +10,10 @@ import {
 import Modal from './Modal';
 import Button from './Button';
 import IconButton from './IconButton';
-import Tooltip from './Tooltip';
+import DiaryPhotosModal from './DiaryPhotosModal';
 import ImmichPickerModal from './ImmichPickerModal';
 import UploadProgress from './UploadProgress';
-import { CheckIcon, DocIcon, ImagePlusIcon, ImageUpIcon, TrashIcon } from './icons';
+import { DocIcon, EditIcon, ImagePlusIcon, ImageUpIcon } from './icons';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 import { useImmichSettings } from '../hooks/useImmichSettings';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +28,7 @@ interface DiaryEventModalProps {
 }
 
 /** Изображение в форме: новое (с файлом) или уже сохранённое. */
-interface FormImage {
+export interface FormImage {
   /** Клиентский id нового файла (`new-N`) либо имя существующего файла. */
   id: string;
   /** Новый файл для загрузки; `null` — уже сохранённое изображение. */
@@ -76,6 +76,7 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   });
   // Пикер фото из Immich (вариант B2): доступен, если инстанс настроен.
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [photosEditorOpen, setPhotosEditorOpen] = useState(false);
   const immichUrl = useImmichSettings();
 
   // Счётчик клиентских id новых файлов + созданные object URL (для очистки).
@@ -216,7 +217,12 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
 
   return (
     <>
-      <Modal title={event ? 'Редактировать событие' : 'Добавить событие'} onClose={onClose} wide>
+      <Modal
+        title={event ? 'Редактировать событие' : 'Добавить событие'}
+        onClose={onClose}
+        wide
+        isForeground={!photosEditorOpen && !pickerOpen}
+      >
         <form className="vps-form" onSubmit={handleSubmit}>
           <section className="diary-form-section">
             <button
@@ -336,19 +342,6 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
             )}
           </section>
 
-          <div className="vps-form__actions">
-            <Button variant="secondary" onClick={onClose}>
-              Отмена
-            </Button>
-            <Button variant="primary" type="submit" disabled={submitting}>
-              {submitting ? 'Сохранение…' : event ? 'Сохранить' : 'Добавить'}
-            </Button>
-          </div>
-
-          {submitting && uploadProgress !== null && <UploadProgress {...uploadProgress} />}
-
-          {error && <div className="alert alert--error">{error}</div>}
-
           <section className="diary-form-section">
             <div className="diary-form-section__head">
               <button
@@ -363,6 +356,13 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
                 </span>
               </button>
               <div className="diary-form-section__actions">
+                <IconButton
+                  label="Редактировать фотографии"
+                  tooltip="Редактировать фотографии"
+                  onClick={() => setPhotosEditorOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
                 <IconButton
                   label="Добавить фото с диска"
                   tooltip="Добавить фото с диска"
@@ -391,72 +391,57 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
             </div>
             {!collapsedSections.photos && (
               <div className="diary-form-section__body">
-                <div className="field">
-                  <div className="diary-photos">
-                    {images.length === 0 && (
-                      <div className="diary-photos__empty">Фотографии ещё не добавлены</div>
-                    )}
-                    {images.map((img) => {
-                      const isInDescription = contentImageNames.has(img.id);
-                      return (
-                        <div
-                          key={img.id}
-                          className={`diary-photo${cover === img.id ? ' diary-photo--cover' : ''}${
-                            isInDescription ? ' diary-photo--used' : ''
-                          }`}
-                        >
-                          <Tooltip content="Сделать основной фотографией">
-                            <button
-                              type="button"
-                              className="diary-photo__select"
-                              aria-pressed={cover === img.id}
-                              onClick={() => setCover(img.id)}
-                            >
-                              <img src={img.preview} alt="" />
-                            </button>
-                          </Tooltip>
-                          {cover === img.id && (
-                            <span className="diary-photo__badge">
-                              <CheckIcon /> Обложка
-                            </span>
-                          )}
-                          {isInDescription && <span className="diary-photo__used">В тексте</span>}
-                          <span className="diary-photo__remove">
-                            <IconButton
-                              label="Удалить фотографию"
-                              tooltip="Удалить"
-                              size="sm"
-                              plain
-                              danger
-                              onClick={() => removeImage(img.id)}
-                            >
-                              <TrashIcon />
-                            </IconButton>
-                          </span>
-                        </div>
-                      );
-                    })}
+                {images.length === 0 ? (
+                  <div className="diary-photos__empty">Фотографии ещё не добавлены</div>
+                ) : (
+                  <div className="diary-photo-filmstrip" aria-label="Добавленные фотографии">
+                    {images.map((image) => (
+                      <img key={image.id} src={image.preview} alt="" />
+                    ))}
                   </div>
-                  <span className="field__hint">
-                    Клик по фотографии — выбрать основную («Обложка»). JPG, PNG, WebP, GIF.
-                  </span>
-                </div>
+                )}
               </div>
             )}
           </section>
-        </form>
 
-        {/* Пикер фото из Immich (вариант B2): выбранные файлы — как обычные загрузки.
-            Даты фильтра по умолчанию — из дат события (для нового события без дат — 3 месяца). */}
-        {pickerOpen && (
-          <ImmichPickerModal
-            onClose={() => setPickerOpen(false)}
-            onPick={(files) => addFiles(files)}
-            defaultFrom={dateStart || undefined}
-            defaultTo={dateEnd || dateStart || undefined}
-          />
-        )}
+          <div className="vps-form__actions">
+            <Button variant="secondary" onClick={onClose}>
+              Отмена
+            </Button>
+            <Button variant="primary" type="submit" disabled={submitting}>
+              {submitting ? 'Сохранение…' : event ? 'Сохранить' : 'Добавить'}
+            </Button>
+          </div>
+
+          {submitting && uploadProgress !== null && <UploadProgress {...uploadProgress} />}
+
+          {error && <div className="alert alert--error">{error}</div>}
+        </form>
       </Modal>
+      {photosEditorOpen && (
+        <DiaryPhotosModal
+          images={images}
+          cover={cover}
+          usedImageNames={contentImageNames}
+          immichAvailable={Boolean(immichUrl)}
+          onClose={() => setPhotosEditorOpen(false)}
+          onAddFiles={addFiles}
+          onOpenImmich={() => setPickerOpen(true)}
+          onSelectCover={setCover}
+          onRemoveImage={removeImage}
+          isForeground={!pickerOpen}
+        />
+      )}
+      {/* Пикер фото из Immich (вариант B2): выбранные файлы — как обычные загрузки.
+          Даты фильтра по умолчанию — из дат события (для нового события без дат — 3 месяца). */}
+      {pickerOpen && (
+        <ImmichPickerModal
+          onClose={() => setPickerOpen(false)}
+          onPick={addFiles}
+          defaultFrom={dateStart || undefined}
+          defaultTo={dateEnd || dateStart || undefined}
+        />
+      )}
     </>
   );
 }

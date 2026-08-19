@@ -18,6 +18,8 @@ interface ModalProps {
   closeOnEscape?: boolean;
   /** Не закрывать по клику на подложку. */
   closeOnBackdrop?: boolean;
+  /** Верхний диалог: только он обрабатывает Escape и удерживает фокус. */
+  isForeground?: boolean;
   /** Инлайн-стили карточки (например, ширина под контент просмотрщика PDF). */
   style?: CSSProperties;
 }
@@ -39,12 +41,13 @@ function Modal({
   actions,
   closeOnEscape = true,
   closeOnBackdrop = false,
+  isForeground = true,
   style,
 }: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
-  useEscapeClose(onClose, closeOnEscape);
+  useEscapeClose(onClose, closeOnEscape && isForeground);
 
   // Фокус на модалку при открытии, блокировка прокрутки; возврат фокуса при закрытии.
   useEffect(() => {
@@ -64,6 +67,7 @@ function Modal({
 
   // Ловушка фокуса: Tab/Shift+Tab не уходят за пределы модалки.
   useEffect(() => {
+    if (!isForeground) return;
     const dialog = dialogRef.current;
     if (!dialog) return;
 
@@ -97,7 +101,7 @@ function Modal({
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [isForeground]);
 
   return (
     <div className="modal-backdrop" onClick={closeOnBackdrop ? onClose : undefined}>
