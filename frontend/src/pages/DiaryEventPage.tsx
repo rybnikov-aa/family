@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import DiaryEventModal from '../components/DiaryEventModal';
-import Button from '../components/Button';
 import IconButton from '../components/IconButton';
 import { DiaryIcon, DocIcon, EditIcon, ImageIcon } from '../components/icons';
 import { diaryImageUrl } from '../api/client';
@@ -14,7 +13,7 @@ import { formatDateIso } from '../utils/money';
 /**
  * Страница события «Дневника» (`#/diary/:id`): обложка, название, дата (pill),
  * краткое описание, подробное описание (markdown) и галерея фотографий.
- * Редактирование — кнопка «карандашик» (admin).
+ * Редактирование — кнопки-иконки с подсказками «описание» и «карандаш» (admin).
  */
 function DiaryEventPage() {
   const params = useParams();
@@ -61,13 +60,13 @@ function DiaryEventPage() {
               </div>
               {isAdmin && (
                 <div className="page__head-actions">
-                  <Button
-                    variant="secondary"
-                    icon={<DocIcon />}
+                  <IconButton
+                    label="Редактировать описание"
+                    tooltip="Редактировать описание"
                     onClick={() => navigate(`/diary/${event.id}/edit`)}
                   >
-                    Редактировать описание
-                  </Button>
+                    <DocIcon />
+                  </IconButton>
                   <IconButton
                     label="Редактировать событие"
                     tooltip="Редактировать"

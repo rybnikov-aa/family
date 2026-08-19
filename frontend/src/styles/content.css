@@ -203,9 +203,14 @@
   background: color-mix(in srgb, var(--color-accent-sky) 14%, transparent);
   color: var(--color-accent-sky);
 }
-/* Действия в шапке страницы (например кнопка «Создать проект») — прижимаем к правому краю */
+/* Действия в шапке страницы (например кнопка «Создать проект») — прижимаем к правому краю;
+   соседние кнопки разделяет gap, от правого края контента — отступ дизайн-системы. */
 .page__head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   margin-left: auto;
+  margin-right: var(--space-1);
 }
 .page__head h2 {
   font-size: var(--font-size-xl);

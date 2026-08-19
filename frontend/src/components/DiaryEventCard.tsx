@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import IconButton from './IconButton';
-import { EditIcon, ImageIcon, TrashIcon } from './icons';
+import { DocIcon, EditIcon, ImageIcon, TrashIcon } from './icons';
 import { diaryImageUrl, type DiaryEventSummary } from '../api/client';
 import { formatDateIso } from '../utils/money';
 import { ROUTES } from '../routes';
@@ -9,7 +9,7 @@ interface DiaryEventCardProps {
   event: DiaryEventSummary;
   /** Макет отображения: список (на всю ширину) или карточки (сетка). */
   layout: 'list' | 'cards';
-  /** Показывать ли действия администратора (карандаш/корзина). */
+  /** Показывать ли действия администратора (описание/карандаш/корзина). */
   isAdmin: boolean;
   onEdit: (event: DiaryEventSummary) => void;
   onDelete: (event: DiaryEventSummary) => void;
@@ -23,16 +23,26 @@ function dateLabel(event: DiaryEventSummary): string {
 
 /**
  * Блок события «Дневника»: обложка, название, дата (pill) и краткое описание.
- * Клик по блоку открывает страницу события (`#/diary/<id>`). Действия admin
- * (карандаш/корзина) — поверх блока, вне ссылки (вложенные кнопки внутри
- * `<a>` недопустимы). Макет — `list` (на всю ширину) или `cards` (сетка).
+ * Клик по блоку открывает страницу события (`#/diary/<id>`). Действия admin — поверх блока,
+ * вне ссылки (вложенные кнопки внутри `<a>` недопустимы): «Редактировать описание» (документ),
+ * карандаш, корзина. Макет — `list` (на всю ширину) или `cards` (сетка).
  */
 function DiaryEventCard({ event, layout, isAdmin, onEdit, onDelete }: DiaryEventCardProps) {
+  const navigate = useNavigate();
   // Обложка в карточке — всегда превью (уменьшенная копия).
   const coverUrl = event.cover ? diaryImageUrl(event.folder, event.cover, true) : null;
 
   const actions = isAdmin ? (
     <div className="diary-card__actions">
+      <IconButton
+        label={`Редактировать описание «${event.title}»`}
+        tooltip="Редактировать описание"
+        size="sm"
+        plain
+        onClick={() => navigate(`/diary/${event.id}/edit`)}
+      >
+        <DocIcon />
+      </IconButton>
       <IconButton
         label={`Редактировать «${event.title}»`}
         tooltip="Редактировать"

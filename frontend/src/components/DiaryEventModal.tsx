@@ -12,7 +12,7 @@ import Button from './Button';
 import IconButton from './IconButton';
 import ImmichPickerModal from './ImmichPickerModal';
 import UploadProgress from './UploadProgress';
-import { CheckIcon, ImmichIcon, TrashIcon, UploadIcon } from './icons';
+import { CheckIcon, DocIcon, ImmichIcon, TrashIcon, UploadIcon } from './icons';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 import { useImmichSettings } from '../hooks/useImmichSettings';
 import { useNavigate } from 'react-router-dom';
@@ -382,14 +382,13 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
                 </span>
               </button>
               {event && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="diary-description-button"
+                <IconButton
+                  label="Открыть расширенный редактор"
+                  tooltip="Открыть расширенный редактор"
                   onClick={handleOpenEditor}
                 >
-                  Открыть расширенный редактор
-                </Button>
+                  <DocIcon />
+                </IconButton>
               )}
             </div>
             {!collapsedSections.description && (
