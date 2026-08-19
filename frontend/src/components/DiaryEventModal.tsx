@@ -67,13 +67,6 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   const [submitting, setSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<DiaryUploadProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [collapsedSections, setCollapsedSections] = useState<
-    Record<'info' | 'photos' | 'description', boolean>
-  >({
-    info: false,
-    photos: false,
-    description: false,
-  });
   // Пикер фото из Immich (вариант B2): доступен, если инстанс настроен.
   const [pickerOpen, setPickerOpen] = useState(false);
   const [photosEditorOpen, setPhotosEditorOpen] = useState(false);
@@ -225,86 +218,66 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
       >
         <form className="vps-form" onSubmit={handleSubmit}>
           <section className="diary-form-section">
-            <button
-              type="button"
-              className="diary-form-section__header diary-form-section__toggle"
-              onClick={() => setCollapsedSections((prev) => ({ ...prev, info: !prev.info }))}
-              aria-expanded={!collapsedSections.info}
-            >
+            <div className="diary-form-section__header">
               <h4 className="diary-form-section__title">Основная информация</h4>
-              <span className="diary-form-section__chevron" aria-hidden="true">
-                {collapsedSections.info ? '＋' : '−'}
-              </span>
-            </button>
-            {!collapsedSections.info && (
-              <div className="diary-form-section__body">
+            </div>
+            <div className="diary-form-section__body">
+              <label className="field">
+                <span className="field__label">Название события</span>
+                <input
+                  className="input"
+                  type="text"
+                  autoComplete="off"
+                  maxLength={120}
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="напр. Поездка на дачу"
+                  required
+                />
+              </label>
+
+              <div className="diary-dates">
                 <label className="field">
-                  <span className="field__label">Название события</span>
+                  <span className="field__label">Дата начала</span>
                   <input
                     className="input"
-                    type="text"
-                    autoComplete="off"
-                    maxLength={120}
-                    value={title}
-                    onChange={(event) => setTitle(event.target.value)}
-                    placeholder="напр. Поездка на дачу"
+                    type="date"
+                    value={dateStart}
+                    onChange={(event) => setDateStart(event.target.value)}
                     required
                   />
                 </label>
-
-                <div className="diary-dates">
-                  <label className="field">
-                    <span className="field__label">Дата начала</span>
-                    <input
-                      className="input"
-                      type="date"
-                      value={dateStart}
-                      onChange={(event) => setDateStart(event.target.value)}
-                      required
-                    />
-                  </label>
-                  <label className="field">
-                    <span className="field__label">Дата окончания (необязательно)</span>
-                    <input
-                      className="input"
-                      type="date"
-                      value={dateEnd}
-                      onChange={(event) => setDateEnd(event.target.value)}
-                    />
-                  </label>
-                </div>
-
                 <label className="field">
-                  <span className="field__label">Краткое описание</span>
-                  <textarea
+                  <span className="field__label">Дата окончания (необязательно)</span>
+                  <input
                     className="input"
-                    rows={3}
-                    maxLength={500}
-                    value={summary}
-                    onChange={(event) => setSummary(event.target.value)}
-                    placeholder="Краткое описание для карточки в разделе «Дневник»."
-                    required
+                    type="date"
+                    value={dateEnd}
+                    onChange={(event) => setDateEnd(event.target.value)}
                   />
                 </label>
               </div>
-            )}
+
+              <label className="field">
+                <span className="field__label">Краткое описание</span>
+                <textarea
+                  className="input"
+                  rows={3}
+                  maxLength={500}
+                  value={summary}
+                  onChange={(event) => setSummary(event.target.value)}
+                  placeholder="Краткое описание для карточки в разделе «Дневник»."
+                  required
+                />
+              </label>
+            </div>
           </section>
 
           <section className="diary-form-section">
             <div className="diary-form-section__head">
-              <button
-                type="button"
-                className="diary-form-section__header diary-form-section__toggle"
-                onClick={() =>
-                  setCollapsedSections((prev) => ({ ...prev, description: !prev.description }))
-                }
-                aria-expanded={!collapsedSections.description}
-              >
+              <div className="diary-form-section__header">
                 <h4 className="diary-form-section__title">Подробное описание</h4>
-                <span className="diary-form-section__chevron" aria-hidden="true">
-                  {collapsedSections.description ? '＋' : '−'}
-                </span>
-              </button>
+              </div>
               {event && (
                 <IconButton
                   label="Открыть расширенный редактор"
@@ -315,46 +288,36 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
                 </IconButton>
               )}
             </div>
-            {!collapsedSections.description && (
-              <div className="diary-form-section__body">
-                {event ? (
-                  <div className="field__hint">
-                    {content.trim()
-                      ? 'Подробное описание добавлено. Для вставки фотографий в текст и просмотра результата используйте расширенный редактор.'
-                      : 'Подробное описание пока не добавлено. Расширенный редактор позволяет вставлять фотографии в текст и смотреть живой предпросмотр.'}
-                  </div>
-                ) : (
-                  <>
-                    <textarea
-                      className="input"
-                      rows={5}
-                      value={content}
-                      onChange={(descriptionEvent) => setContent(descriptionEvent.target.value)}
-                      placeholder="## День первый&#10;&#10;Подробный рассказ о событии: заголовки, списки, ссылки."
-                    />
-                    <span className="field__hint">
-                      Черновик подробного описания (markdown). Для вставки фотографий в текст после
-                      сохранения события откройте расширенный редактор.
-                    </span>
-                  </>
-                )}
-              </div>
-            )}
+            <div className="diary-form-section__body">
+              {event ? (
+                <div className="field__hint">
+                  {content.trim()
+                    ? 'Подробное описание добавлено. Для вставки фотографий в текст и просмотра результата используйте расширенный редактор.'
+                    : 'Подробное описание пока не добавлено. Расширенный редактор позволяет вставлять фотографии в текст и смотреть живой предпросмотр.'}
+                </div>
+              ) : (
+                <>
+                  <textarea
+                    className="input"
+                    rows={5}
+                    value={content}
+                    onChange={(descriptionEvent) => setContent(descriptionEvent.target.value)}
+                    placeholder="## День первый&#10;&#10;Подробный рассказ о событии: заголовки, списки, ссылки."
+                  />
+                  <span className="field__hint">
+                    Черновик подробного описания (markdown). Для вставки фотографий в текст после
+                    сохранения события откройте расширенный редактор.
+                  </span>
+                </>
+              )}
+            </div>
           </section>
 
           <section className="diary-form-section">
             <div className="diary-form-section__head">
-              <button
-                type="button"
-                className="diary-form-section__header diary-form-section__toggle"
-                onClick={() => setCollapsedSections((prev) => ({ ...prev, photos: !prev.photos }))}
-                aria-expanded={!collapsedSections.photos}
-              >
+              <div className="diary-form-section__header">
                 <h4 className="diary-form-section__title">Фотографии</h4>
-                <span className="diary-form-section__chevron" aria-hidden="true">
-                  {collapsedSections.photos ? '＋' : '−'}
-                </span>
-              </button>
+              </div>
               <div className="diary-form-section__actions">
                 <IconButton
                   label="Редактировать фотографии"
@@ -389,19 +352,17 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
                 />
               </div>
             </div>
-            {!collapsedSections.photos && (
-              <div className="diary-form-section__body">
-                {images.length === 0 ? (
-                  <div className="diary-photos__empty">Фотографии ещё не добавлены</div>
-                ) : (
-                  <div className="diary-photo-filmstrip" aria-label="Добавленные фотографии">
-                    {images.map((image) => (
-                      <img key={image.id} src={image.preview} alt="" />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="diary-form-section__body">
+              {images.length === 0 ? (
+                <div className="diary-photos__empty">Фотографии ещё не добавлены</div>
+              ) : (
+                <div className="diary-photo-filmstrip" aria-label="Добавленные фотографии">
+                  {images.map((image) => (
+                    <img key={image.id} src={image.preview} alt="" />
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
 
           <div className="vps-form__actions">

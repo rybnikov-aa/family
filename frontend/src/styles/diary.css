@@ -468,14 +468,6 @@
   text-align: left;
   color: inherit;
 }
-.diary-form-section__toggle {
-  cursor: pointer;
-}
-.diary-form-section__toggle-group {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
 /* Шапка секции с внешней кнопкой (например, «Открыть расширенный редактор»):
    переключатель и кнопка — соседние элементы (кнопка не вложена в кнопку). */
 .diary-form-section__head {
@@ -497,15 +489,6 @@
   align-items: center;
   gap: var(--space-2);
   flex-shrink: 0;
-}
-.diary-form-section__chevron {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  font-size: 18px;
-  line-height: 1;
-  color: var(--text-muted);
 }
 .diary-form-section__title {
   margin: 0;
@@ -536,10 +519,6 @@
   font-family: inherit;
   font-size: var(--font-size-sm);
   line-height: 1.5;
-}
-.diary-photos__add {
-  cursor: pointer;
-  align-self: flex-start;
 }
 .diary-photos__insert {
   display: flex;

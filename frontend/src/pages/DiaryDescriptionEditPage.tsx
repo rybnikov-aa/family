@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useBlocker, useNavigate, useParams } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import Button from '../components/Button';
-import { DiaryIcon, UploadIcon } from '../components/icons';
+import IconButton from '../components/IconButton';
+import ImmichPickerModal from '../components/ImmichPickerModal';
+import { DiaryIcon, ImagePlusIcon, ImageUpIcon } from '../components/icons';
+import { useImmichSettings } from '../hooks/useImmichSettings';
 import {
   buildDiaryFormData,
   diaryImageUrl,
@@ -22,8 +25,9 @@ function draftKey(id: number): string {
  *
  * Фокусная форма: markdown-текст слева + живой предпросмотр с фото справа
  * (desktop; на мобильном — стеком). Фото события, ещё не использованные в
- * тексте, вставляются кликом по миниатюре; новые фото загружаются кнопкой
- * «Добавить фото» — попадают в фотосет события и сразу вставляются у курсора.
+ * тексте, вставляются кликом по миниатюре; новые фото загружаются кнопками
+ * «Добавить фото с диска»/«Добавить фото из Immich» — попадают в фотосет
+ * события и сразу вставляются у курсора.
  * «Сохранить» пишет контент сразу на сервер (`PATCH /api/diary/:id`): форма
  * независима от формы события, двухступенчатого сохранения нет. Черновик
  * автосохраняется в localStorage; при уходе с несохранёнными правками —
@@ -44,9 +48,12 @@ function DiaryDescriptionEditPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedInfo, setSavedInfo] = useState<string | null>(null);
   const [restoreHint, setRestoreHint] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const initializedRef = useRef(false);
   const newIdRef = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const immichUrl = useImmichSettings();
 
   // При смене id события (переход между событиями без размонтирования) —
   // сбрасываем состояние, чтобы инициализация прошла заново.
@@ -158,10 +165,9 @@ function DiaryDescriptionEditPage() {
     }
   };
 
-  /** Загрузка новых фото: попадают в фотосет события и сразу в текст у курсора. */
-  const handleUploadFiles = async (list: FileList | null) => {
-    if (!list || !detail || saving) return;
-    const files = Array.from(list);
+  /** Загрузка новых фото (с диска или из Immich): в фотосет события и в текст у курсора. */
+  const addFilesToDraft = async (files: File[]) => {
+    if (!detail || saving) return;
     if (files.length === 0) return;
     setSaving(true);
     setSaveError(null);
@@ -194,6 +200,11 @@ function DiaryDescriptionEditPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleUploadFiles = (list: FileList | null) => {
+    if (!list) return;
+    void addFilesToDraft(Array.from(list));
   };
 
   /** Отменить восстановление черновика: вернуть сохранённый контент события. */
@@ -309,19 +320,30 @@ function DiaryDescriptionEditPage() {
         <div className="diary-editor">
           <div className="diary-editor__pane diary-editor__pane--edit">
             <div className="diary-editor__toolbar">
-              <label className="btn btn--secondary diary-photos__add">
-                <span className="btn__icon" aria-hidden="true">
-                  <UploadIcon />
-                </span>
-                <span>Добавить фото</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  hidden
-                  onChange={(event) => void handleUploadFiles(event.target.files)}
-                />
-              </label>
+              <IconButton
+                label="Добавить фото с диска"
+                tooltip="Добавить фото с диска"
+                onClick={() => photoInputRef.current?.click()}
+              >
+                <ImageUpIcon />
+              </IconButton>
+              {immichUrl && (
+                <IconButton
+                  label="Добавить фото из Immich"
+                  tooltip="Добавить фото из Immich"
+                  onClick={() => setPickerOpen(true)}
+                >
+                  <ImagePlusIcon />
+                </IconButton>
+              )}
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={(event) => handleUploadFiles(event.target.files)}
+              />
               <span className="field__hint">
                 Фото попадают в событие и вставляются в текст у курсора.
               </span>
@@ -374,6 +396,15 @@ function DiaryDescriptionEditPage() {
           </div>
         </div>
       </section>
+
+      {pickerOpen && detail && (
+        <ImmichPickerModal
+          onClose={() => setPickerOpen(false)}
+          onPick={(files) => void addFilesToDraft(files)}
+          defaultFrom={detail.dateStart || undefined}
+          defaultTo={detail.dateEnd || detail.dateStart || undefined}
+        />
+      )}
     </PageLayout>
   );
 }
