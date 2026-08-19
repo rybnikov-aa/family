@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useBlocker, useNavigate, useParams } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import Button from '../components/Button';
-import IconButton from '../components/IconButton';
+import DiaryPhotoUploadActions from '../components/DiaryPhotoUploadActions';
 import ImmichPickerModal from '../components/ImmichPickerModal';
-import { DiaryIcon, ImagePlusIcon, ImageUpIcon } from '../components/icons';
+import { DiaryIcon } from '../components/icons';
+import { diaryImageMarker, extractDiaryImageNames } from '../utils/diaryImages';
 import { useImmichSettings } from '../hooks/useImmichSettings';
 import {
   buildDiaryFormData,
@@ -52,7 +53,6 @@ function DiaryDescriptionEditPage() {
   const initializedRef = useRef(false);
   const newIdRef = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const photoInputRef = useRef<HTMLInputElement>(null);
   const immichUrl = useImmichSettings();
 
   // При смене id события (переход между событиями без размонтирования) —
@@ -112,7 +112,7 @@ function DiaryDescriptionEditPage() {
   /** Вставляет фото (маркер `diary-image://`) в текст у курсора. */
   const insertMarker = (name: string) => {
     const textarea = textareaRef.current;
-    const marker = `![Фото](diary-image://${name})\n`;
+    const marker = diaryImageMarker(name);
     const start = textarea?.selectionStart ?? draft.length;
     const end = textarea?.selectionEnd ?? draft.length;
     handleDraftChange(`${draft.slice(0, start)}${marker}${draft.slice(end)}`);
@@ -177,7 +177,7 @@ function DiaryDescriptionEditPage() {
       let next = previousDraft;
       for (const file of files) {
         const newId = `new-${newIdRef.current++}`;
-        const marker = `![Фото](diary-image://${newId})\n`;
+        const marker = diaryImageMarker(newId);
         const textarea = textareaRef.current;
         const start = textarea?.selectionStart ?? next.length;
         const end = textarea?.selectionEnd ?? next.length;
@@ -200,11 +200,6 @@ function DiaryDescriptionEditPage() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleUploadFiles = (list: FileList | null) => {
-    if (!list) return;
-    void addFilesToDraft(Array.from(list));
   };
 
   /** Отменить восстановление черновика: вернуть сохранённый контент события. */
@@ -246,12 +241,7 @@ function DiaryDescriptionEditPage() {
   }, [dirty]);
 
   // Фото, ещё не использованные в тексте (для полоски вставки).
-  const draftImageNames = new Set(
-    Array.from(
-      draft.matchAll(/!\[[^\]]*\]\(diary-image:\/\/([a-z0-9._-]+)\)/g),
-      (match) => match[1],
-    ),
-  );
+  const draftImageNames = extractDiaryImageNames(draft);
   const availableImages = detail ? detail.images.filter((name) => !draftImageNames.has(name)) : [];
 
   const resolvePreview = (name: string) => {
@@ -320,29 +310,10 @@ function DiaryDescriptionEditPage() {
         <div className="diary-editor">
           <div className="diary-editor__pane diary-editor__pane--edit">
             <div className="diary-editor__toolbar">
-              <IconButton
-                label="Добавить фото с диска"
-                tooltip="Добавить фото с диска"
-                onClick={() => photoInputRef.current?.click()}
-              >
-                <ImageUpIcon />
-              </IconButton>
-              {immichUrl && (
-                <IconButton
-                  label="Добавить фото из Immich"
-                  tooltip="Добавить фото из Immich"
-                  onClick={() => setPickerOpen(true)}
-                >
-                  <ImagePlusIcon />
-                </IconButton>
-              )}
-              <input
-                ref={photoInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                hidden
-                onChange={(event) => handleUploadFiles(event.target.files)}
+              <DiaryPhotoUploadActions
+                immichAvailable={Boolean(immichUrl)}
+                onAddFiles={(files) => void addFilesToDraft(files)}
+                onOpenImmich={() => setPickerOpen(true)}
               />
               <span className="field__hint">
                 Фото попадают в событие и вставляются в текст у курсора.

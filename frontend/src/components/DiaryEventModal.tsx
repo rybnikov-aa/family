@@ -10,10 +10,13 @@ import {
 import Modal from './Modal';
 import Button from './Button';
 import IconButton from './IconButton';
+import DiaryPhotoUploadActions from './DiaryPhotoUploadActions';
 import DiaryPhotosModal from './DiaryPhotosModal';
 import ImmichPickerModal from './ImmichPickerModal';
 import UploadProgress from './UploadProgress';
-import { DocIcon, EditIcon, ImagePlusIcon, ImageUpIcon } from './icons';
+import { DocIcon, EditIcon } from './icons';
+import { extractDiaryImageNames, stripDiaryImage } from '../utils/diaryImages';
+import type { FormImage } from '../types/diary';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 import { useImmichSettings } from '../hooks/useImmichSettings';
 import { useNavigate } from 'react-router-dom';
@@ -25,16 +28,6 @@ interface DiaryEventModalProps {
   onClose: () => void;
   /** Вызывается после успешного сохранения (для обновления списка). */
   onSaved: () => void;
-}
-
-/** Изображение в форме: новое (с файлом) или уже сохранённое. */
-export interface FormImage {
-  /** Клиентский id нового файла (`new-N`) либо имя существующего файла. */
-  id: string;
-  /** Новый файл для загрузки; `null` — уже сохранённое изображение. */
-  file: File | null;
-  /** Превью: object URL (новое) либо серверный URL (существующее). */
-  preview: string;
 }
 
 /**
@@ -75,7 +68,6 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   // Счётчик клиентских id новых файлов + созданные object URL (для очистки).
   const newIdRef = useRef(0);
   const objectUrlsRef = useRef<string[]>([]);
-  const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEscapeClose(onClose);
   const navigate = useNavigate();
@@ -87,11 +79,6 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
       for (const url of urls) URL.revokeObjectURL(url);
     };
   }, []);
-
-  const handleFiles = (list: FileList | null) => {
-    if (!list) return;
-    addFiles(Array.from(list));
-  };
 
   /** Добавляет файлы в список изображений формы (загрузка или пикер Immich). */
   const addFiles = (files: File[]) => {
@@ -122,19 +109,11 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
     }
     const next = images.filter((i) => i.id !== id);
     setImages(next);
-    const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    setContent((prev) =>
-      prev.replace(new RegExp(`!\\[[^\\]]*\\]\\(diary-image:\\/\\/${escapedId}\\)`, 'g'), ''),
-    );
+    setContent((prev) => stripDiaryImage(prev, id));
     if (cover === id) setCover(next[0]?.id ?? null);
   };
 
-  const contentImageNames = new Set(
-    Array.from(
-      content.matchAll(/!\[[^\]]*\]\(diary-image:\/\/([a-z0-9._-]+)\)/g),
-      (match) => match[1],
-    ),
-  );
+  const contentImageNames = extractDiaryImageNames(content);
 
   /** Открывает расширенный редактор описания: закрывает форму и ведёт на страницу. */
   const handleOpenEditor = () => {
@@ -326,29 +305,10 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
                 >
                   <EditIcon />
                 </IconButton>
-                <IconButton
-                  label="Добавить фото с диска"
-                  tooltip="Добавить фото с диска"
-                  onClick={() => photoInputRef.current?.click()}
-                >
-                  <ImageUpIcon />
-                </IconButton>
-                {immichUrl && (
-                  <IconButton
-                    label="Добавить фото из Immich"
-                    tooltip="Добавить фото из Immich"
-                    onClick={() => setPickerOpen(true)}
-                  >
-                    <ImagePlusIcon />
-                  </IconButton>
-                )}
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  hidden
-                  onChange={(event) => handleFiles(event.target.files)}
+                <DiaryPhotoUploadActions
+                  immichAvailable={Boolean(immichUrl)}
+                  onAddFiles={addFiles}
+                  onOpenImmich={() => setPickerOpen(true)}
                 />
               </div>
             </div>

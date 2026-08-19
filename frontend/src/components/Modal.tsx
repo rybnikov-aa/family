@@ -50,6 +50,9 @@ function Modal({
   useEscapeClose(onClose, closeOnEscape && isForeground);
 
   // Фокус на модалку при открытии, блокировка прокрутки; возврат фокуса при закрытии.
+  // Блокировка выполняется и у фоновых слоёв (isForeground=false): под верхней модалкой
+  // страница всё равно должна оставаться зафиксированной; восстановление — по факту
+  // размонтирования каждого слоя.
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';

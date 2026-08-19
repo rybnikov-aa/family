@@ -1,9 +1,9 @@
-import { useRef } from 'react';
 import Modal from './Modal';
 import IconButton from './IconButton';
 import Tooltip from './Tooltip';
-import { CheckIcon, ImagePlusIcon, ImageUpIcon, TrashIcon } from './icons';
-import type { FormImage } from './DiaryEventModal';
+import DiaryPhotoUploadActions from './DiaryPhotoUploadActions';
+import { CheckIcon, TrashIcon } from './icons';
+import type { FormImage } from '../types/diary';
 
 interface DiaryPhotosModalProps {
   images: FormImage[];
@@ -31,40 +31,17 @@ function DiaryPhotosModal({
   onRemoveImage,
   isForeground,
 }: DiaryPhotosModalProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const actions = (
-    <>
-      <IconButton
-        label="Добавить фото с диска"
-        tooltip="Добавить фото с диска"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <ImageUpIcon />
-      </IconButton>
-      {immichAvailable && (
-        <IconButton
-          label="Добавить фото из Immich"
-          tooltip="Добавить фото из Immich"
-          onClick={onOpenImmich}
-        >
-          <ImagePlusIcon />
-        </IconButton>
-      )}
-    </>
+    <DiaryPhotoUploadActions
+      immichAvailable={immichAvailable}
+      onAddFiles={onAddFiles}
+      onOpenImmich={onOpenImmich}
+    />
   );
 
   return (
     <Modal title="Фотографии" onClose={onClose} wide actions={actions} isForeground={isForeground}>
       <div className="diary-photos-modal">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          hidden
-          onChange={(event) => onAddFiles(Array.from(event.target.files ?? []))}
-        />
         <div className="diary-photos">
           {images.length === 0 && (
             <div className="diary-photos__empty">Фотографии ещё не добавлены</div>
