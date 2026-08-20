@@ -325,7 +325,7 @@
   border-radius: var(--radius-pill);
   padding: 5px 10px;
 }
-/* Малый pill (например, % выполнения по объёму в подитоге группы «Ход работ») */
+/* Малый pill (например, счётчик «выполнено строк N / M» в заголовке группы «Ход работ») */
 .renov-pill--sm {
   font-size: var(--font-size-2xs);
   padding: 2px 6px;
@@ -506,11 +506,34 @@
   margin-left: var(--space-2);
   vertical-align: middle;
 }
-/* Подитоги группы (суммы план/факт) — по правому краю под соответствующими колонками. */
-.renov-rp__table tr.renov-rp__section td.renov-rp__section-sum {
-  text-align: right;
-  font-weight: 600;
+/* Подитог группы (строка после позиций раздела): «% выполнения» (по сумме) +
+   суммы план/факт. Нейтральный фон — заметнее строк, но спокойнее заголовка
+   группы (акцент-тинт) и финального «Итого». */
+.renov-rp__table tr.renov-rp__subtotal td {
+  background: var(--surface-muted);
   color: var(--text-strong);
+  font-weight: 600;
+  border-top: 1px solid var(--border-strong);
+}
+.renov-rp__table tr.renov-rp__subtotal td.renov-rp__subtotal-label {
+  text-align: left;
+  color: var(--text-muted);
+}
+/* Общие итоги отчёта (нижняя сводка): «Итого по работам», «Накладные 5%», «Итого». */
+.renov-rp__table tr.renov-rp__total td {
+  background: var(--surface-muted);
+  color: var(--text-strong);
+  font-weight: 600;
+}
+.renov-rp__table tr.renov-rp__total td.renov-rp__total-label {
+  text-align: left;
+}
+/* Финальный «Итого» — акцент раздела (как заголовки групп) + разделитель сверху. */
+.renov-rp__table tr.renov-rp__total--final td {
+  background: color-mix(in srgb, var(--color-accent-orange) 10%, transparent);
+  font-weight: 700;
+  font-size: var(--font-size-caption);
+  border-top: 1px solid color-mix(in srgb, var(--color-accent-orange) 30%, transparent);
 }
 .renov-rp__table td.renov-rp__left {
   text-align: left;

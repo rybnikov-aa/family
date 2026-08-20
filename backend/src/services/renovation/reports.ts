@@ -33,6 +33,19 @@ export interface ReportWorkRow {
   status: WorkRowStatus;
 }
 
+/** Нижняя сводка отчёта «Ход работ»: план/факт без накладных и с накладными. */
+export interface ReportWorkSummary {
+  /** Итого по работам (без накладных): план = позиции сметы, факт = позиции актов. */
+  worksPlan: number;
+  worksFact: number;
+  /** Накладные расходы 5% (разность «Итого» − «Итого по работам»). */
+  overheadPlan: number;
+  overheadFact: number;
+  /** Итого (с накладными): план = итог сметы, факт = сумма итогов актов. */
+  totalPlan: number;
+  totalFact: number;
+}
+
 export interface ReportWork {
   asOf: string | null;
   meta: Pick<RenovationMeta, 'object' | 'area' | 'startDate' | 'deadlineDays'>;
@@ -49,6 +62,7 @@ export interface ReportWork {
     notdone: number;
     added: number;
   };
+  summary: ReportWorkSummary;
   settlements: {
     works:
       | (Pick<SettlementAct, 'date' | 'type'> & {
@@ -253,6 +267,19 @@ export function buildWorkReport(): ReportWork {
   // ниже — без накладных (накладные не привязаны к отдельным строкам).
   const planSum = current?.total ?? items.reduce((s, i) => s + (i.sum ?? 0), 0);
   const factSum = acts.reduce((s, a) => s + (a.totalWithOverhead ?? 0), 0);
+  // Нижняя сводка: «Итого по работам» (без накладных) = позиции сметы/актов.
+  // «Накладные 5%» выводим разностью (итог − позиции): сводка всегда сходится,
+  // даже если у акта не разобраны строки «Итого по разделам»/«Накладные»
+  // (total/overhead в БД null), а известен только grand-итог (total_with_overhead).
+  // Правило: итог план = итог сметы, итог факт = сумма итогов ВСЕХ актов работ
+  // (см. docs/specification-renovation.md §5.3).
+  const worksPlan = items.reduce((s, i) => s + (i.sum ?? 0), 0);
+  const worksFact = acts.reduce(
+    (s, a) => s + a.items.reduce((s2, it) => s2 + (it.kind === 'row' ? (it.sum ?? 0) : 0), 0),
+    0,
+  );
+  const overheadPlan = planSum - worksPlan;
+  const overheadFact = factSum - worksFact;
   const counts = { done: 0, partial: 0, notdone: 0, added: 0 };
   for (const s of sections) {
     for (const r of s.rows) counts[r.status] += 1;
@@ -286,6 +313,14 @@ export function buildWorkReport(): ReportWork {
       partial: counts.partial,
       notdone: counts.notdone,
       added: counts.added,
+    },
+    summary: {
+      worksPlan,
+      worksFact,
+      overheadPlan,
+      overheadFact,
+      totalPlan: planSum,
+      totalFact: factSum,
     },
     settlements: { works: settleSummary(latestWorks) },
   };

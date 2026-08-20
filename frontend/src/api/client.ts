@@ -708,6 +708,15 @@ export interface ReportWorkRow {
   status: WorkRowStatus;
 }
 
+export interface RenovationWorkReportSummary {
+  worksPlan: number;
+  worksFact: number;
+  overheadPlan: number;
+  overheadFact: number;
+  totalPlan: number;
+  totalFact: number;
+}
+
 export interface RenovationWorkReport {
   asOf: string | null;
   meta: {
@@ -726,6 +735,7 @@ export interface RenovationWorkReport {
     notdone: number;
     added: number;
   };
+  summary: RenovationWorkReportSummary;
   settlements: {
     works: {
       date: string;

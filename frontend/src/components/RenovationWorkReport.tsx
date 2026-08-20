@@ -25,7 +25,7 @@ function WorkReportView({ reports }: Props) {
   if (error) return <div className="news-empty">Не удалось загрузить отчёт: {error}</div>;
   if (!work) return null;
 
-  const { totals, sections } = work;
+  const { totals, sections, summary } = work;
   // Освоение бюджета — как в карточке «Работы» страницы «Ремонт» (факт/план с накладными).
   const fillWidth =
     totals.percent != null && Number.isFinite(totals.percent)
@@ -93,6 +93,17 @@ function WorkReportView({ reports }: Props) {
             {sections.map((sec) => (
               <WorkSection key={sec.title} title={sec.title} rows={sec.rows} />
             ))}
+            <SummaryRow
+              label="Итого по работам"
+              plan={summary.worksPlan}
+              fact={summary.worksFact}
+            />
+            <SummaryRow
+              label="Накладные расходы 5%"
+              plan={summary.overheadPlan}
+              fact={summary.overheadFact}
+            />
+            <SummaryRow label="Итого" plan={summary.totalPlan} fact={summary.totalFact} final />
           </tbody>
         </table>
       </div>
@@ -104,10 +115,6 @@ function WorkSection({ title, rows }: { title: string; rows: ReportWorkRow[] }) 
   // Подитог группы: суммы план/факт по строкам (без накладных — как в таблице).
   const planSub = rows.reduce((s, r) => s + (r.planSum ?? 0), 0);
   const factSub = rows.reduce((s, r) => s + (r.factSum ?? 0), 0);
-  // Выполнение группы по объёму: сумма объёмов факт / план × 100%.
-  const planQty = rows.reduce((s, r) => s + (r.planQty ?? 0), 0);
-  const factQty = rows.reduce((s, r) => s + (r.factQty ?? 0), 0);
-  const qtyPercent = planQty > 0 ? Math.round((factQty / planQty) * 1000) / 10 : null;
   // Выполненные строки группы (есть факт — done/partial/added) из общего числа строк.
   const doneInGroup = rows.filter(
     (r) => r.status === 'done' || r.status === 'partial' || r.status === 'added',
@@ -123,16 +130,10 @@ function WorkSection({ title, rows }: { title: string; rows: ReportWorkRow[] }) 
           </span>
         </td>
         <td />
-        <td className="renov-rp__section-sum">
-          <span className="renov-pill renov-pill--sm" title="Выполнение по объёму">
-            {qtyPercent != null ? `${qtyPercent.toLocaleString('ru-RU')}%` : '—'}
-          </span>
-        </td>
         <td />
-        <td className="renov-rp__num renov-rp__section-sum">{formatKopecks(planSub, true)}</td>
-        <td className="renov-rp__num renov-rp__section-sum">
-          {factSub > 0 ? formatKopecks(factSub, true) : '—'}
-        </td>
+        <td />
+        <td />
+        <td />
       </tr>
       {rows.map((r, i) => (
         <tr key={`${title}-${i}`} className={`renov-rp__row renov-rp__row--${r.status}`}>
@@ -165,7 +166,43 @@ function WorkSection({ title, rows }: { title: string; rows: ReportWorkRow[] }) 
           </td>
         </tr>
       ))}
+      <tr className="renov-rp__subtotal">
+        <td colSpan={2} className="renov-rp__subtotal-label">
+          Итого по разделу
+        </td>
+        <td />
+        <td />
+        <td />
+        <td className="renov-rp__num">{formatKopecks(planSub, true)}</td>
+        <td className="renov-rp__num">{factSub > 0 ? formatKopecks(factSub, true) : '—'}</td>
+      </tr>
     </>
+  );
+}
+
+/** Строка нижней сводки отчёта: подпись + сумма план/факт. */
+function SummaryRow({
+  label,
+  plan,
+  fact,
+  final = false,
+}: {
+  label: string;
+  plan: number;
+  fact: number;
+  final?: boolean;
+}) {
+  return (
+    <tr className={`renov-rp__total${final ? ' renov-rp__total--final' : ''}`}>
+      <td colSpan={2} className="renov-rp__total-label">
+        {label}
+      </td>
+      <td />
+      <td />
+      <td />
+      <td className="renov-rp__num">{formatKopecks(plan, true)}</td>
+      <td className="renov-rp__num">{formatKopecks(fact, true)}</td>
+    </tr>
   );
 }
 
