@@ -319,8 +319,11 @@ function parseItemText(
     const raw = lines[i];
     const line = raw.trim();
     if (line === '') continue;
-    if (/^подписи|^страница/i.test(line)) break;
-    if (line.startsWith('[')) continue; // метка «[стр. N]»
+    // Метка «[стр. N]» и подвал «Страница: N / M» — НЕ конец документа: в
+    // многостраничных PDF позиции продолжаются на следующих страницах, поэтому
+    // такие строки пропускаем. Концом документа считаем блок подписей.
+    if (/^подписи/i.test(line)) break;
+    if (line.startsWith('[') || /^страница/i.test(line)) continue;
 
     // Подзаголовок раздела задаёт раздел следующих позиций; строка накладных —
     // не позиция и не продолжение имени. Новый раздел после «Итого» сбрасывает
@@ -410,14 +413,30 @@ function parseItemText(
     if (seenTotal) continue;
 
     // Продолжение имени последней позиции, если:
-    //  - строка идёт сразу после числовой строки («кабель» после «1 ед. 735.00 …»), либо
-    //  - следующая строка не числовая («до 10 см», за которой идёт имя следующей позиции).
-    // Иначе — если перед следующей строкой стоит числовая строка, это НАЧАЛО имени новой
-    // позиции («Формирование дверного проема…», перед «2. ед. 2 700.00 …»): копим в pending.
-    const prevWasNumber = i > 0 && isItemNumberLine(lines[i - 1].trim());
+    //  - строка идёт сразу после строки-продолжения («толщиной до 25мм» после
+    //    «3 м2+м.п. 580.00 …» — имя позиции переносится и ПОСЛЕ цифр), либо
+    //  - следующая строка не числовая («до 10 см», за которой идёт имя следующей
+    //    позиции).
+    // НО: если предыдущая строка — ПОЛНАЯ однострочная позиция (SINGLE_LINE_ITEM),
+    // то её имя уже целиком в ней, и следующая строка имени — это НАЧАЛО имени новой
+    // позиции (в PDF подрядчика номер позиции печатается на строке с цифрами, а имя
+    // переносится перед ней: «2 Установка маяков …» → «Оштукатуривание … |» → «3 м2+м.п. …»).
+    // Такую строку копим в pending, а не приклеиваем к предыдущей позиции.
+    //
+    // Внимание: SINGLE_LINE_ITEM матчит и строки-продолжения («3 м2+м.п. 580.00 …»,
+    // где «м2+м.п.» принимается за имя, а «580.00» — за единицу), поэтому «полную
+    // однострочную позицию» определяем как SINGLE_LINE_ITEM, НЕ совпавший с
+    // CONTINUATION_ROW/DASH_ROW.
+    const prevLine = i > 0 ? lines[i - 1].trim() : '';
+    const prevIsCont =
+      prevLine !== '' && (CONTINUATION_ROW.test(prevLine) || DASH_ROW.test(prevLine));
+    const prevIsSingle = prevLine !== '' && SINGLE_LINE_ITEM.test(prevLine) && !prevIsCont;
+    const prevWasNumber = prevLine !== '' && isItemNumberLine(prevLine);
     const nextIsNumber = i + 1 < lines.length && isItemNumberLine(lines[i + 1].trim());
     if (pending) pending = appendWrappedLine(pending, line);
-    else if (items.length > 0 && (prevWasNumber || !nextIsNumber)) {
+    else if (items.length > 0 && prevWasNumber && !prevIsSingle) {
+      items[items.length - 1].name += ' ' + line;
+    } else if (items.length > 0 && !nextIsNumber && !prevIsSingle) {
       items[items.length - 1].name += ' ' + line;
     } else if (seenHeader) pending = line;
   }

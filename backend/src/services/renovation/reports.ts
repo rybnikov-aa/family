@@ -5,7 +5,7 @@ import {
   listSettlementActs,
 } from '../../db/renovationRepository';
 import { normalizeName } from './addendum';
-import type { RenovationMeta, SettlementAct } from './domain/types';
+import type { EstimateItem, RenovationMeta, SettlementAct } from './domain/types';
 
 /**
  * Отчёты из БД (этап 5): «ход работ» (план vs факт по позициям сметы,
@@ -110,24 +110,42 @@ export function buildWorkReport(): ReportWork {
   const acts = listRenovationDocs('work_act').filter((d) => d.type === 'work_act');
   const meta = getRenovationMeta();
 
-  // Факт по актам: нормализованное имя → сумма по всем актам. Сначала считаем
-  // строки только по смете, затем добавляем отдельные строки актов, которых нет
-  // в смете (новые/добавленные объёмы по факту).
-  const factByKey = new Map<string, { qty: number; sum: number }>();
+  // Ключ сопоставления «раздел::имя»: одно и то же имя в разных разделах
+  // («Укладка керамогранита…» в «Полах» и в «Стенах») — разные позиции.
+  const factKey = (section: string, name: string): string =>
+    `${normalizeName(section)}::${normalizeName(name)}`;
+
+  // Факт по актам: ключ → список значений в порядке следования (по актам и
+  // позициям). Список, а не сумма: при дубликатах имён в смете позиции
+  // сопоставляются по порядку, чтобы не «складывать» объёмы разных строк
+  // (в смете «Установка маяков для штукатурки» встречается дважды — гипсовая
+  // и цементная группы).
+  const factByKey = new Map<string, { qty: number; sum: number }[]>();
   for (const act of acts) {
     for (const it of act.items) {
       if (it.kind !== 'row') continue;
-      const key = normalizeName(it.name);
+      const key = factKey(it.section, it.name);
       if (key === '') continue;
-      const cur = factByKey.get(key) ?? { qty: 0, sum: 0 };
-      cur.qty += it.qty ?? 0;
-      cur.sum += it.sum ?? 0;
-      factByKey.set(key, cur);
+      const list = factByKey.get(key) ?? [];
+      list.push({ qty: it.qty ?? 0, sum: it.sum ?? 0 });
+      factByKey.set(key, list);
     }
   }
 
   const items = current?.items ?? [];
-  const estimateKeys = new Set(items.map((item) => normalizeName(item.name)));
+
+  // Позиции сметы по ключу (для дубликатов — в порядке появления).
+  const estimateByKey = new Map<string, EstimateItem[]>();
+  for (const item of items) {
+    const key = factKey(item.section, item.name);
+    if (key === '') continue;
+    const list = estimateByKey.get(key) ?? [];
+    list.push(item);
+    estimateByKey.set(key, list);
+  }
+
+  // Добавленные объёмы: строки актов, которых нет в смете (ключа нет), либо
+  // «лишние» факты при дубликатах (фактов больше, чем одинаковых позиций сметы).
   const addedByKey = new Map<
     string,
     {
@@ -138,25 +156,31 @@ export function buildWorkReport(): ReportWork {
       sum: number;
     }
   >();
-
+  const factCursor = new Map<string, number>(); // сколько фактов ключа уже использовано
   for (const act of acts) {
     for (const it of act.items) {
       if (it.kind !== 'row') continue;
-      const key = normalizeName(it.name);
-      if (key === '' || estimateKeys.has(key)) continue;
-      const prev = addedByKey.get(key) ?? {
-        section: it.section || 'Прочее',
-        name: it.name,
-        unit: it.unit,
-        qty: 0,
-        sum: 0,
-      };
-      prev.section = prev.section || it.section || 'Прочее';
-      prev.name = it.name;
-      prev.unit = it.unit ?? prev.unit;
-      prev.qty += it.qty ?? 0;
-      prev.sum += it.sum ?? 0;
-      addedByKey.set(key, prev);
+      const key = factKey(it.section, it.name);
+      if (key === '') continue;
+      const estCount = estimateByKey.get(key)?.length ?? 0;
+      const idx = factCursor.get(key) ?? 0;
+      factCursor.set(key, idx + 1);
+      // Факты сверх числа одинаковых позиций сметы — добавленные объёмы.
+      if (estCount === 0 || idx >= estCount) {
+        const prev = addedByKey.get(key) ?? {
+          section: it.section || 'Прочее',
+          name: it.name,
+          unit: it.unit,
+          qty: 0,
+          sum: 0,
+        };
+        prev.section = prev.section || it.section || 'Прочее';
+        prev.name = it.name;
+        prev.unit = it.unit ?? prev.unit;
+        prev.qty += it.qty ?? 0;
+        prev.sum += it.sum ?? 0;
+        addedByKey.set(key, prev);
+      }
     }
   }
 
@@ -172,8 +196,20 @@ export function buildWorkReport(): ReportWork {
 
   for (const item of items) {
     ensureSection(item.section);
-    const key = normalizeName(item.name);
-    const fact = factByKey.get(key);
+    const key = factKey(item.section, item.name);
+    const facts = factByKey.get(key) ?? [];
+    const sameNameRows = estimateByKey.get(key) ?? [];
+    // Уникальное имя — суммируем все факты по актам; дубликаты имён — по порядку
+    // (i-я позиция сметы берёт i-й факт из актов).
+    const fact =
+      sameNameRows.length <= 1
+        ? facts.length > 0
+          ? {
+              qty: facts.reduce((s, f) => s + f.qty, 0),
+              sum: facts.reduce((s, f) => s + f.sum, 0),
+            }
+          : undefined
+        : facts[sameNameRows.indexOf(item)];
     const factSum = fact?.sum ?? null;
     const factQty = fact?.qty ?? null;
     const diff = factSum != null && item.sum != null ? factSum - item.sum : null;
