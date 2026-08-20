@@ -598,6 +598,81 @@
   position: static;
 }
 
+/* ── Экспорт отчётов «Ремонта» в PDF (печать) ───────────────────────────────
+   Оверлей `.print-report` рендерится через portal в body (RenovationPage.tsx)
+   и виден только в print-медиа: при печати скрывается весь интерфейс
+   приложения (`body > :not(.print-report)`), остаётся только отчёт. */
+.print-report {
+  display: none;
+}
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  /* Модалка в инлайн-стиле ставит body overflow:hidden — при печати снимаем,
+     иначе длинный отчёт обрезается по высоте вьюпорта. */
+  html,
+  body {
+    overflow: visible !important;
+  }
+  body > :not(.print-report) {
+    display: none !important;
+  }
+  .print-report {
+    display: block !important;
+    color: #111;
+    /* Печать цветов статусов (точки «выполнено/отклонение/добавлено»). */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-report__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-2);
+    border-bottom: 2px solid #111;
+  }
+  .print-report__title {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .print-report__date {
+    font-size: var(--font-size-caption);
+    color: #444;
+  }
+  .print-report .renov-card__progress,
+  .print-report .renov-rp__legend {
+    margin-bottom: var(--space-2);
+  }
+  .print-report .renov-rp__table-wrap {
+    overflow: visible;
+    max-height: none;
+    border: none;
+    border-radius: 0;
+  }
+  .print-report .renov-rp__table {
+    min-width: 0;
+    font-size: 11px;
+  }
+  .print-report .renov-rp__table th,
+  .print-report .renov-rp__table td {
+    padding: 4px 6px;
+  }
+  .print-report .renov-rp__table thead {
+    position: static;
+    /* Повтор шапки таблицы на каждой странице PDF. */
+    display: table-header-group;
+  }
+  .print-report tr {
+    break-inside: avoid;
+  }
+  /* Заказы материалов не «склеиваем» в одну страницу (break-inside: avoid не
+     применяем): длинные заказы с множеством позиций должны разрываться между
+     строками, а не обрезаться по высоте страницы. */
+}
+
 /* Модалка «Доп. соглашение» */
 .addendum {
   display: flex;

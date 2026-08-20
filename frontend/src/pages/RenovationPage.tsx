@@ -1,6 +1,8 @@
-import { lazy, Suspense, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import PageLayout from '../components/PageLayout';
-import { DocIcon, EditIcon, RenovationIcon, UploadIcon } from '../components/icons';
+import { DocIcon, EditIcon, PrinterIcon, RenovationIcon, UploadIcon } from '../components/icons';
+import IconButton from '../components/IconButton';
 import Button from '../components/Button';
 import RenovationAddressModal from '../components/RenovationAddressModal';
 import RenovationDesignModal from '../components/RenovationDesignModal';
@@ -54,6 +56,26 @@ function RenovationPage() {
   // Открытый отчёт («Работы»/«Материалы») — в модальном окне.
   const [report, setReport] = useState<'work' | 'materials' | null>(null);
   const [viewPdf, setViewPdf] = useState<ViewPdfDoc | null>(null);
+  // Отчёт, выводимый на печать/экспорт в PDF (рендерится в оверлее через portal).
+  const [printReport, setPrintReport] = useState<'work' | 'materials' | null>(null);
+
+  const exportReportPdf = () => {
+    if (!report) return;
+    // Не печатать пустой/загружающийся отчёт.
+    const hasData = report === 'work' ? Boolean(reports.work) : Boolean(reports.materials);
+    if (!hasData) return;
+    setPrintReport(report);
+    // Дать React отрендерить оверлей печати, затем открыть диалог печати (PDF).
+    requestAnimationFrame(() => window.print());
+  };
+
+  // Сброс оверлея печати после закрытия диалога.
+  useEffect(() => {
+    if (!printReport) return;
+    const clear = () => setPrintReport(null);
+    window.addEventListener('afterprint', clear);
+    return () => window.removeEventListener('afterprint', clear);
+  }, [printReport]);
 
   const meta = overview?.meta;
   const works = overview?.works;
@@ -519,6 +541,11 @@ function RenovationPage() {
           }
           onClose={() => setReport(null)}
           className="modal--report"
+          actions={
+            <IconButton label="Экспорт в PDF" tooltip="Экспорт в PDF" onClick={exportReportPdf}>
+              <PrinterIcon />
+            </IconButton>
+          }
         >
           {report === 'work' ? (
             <RenovationWorkReport reports={reports} />
@@ -527,6 +554,29 @@ function RenovationPage() {
           )}
         </Modal>
       )}
+      {/* Оверлей печати: рендерится в body (portal), виден только в print-медиа —
+          в PDF уходит только содержимое отчёта, без интерфейса приложения. */}
+      {printReport &&
+        createPortal(
+          <div className="print-report">
+            <div className="print-report__head">
+              <div className="print-report__title">
+                {printReport === 'work' ? 'Отчет о ходе работ' : 'Отчет по материалам'}
+              </div>
+              {printReport === 'work' && reports.work?.asOf && (
+                <div className="print-report__date">
+                  по состоянию на {formatDateIso(reports.work.asOf)}
+                </div>
+              )}
+            </div>
+            {printReport === 'work' ? (
+              <RenovationWorkReport reports={reports} />
+            ) : (
+              <RenovationMaterialsReport reports={reports} onOpenPdf={openPdf} />
+            )}
+          </div>,
+          document.body,
+        )}
       {viewPdf && (
         <Suspense fallback={null}>
           <PdfViewerModal
