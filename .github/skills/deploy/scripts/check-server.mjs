@@ -74,8 +74,8 @@ echo
 echo "=== Порт 3000 ==="
 ss -ltnp 2>/dev/null | grep ':3000' || echo "порт 3000 не слушается"
 echo
-PM2="$HOME/.nvm/versions/node/v24.19.0/bin/pm2"
-[ -x "$PM2" ] || PM2=$(command -v pm2)
+PM2="$(command -v pm2 2>/dev/null || true)"
+[ -x "$PM2" ] || PM2="/usr/bin/pm2"
 echo "=== pm2 (${app}) ==="
 if [ -n "$PM2" ]; then
   "$PM2" describe "${app}" 2>/dev/null | grep -Ei 'name|status|pid|uptime|restarts' | head -20 || echo "pm2: приложение ${app} не найдено"

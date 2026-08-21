@@ -66,6 +66,5 @@
 
 - Read-only снимок сервера одной командой: [check-server.mjs](../scripts/check-server.mjs) (health, порт 3000, pm2 describe + logs, nginx -t; флаги `--host/--user/--port/--app/--lines/--batch`).
 - `curl -i https://my.rybnikov.su/api/health` → `{"status":"ok",…}`.
-- `curl -s https://my.rybnikov.su/api/projects` — список проектов.
-- `curl -s https://my.rybnikov.su/api/vps` — статусы VPS.
+- `curl -s https://my.rybnikov.su/api/projects` / `curl -s https://my.rybnikov.su/api/vps` — списки (только под авторизованной сессией: без cookie — 401; сначала `curl -c ck -X POST https://my.rybnikov.su/api/auth/login -H 'Content-Type: application/json' -d '{"username":"…","password":"…"}'`, затем `curl -b ck ...`).
 - Логи бэкенда при ошибках: полный путь к pm2 (см. выше).

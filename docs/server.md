@@ -3,8 +3,8 @@
 Справочник по размещению файлов веб-приложения и настроек nginx.
 
 - **Основной хост — `my.rybnikov.su`** (данные мигрированы с прежнего хоста 2026-08-16; прежний домен `family.rybnikov.su` настроен редиректом на `my.rybnikov.su`).
-- **Тестовый хост — `test.rybnikov.su`** (отдельный инстанс `family-backend-test` на порту 3001).
-- **Конфигурация основного и тестового серверов синхронизируется** (правило 14 в AGENTS.md): любые правки конфигурации применяются к **обоим** хостам; отличия допустимы только по назначению (порт, домен, пути, имя pm2-приложения).
+- **Тестовый хост — `test.rybnikov.su`** (отдельный инстанс `family-backend-test` на порту 3000 — как на основном).
+- **Конфигурация основного и тестового серверов синхронизируется** (правило 14 в AGENTS.md): любые правки конфигурации применяются к **обоим** хостам; отличия допустимы только по назначению (домен, пути, имя pm2-приложения); порт на обоих хостах — `3000`.
 
 ---
 
@@ -233,8 +233,9 @@ npm run pipeline
 | SSL (letsencrypt) | `/etc/letsencrypt/live/test.rybnikov.su/`        |
 | Фронтенд/бэкенд   | `/var/www/test.rybnikov.su/{public_html,server}` |
 
-- Сервер `31.76.227.98`, пользователь `rybnikov` (passwordless `sudo`), node v24.18.1 `/usr/bin/node`, pm2 7.0.3 `/usr/bin/pm2`, CPU E5-2697 v4 (AVX2).
-- **Только одно бэкенд-приложение — `family-backend-test`** на `127.0.0.1:3001` (`server/.env`: `PORT=3001`, `CORS_ORIGIN=https://test.rybnikov.su`). nginx `location /api/` → `proxy_pass http://127.0.0.1:3001;` (+ `client_max_body_size 100m`, фикс mime `.mjs` — как на основном).
+- Сервер `31.76.227.98`, пользователь `rybnikov` (passwordless `sudo`), node v24.19.0 `/usr/bin/node`, pm2 7.0.3 `/usr/bin/pm2`, CPU E5-2697 v4 (AVX2).
+- **Node.js на обоих хостах — v24.19.0** (Nodesource, репозиторий `node_24.x`); версия должна совпадать (правило 14 в AGENTS.md). Обновление: `sudo apt-get update && sudo apt-get install -y nodejs`, затем `pm2 restart family-backend-test`. Внимание: после `pm2 update` приложение может не подняться (гонка с SQLite-локом при рестарте) — запустить вручную `pm2 start dist/app.cjs --name <app> --cwd $SERVER` (см. граблю «pm2 update после апгрейда node»).
+- **Только одно бэкенд-приложение — `family-backend-test`** на `127.0.0.1:3000` (`server/.env`: `PORT=3000`, `CORS_ORIGIN=https://test.rybnikov.su`) — порт совпадает с основным. nginx `location /api/` → `proxy_pass http://127.0.0.1:3000;` (+ `client_max_body_size 100m`, фикс mime `.mjs` — как на основном).
 - **Автозапуск pm2 включён** (2026-08-16, `pm2-rybnikov.service` + `pm2 save`): после перезагрузки `family-backend-test` поднимается автоматически (проверено перезагрузкой 2026-08-16). Инстанс — один (дубли удалены).
 - **Данные «аналогичны» основному** (синхронизированы 2026-08-16): `data/` (5 БД), `docs/` (PDF «Ремонта»), `images/` (фото «Дневника») скопированы с `my.rybnikov.su`; содержимое БД (пользователи, VPS, «Ремонт», «Дневник») совпадает с основным. Учётка `admin` в БД есть; вход — заново.
 - **venv PDF-импорта:** `/home/rybnikov/renov-venv` (на этом хосте собран на Python 3.8; `pdfplumber` установлен и работает) — путь `RENOVATION_PYTHON` в `server/.env`.
@@ -257,7 +258,7 @@ npm run pipeline
 # Проверка конфига nginx и перезагрузка
 sudo nginx -t && sudo systemctl reload nginx
 
-# Бэкенд слушает 3000? (тестовый хост — 3001)
+# Бэкенд слушает 3000? (основной и тестовый хост — порт одинаковый)
 ss -ltnp | grep 3000
 
 # Health-чек напрямую (минуя nginx)
@@ -273,3 +274,23 @@ pm2 describe family-backend
 curl -i https://my.rybnikov.su/api/health
 curl -i https://test.rybnikov.su/api/health
 ```
+
+---
+
+## 4. Бэкап и восстановление
+
+Полные инструкции — в **`docs/backup.md`** (состав архива, команды `npm run backup` /
+`npm run restore`, конфигурация `BACKUP_*`/`RESTORE_*`, cron, восстановление на новый VPS,
+подводные камни). Кратко:
+
+- **Бэкап** (`npm run backup`): архив `data/` (5 SQLite-БД), `docs/renovation/`, `images/`, `.env`
+  - справочные `server-config/` (nginx/letsencrypt — не восстанавливаются) + `MANIFEST.txt`/sha256;
+    бэкенд останавливается на несколько секунд (согласованный снапшот SQLite WAL), перезапуск
+    гарантирован. Архивы на сервере: `<BACKUP_SERVER_DIR>` (по умолчанию `/var/backups/family`),
+    ротация — последние `BACKUP_KEEP` (7); локально скачиваются в `BACKUP_LOCAL_DIR` (`backups/`)
+    со сверкой sha256. Cron — `npm run backup -- --install-cron` (только основной хост).
+- **Восстановление** (`npm run restore -- <архив> --host <host>`): стоп → страховка текущих
+  `data/docs/images/.env` в `/tmp/family-restore-prev-*` → распаковка → рестарт → health-check;
+  каталог/имя приложения — `RESTORE_*`; `--no-env` — не трогать `.env` цели.
+- **Переезд на новый VPS**: провижининг (см. §1.2) → `npm run restore` → `npm run deploy` →
+  проверить `server/.env` (PORT/CORS/пути venv).

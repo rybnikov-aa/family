@@ -30,12 +30,12 @@
  *   DEPLOY_PDF_SETUP     default: 1. Provision python3-venv + ~/renov-venv (pdfplumber) and
  *                        write RENOVATION_PYTHON / RENOVATION_EXTRACT_SCRIPT into server/.env
  *                        if absent (idempotent, non-fatal). 0 disables.
- *   DEPLOY_NODE_PATH     bin dir with node/npm on the SERVER (e.g. /home/rybnikov/.nvm/versions/node/v24.19.0/bin).
+ *   DEPLOY_NODE_PATH     bin dir with node/npm on the SERVER (e.g. /usr/bin; текущие хосты — node уже в PATH).
  *                        If unset, the remote script auto-detects node/npm (profiles, nvm, common paths).
  *   DEPLOY_PM2_HOME     absolute PM2_HOME for pm2 on the SERVER (e.g. /home/rybnikov/.pm2).
  *                        Если не задан, pm2 использует $HOME/.pm2 — а т.к. Windows-ssh шлёт
  *                        HOME=C:Usersalex, PM2_HOME резолвится относительно CWD и демон
- *                        нестабилен. Задавать ОБЯЗАТЕЛЬНО (см. docs/server.md §4.1).
+ *                        нестабилен. Задавать ОБЯЗАТЕЛЬНО (см. docs/server.md §1.4).
  *
  * Requires the OpenSSH client (ssh/scp) on PATH — built into Windows 10+.
  * Auth is interactive (password/key prompt). An SSH key is recommended so

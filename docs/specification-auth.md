@@ -200,9 +200,9 @@ npm run user -w backend -- set-role mama admin
 npm run user -w backend -- remove mama
 ```
 
-На сервере (скрипт входит в деплой — `server/scripts/users.mjs`; в неинтерактивной SSH-сессии node не в PATH, поэтому полным путём):
+На сервере (скрипт входит в деплой — `server/scripts/users.mjs`; на текущих хостах node в PATH (`/usr/bin/node`); если на новом хосте node не в PATH — полным путём):
 
 ```bash
 cd /var/www/my.rybnikov.su/server
-/home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs add mama Мама user
+node scripts/users.mjs add mama Мама user
 ```

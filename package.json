@@ -20,6 +20,8 @@
     "format": "prettier --write .",
     "deploy": "node scripts/deploy.mjs",
     "pipeline": "node scripts/publish-pipeline.mjs",
+    "backup": "node scripts/backup.mjs",
+    "restore": "node scripts/restore.mjs",
     "sanity:test": "node scripts/sanity-test.mjs"
   },
   "devDependencies": {

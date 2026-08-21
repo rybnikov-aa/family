@@ -25,7 +25,7 @@ user-invocable: true
 
 1. Убедиться, что в корневом `.env` корректная конфигурация `DEPLOY_*` (или переменные окружения). Без `.env` скрипт идёт под `root`, а хосты деплоятся под `rybnikov` (шаблон — `.env.example`; основной хост: `DEPLOY_USER=rybnikov`, `DEPLOY_PM2_HOME=/home/rybnikov/.pm2`).
 2. `npm run deploy` — сборка (`npm run build`) + архив + scp + remote-скрипт (nginx не трогает).
-3. После деплоя проверить: health через домен, `GET /api/vps`, `GET /api/projects`.
+3. После деплоя проверить: health через домен; `GET /api/vps` и `GET /api/projects` — под авторизованной сессией (без cookie — 401; см. AGENTS.md «curl к защищённым API»).
 
 ### Пошаговая публикация через тестовый сервер
 
@@ -64,7 +64,7 @@ Pipeline строго выполняет четыре этапа: деплой �
 
 ### Деплой на тестовый хост (test.rybnikov.su)
 
-- Сервер `31.76.227.98`. Отдельный инстанс `family-backend-test` на `127.0.0.1:3001` (`server/.env`: `PORT=3001`, `CORS_ORIGIN=https://test.rybnikov.su`).
+- Сервер `31.76.227.98`. Отдельный инстанс `family-backend-test` на `127.0.0.1:3000` (`server/.env`: `PORT=3000`, `CORS_ORIGIN=https://test.rybnikov.su`) — порт совпадает с основным.
 - Автозапуск pm2 при загрузке включён (как и на основном): `pm2-rybnikov.service` + `pm2 save` — после перезагрузки `family-backend-test` поднимается сам.
 - Тот же скрипт; хост и пути задаются переменными окружения (приоритетнее `.env`):
   ```powershell
@@ -74,7 +74,7 @@ Pipeline строго выполняет четыре этапа: деплой �
   $env:DEPLOY_PM2_APP = "family-backend-test"; $env:DEPLOY_PM2_HOME = "/home/rybnikov/.pm2"
   npm run deploy -- --no-pdf-setup
   ```
-- Пользователь `rybnikov`, SSH без пароля; на хосте есть passwordless `sudo`. node v24.18.1 `/usr/bin/node`, pm2 7.0.3 `/usr/bin/pm2`. CPU E5-2697 v4 (AVX2) — sharp `~0.35.3` подходит.
+- Пользователь `rybnikov`, SSH без пароля; на хосте есть passwordless `sudo`. node v24.19.0 `/usr/bin/node`, pm2 7.0.3 `/usr/bin/pm2`. CPU E5-2697 v4 (AVX2) — sharp `~0.35.3` подходит.
 
 ### Деплой на основной хост (my.rybnikov.su)
 
@@ -93,13 +93,13 @@ Pipeline строго выполняет четыре этапа: деплой �
 ### Управление пользователями на сервере
 
 - `server/scripts/users.mjs` (CLI из `backend/scripts/`) входит в деплой — работает прямо на сервере из каталога бэкенда.
-- В неинтерактивной SSH-сессии `node`/`pm2` нет в PATH — использовать полный путь: `/home/rybnikov/.nvm/versions/node/v24.19.0/bin/node`.
+- На текущих хостах `node` в PATH (`/usr/bin/node`) — запускается напрямую; на нестандартных хостах (node не в PATH) — полный путь до бинаря.
 - Примеры (из `/var/www/my.rybnikov.su/server`):
   ```bash
-  /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs add mama Мама user
-  /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs list
-  /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs set-role mama admin
-  /home/rybnikov/.nvm/versions/node/v24.19.0/bin/node scripts/users.mjs remove mama
+  node scripts/users.mjs add mama Мама user
+  node scripts/users.mjs list
+  node scripts/users.mjs set-role mama admin
+  node scripts/users.mjs remove mama
   ```
 - Пароль запрашивается интерактивно (не эхонируется) либо через `--password <пароль>`.
 - Первый администратор: `AUTH_BOOTSTRAP_PASSWORD` в `server/.env` — создаётся при рестарте, если таблица `users` пуста; после входа переменную убрать.

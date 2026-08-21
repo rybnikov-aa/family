@@ -59,6 +59,9 @@ temp/
 *.tmp
 *.bak
 
+# Backup downloads (npm run backup)
+backups/
+
 # Archives / packages
 *.tgz
 *.zip
