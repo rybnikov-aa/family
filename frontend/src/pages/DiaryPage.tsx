@@ -2,6 +2,8 @@ import { useState } from 'react';
 import PageLayout from '../components/PageLayout';
 import DiaryEventCard from '../components/DiaryEventCard';
 import DiaryEventModal from '../components/DiaryEventModal';
+import DiaryPhotosModal from '../components/DiaryPhotosModal';
+import ImmichPickerModal from '../components/ImmichPickerModal';
 import IconButton from '../components/IconButton';
 import { DiaryIcon, GridViewIcon, ListViewIcon, PlusIcon } from '../components/icons';
 import {
@@ -11,7 +13,9 @@ import {
   type DiaryEventSummary,
 } from '../api/client';
 import { useDiaryEvents } from '../hooks/useDiaryEvents';
+import { useDiaryPhotosEditor } from '../hooks/useDiaryPhotosEditor';
 import { useAuth } from '../hooks/useAuth';
+import { useImmichSettings } from '../hooks/useImmichSettings';
 
 /** Макет отображения событий. */
 type DiaryLayout = 'list' | 'cards';
@@ -33,14 +37,33 @@ function DiaryPage() {
   const { events, error, loading, refresh } = useDiaryEvents();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const immichUrl = useImmichSettings();
   const [layout, setLayout] = useState<DiaryLayout>('list');
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<DiaryEventDetail | null>(null);
+  // Мгновенный редактор фотосета (модалка «Фотографии») — из карточки списка.
+  const [photosEvent, setPhotosEvent] = useState<DiaryEventDetail | null>(null);
+  const { pickerOpen, setPickerOpen, photosProps } = useDiaryPhotosEditor(
+    photosEvent,
+    (updated) => {
+      setPhotosEvent(updated);
+      refresh();
+    },
+  );
 
   // Редактирование: нужны полные данные (контент) — запрашиваем отдельно.
   const handleEdit = async (entry: DiaryEventSummary) => {
     try {
       setEditing(await fetchDiaryEvent(entry.id));
+    } catch {
+      /* модалка не откроется — список не трогаем */
+    }
+  };
+
+  // Редактирование фотографий: нужны полные данные (контент для маркеров) — отдельный запрос.
+  const handleEditPhotos = async (entry: DiaryEventSummary) => {
+    try {
+      setPhotosEvent(await fetchDiaryEvent(entry.id));
     } catch {
       /* модалка не откроется — список не трогаем */
     }
@@ -109,6 +132,7 @@ function DiaryPage() {
                 layout={layout}
                 isAdmin={isAdmin}
                 onEdit={(e) => void handleEdit(e)}
+                onEditPhotos={(e) => void handleEditPhotos(e)}
                 onDelete={(e) => void handleDelete(e)}
               />
             ))}
@@ -119,6 +143,25 @@ function DiaryPage() {
       {createOpen && <DiaryEventModal onClose={() => setCreateOpen(false)} onSaved={refresh} />}
       {editing && (
         <DiaryEventModal event={editing} onClose={() => setEditing(null)} onSaved={refresh} />
+      )}
+
+      {photosEvent && photosProps && (
+        <DiaryPhotosModal
+          {...photosProps}
+          immichAvailable={Boolean(immichUrl)}
+          onClose={() => setPhotosEvent(null)}
+          onOpenImmich={() => setPickerOpen(true)}
+          isForeground={!pickerOpen}
+        />
+      )}
+
+      {pickerOpen && photosEvent && photosProps && (
+        <ImmichPickerModal
+          onClose={() => setPickerOpen(false)}
+          onPick={photosProps.onAddFiles}
+          defaultFrom={photosEvent.dateStart || undefined}
+          defaultTo={photosEvent.dateEnd || photosEvent.dateStart || undefined}
+        />
       )}
     </PageLayout>
   );

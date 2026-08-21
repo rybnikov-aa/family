@@ -6,14 +6,13 @@ import DiaryPhotosModal from '../components/DiaryPhotosModal';
 import ImmichPickerModal from '../components/ImmichPickerModal';
 import IconButton from '../components/IconButton';
 import { DiaryIcon, DocIcon, EditIcon, ImageIcon, ImagesIcon } from '../components/icons';
-import { buildDiaryFormData, diaryImageUrl, updateDiaryEvent } from '../api/client';
+import { diaryImageUrl } from '../api/client';
 import { useDiaryEvent } from '../hooks/useDiaryEvent';
+import { useDiaryPhotosEditor } from '../hooks/useDiaryPhotosEditor';
 import { useAuth } from '../hooks/useAuth';
 import { useImmichSettings } from '../hooks/useImmichSettings';
-import { stripDiaryImage } from '../utils/diaryImages';
 import { renderMarkdown } from '../utils/markdown';
 import { formatDateIso } from '../utils/money';
-import type { FormImage } from '../types/diary';
 
 /**
  * Страница события «Дневника» (`#/diary/:id`): hero-блок (превью обложки,
@@ -30,9 +29,11 @@ function DiaryEventPage() {
   const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
   const [photosOpen, setPhotosOpen] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [photoSaving, setPhotoSaving] = useState(false);
   const immichUrl = useImmichSettings();
+  const { pickerOpen, setPickerOpen, contentImageNames, photosProps } = useDiaryPhotosEditor(
+    event,
+    () => reload(),
+  );
 
   const dateLabel = event
     ? event.dateEnd
@@ -40,72 +41,7 @@ function DiaryEventPage() {
       : formatDateIso(event.dateStart)
     : '';
 
-  const contentImageNames = new Set(
-    Array.from(
-      event?.content.matchAll(/!\[[^\]]*\]\(diary-image:\/\/([a-z0-9._-]+)\)/g) ?? [],
-      (match) => match[1],
-    ),
-  );
   const galleryImages = event ? event.images.filter((name) => !contentImageNames.has(name)) : [];
-
-  /** Сохраняет изменения фотосета события (PATCH): добавление, смена обложки, удаление. */
-  const savePhotos = async (changes: {
-    extra?: { id: string; file: File }[];
-    keep?: string[];
-    content?: string;
-    cover: string | null;
-  }) => {
-    if (!event || photoSaving) return;
-    setPhotoSaving(true);
-    try {
-      const formData = buildDiaryFormData({
-        title: event.title,
-        dateStart: event.dateStart,
-        dateEnd: event.dateEnd,
-        summary: event.summary,
-        content: changes.content ?? event.content,
-        cover: changes.cover,
-        images: [
-          ...(changes.keep ?? event.images).map((name) => ({ id: name, file: null })),
-          ...(changes.extra ?? []),
-        ],
-        keep: changes.keep ?? event.images,
-      });
-      await updateDiaryEvent(event.id, formData);
-      reload();
-    } catch {
-      window.alert('Не удалось сохранить фотографии. Попробуйте ещё раз.');
-    } finally {
-      setPhotoSaving(false);
-    }
-  };
-
-  const handleAddFiles = (files: File[]) => {
-    if (!event) return;
-    const extra = files.map((file, index) => ({ id: `new-${index}`, file }));
-    void savePhotos({ extra, cover: event.cover });
-  };
-
-  const handleSelectCover = (id: string) => {
-    void savePhotos({ cover: id });
-  };
-
-  const handleRemoveImage = (id: string) => {
-    if (!event) return;
-    // Фото добавлено в текст описания (бейдж «В тексте»): удаление вырежет маркер и из текста.
-    if (contentImageNames.has(id)) {
-      const proceed = window.confirm(
-        'Фотография добавлена в текст описания и будет удалена и из текста. Удалить?',
-      );
-      if (!proceed) return;
-    }
-    const keep = event.images.filter((name) => name !== id);
-    void savePhotos({
-      keep,
-      content: stripDiaryImage(event.content, id),
-      cover: event.cover === id ? (keep[0] ?? null) : event.cover,
-    });
-  };
 
   return (
     <PageLayout>
@@ -220,29 +156,20 @@ function DiaryEventPage() {
         <DiaryEventModal event={event} onClose={() => setEditOpen(false)} onSaved={reload} />
       )}
 
-      {photosOpen && event && (
+      {photosOpen && event && photosProps && (
         <DiaryPhotosModal
-          images={event.images.map((name): FormImage => ({
-            id: name,
-            file: null,
-            preview: diaryImageUrl(event.folder, name, true),
-          }))}
-          cover={event.cover}
-          usedImageNames={contentImageNames}
+          {...photosProps}
           immichAvailable={Boolean(immichUrl)}
           onClose={() => setPhotosOpen(false)}
-          onAddFiles={handleAddFiles}
           onOpenImmich={() => setPickerOpen(true)}
-          onSelectCover={handleSelectCover}
-          onRemoveImage={handleRemoveImage}
           isForeground={!pickerOpen}
         />
       )}
 
-      {pickerOpen && event && (
+      {pickerOpen && event && photosProps && (
         <ImmichPickerModal
           onClose={() => setPickerOpen(false)}
-          onPick={handleAddFiles}
+          onPick={photosProps.onAddFiles}
           defaultFrom={event.dateStart || undefined}
           defaultTo={event.dateEnd || event.dateStart || undefined}
         />
