@@ -331,8 +331,8 @@ CSS: `.modal-done`, `.modal-done__icon`, `.modal-done__actions`.
 - ✅ **Фаза C (производительность).** Тяжёлые страницы (`RenovationPage`, `AdminUsersPage`, `ProfilePage`)
   — `React.lazy` + `Suspense` (отдельные чанки, основной бандл gzip 108→101.6 kB); `ServiceStats` разбит
   на `StatItem` (`memo`); аудит CSS — «мёртвых» классов нет (все модификаторы — динамические шаблоны;
-  `--alert-warning` — намеренный неиспользуемый модификатор примитива; `renov-rp__num`/`addendum__proposal`/
-  `addendum__td-check` — намеренные классы без правил, полагаются на дефолты `td`).
+  `--alert-warning` — намеренный неиспользуемый модификатор примитива; `renov-rp__num`/`addendum__proposal` —
+  намеренные классы без правил, полагаются на дефолты `td`).
 - ✅ **Фаза D (примитивы и консолидация).** Компоненты `StatRow`/`RenovationSummaryCard`/`RenovationSettlement`
   вместо ручной разметки карточек-сводок «Ремонта» (варианты 1/4 рефакторинга); `.renov-card`
   отделён от ссылочной `.card` — без hover-подъёма и `align-items: flex-start` (вариант 2); типографика

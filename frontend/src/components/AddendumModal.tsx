@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import {
   confirmRenovationAddendum,
   fetchRenovationAddendumProposal,
@@ -126,10 +126,32 @@ function AddendumModal({ onClose, onApplied }: AddendumModalProps) {
     return c;
   }, [proposal, removeKeys]);
 
+  const showRemove = counts != null && counts.keep > 0;
+  const colCount = showRemove ? 5 : 4;
+
+  /** Дифф, сгруппированный по разделам (порядок появления), с подитогом «Стало». */
+  const sectionGroups = useMemo(() => {
+    if (!proposal) return [];
+    const bySection = new Map<string, RenovationAddendumDiff[]>();
+    for (const d of proposal.diffs) {
+      const title = d.section || 'Прочее';
+      const rows = bySection.get(title);
+      if (rows) rows.push(d);
+      else bySection.set(title, [d]);
+    }
+    return [...bySection.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0], 'ru', { numeric: true }))
+      .map(([title, rows]) => {
+        const changed = rows.filter((r) => r.kind === 'update' || r.kind === 'new').length;
+        const subtotal = rows.reduce((s, r) => s + (r.sum ?? 0), 0);
+        return { title, rows, changed, subtotal };
+      });
+  }, [proposal]);
+
   const selected = addenda.find((a) => a.id === selectedId) ?? null;
 
   return (
-    <Modal title="Применить доп. соглашение" onClose={onClose} wide>
+    <Modal title="Применить доп. соглашение" onClose={onClose} className="modal--addendum">
       <div className="addendum">
         {done ? (
           <ModalDone message={done} onClose={onClose} />
@@ -187,79 +209,119 @@ function AddendumModal({ onClose, onApplied }: AddendumModalProps) {
                   </div>
                 )}
 
-                <div className="addendum__table-wrap">
-                  <table className="addendum__table">
+                <div className="renov-rp__table-wrap">
+                  <table className="renov-rp__table renov-rp__table--fixed renov-rp__table--addendum">
+                    <colgroup>
+                      <col className="renov-rp__col-name" />
+                      <col className="renov-rp__col-sum" />
+                      <col className="renov-rp__col-sum" />
+                      <col className="renov-rp__col-badge" />
+                      {showRemove && <col className="renov-rp__col-check" />}
+                    </colgroup>
                     <thead>
                       <tr>
-                        <th>#</th>
-                        <th>Позиция</th>
-                        <th>Было</th>
-                        <th>Стало</th>
+                        <th className="renov-rp__th-left">Позиция</th>
+                        <th className="renov-rp__th-num">Было</th>
+                        <th className="renov-rp__th-num">Стало</th>
                         <th>Метка</th>
-                        {counts && counts.keep > 0 && <th>Удалить</th>}
+                        {showRemove && <th>Удалить</th>}
                       </tr>
                     </thead>
                     <tbody>
-                      {proposal.diffs.map((d, i) => {
-                        const removable = d.kind === 'keep';
-                        const checked = removable && removeKeys.has(d.key);
-                        return (
-                          <tr key={i} className={`addendum__row addendum__row--${d.kind}`}>
-                            <td className="addendum__td-num">{d.section}</td>
-                            <td className="addendum__td-name">{d.name}</td>
-                            <td className="addendum__td-old">
-                              {d.kind === 'update'
-                                ? `${formatKopecks(d.oldSum, true)}`
-                                : d.kind === 'keep'
-                                  ? formatKopecks(d.sum, true)
-                                  : '—'}
-                            </td>
-                            <td className="addendum__td-new">
-                              {d.kind === 'update' || d.kind === 'new'
-                                ? formatKopecks(d.sum, true)
-                                : d.kind === 'remove'
-                                  ? '—'
-                                  : formatKopecks(d.sum, true)}
-                            </td>
-                            <td>
-                              <span className={`addendum__badge addendum__badge--${d.kind}`}>
-                                {KIND_LABEL[d.kind]}
+                      {sectionGroups.map((sec) => (
+                        <Fragment key={sec.title}>
+                          <tr className="renov-rp__section">
+                            <td colSpan={colCount} className="renov-rp__section-title">
+                              <span className="renov-rp__section-title-text">{sec.title}</span>
+                              <span className="renov-pill renov-pill--sm" title="Изменено строк">
+                                {sec.changed} / {sec.rows.length}
                               </span>
                             </td>
-                            {counts && counts.keep > 0 && (
-                              <td className="addendum__td-check">
-                                {removable ? (
-                                  <input
-                                    type="checkbox"
-                                    checked={checked}
-                                    onChange={() => toggleRemove(d.key)}
-                                    aria-label={`Удалить: ${d.name}`}
-                                  />
-                                ) : (
-                                  <span className="addendum__muted">{diffMark(d)}</span>
-                                )}
-                              </td>
-                            )}
                           </tr>
-                        );
-                      })}
+                          {sec.rows.map((d, i) => (
+                            <tr
+                              key={`${sec.title}-${i}`}
+                              className={`renov-rp__row addendum__row--${d.kind}`}
+                            >
+                              <td className="renov-rp__left">
+                                <span className="renov-rp__name">
+                                  <span className="renov-rp__name-text">{d.name}</span>
+                                  {d.unit && <span className="renov-rp__unit">{d.unit}</span>}
+                                </span>
+                              </td>
+                              <td className="renov-rp__num">
+                                <span
+                                  className={`addendum__old${d.kind === 'update' ? ' addendum__old--changed' : ''}`}
+                                >
+                                  {d.kind === 'new'
+                                    ? '—'
+                                    : formatKopecks(d.kind === 'update' ? d.oldSum : d.sum, true)}
+                                </span>
+                              </td>
+                              <td className="renov-rp__num">
+                                {d.kind === 'remove' ? '—' : formatKopecks(d.sum, true)}
+                              </td>
+                              <td className="renov-rp__badge-cell">
+                                <span className={`addendum__badge addendum__badge--${d.kind}`}>
+                                  {KIND_LABEL[d.kind]}
+                                </span>
+                              </td>
+                              {showRemove && (
+                                <td className="renov-rp__check-cell">
+                                  {d.kind === 'keep' ? (
+                                    <input
+                                      type="checkbox"
+                                      checked={removeKeys.has(d.key)}
+                                      onChange={() => toggleRemove(d.key)}
+                                      aria-label={`Удалить: ${d.name}`}
+                                    />
+                                  ) : (
+                                    <span className="addendum__muted">{diffMark(d)}</span>
+                                  )}
+                                </td>
+                              )}
+                            </tr>
+                          ))}
+                          <tr className="renov-rp__subtotal">
+                            <td colSpan={2} className="renov-rp__subtotal-label">
+                              Итого по разделу
+                            </td>
+                            <td className="renov-rp__num">{formatKopecks(sec.subtotal, true)}</td>
+                            <td />
+                            {showRemove && <td />}
+                          </tr>
+                        </Fragment>
+                      ))}
+                      <tr className="renov-rp__total">
+                        <td colSpan={2} className="renov-rp__total-label">
+                          Итого по всем разделам
+                        </td>
+                        <td className="renov-rp__num">
+                          {formatKopecks(proposal.newTotalNoOverhead, true)}
+                        </td>
+                        <td />
+                        {showRemove && <td />}
+                      </tr>
+                      <tr className="renov-rp__total">
+                        <td colSpan={2} className="renov-rp__total-label">
+                          Накладные 5%
+                        </td>
+                        <td className="renov-rp__num">
+                          {formatKopecks(proposal.newOverhead, true)}
+                        </td>
+                        <td />
+                        {showRemove && <td />}
+                      </tr>
+                      <tr className="renov-rp__total renov-rp__total--final">
+                        <td colSpan={2} className="renov-rp__total-label">
+                          Итого
+                        </td>
+                        <td className="renov-rp__num">{formatKopecks(proposal.newTotal, true)}</td>
+                        <td />
+                        {showRemove && <td />}
+                      </tr>
                     </tbody>
                   </table>
-                </div>
-
-                <div className="addendum__totals">
-                  <div className="addendum__totals-row">
-                    <span>Итого по всем разделам</span>
-                    <span>{formatKopecks(proposal.newTotalNoOverhead, true)}</span>
-                  </div>
-                  <div className="addendum__totals-row">
-                    <span>Накладные 5%</span>
-                    <span>{formatKopecks(proposal.newOverhead, true)}</span>
-                  </div>
-                  <div className="addendum__totals-row addendum__totals-row--final">
-                    <span>Итого</span>
-                    <span>{formatKopecks(proposal.newTotal, true)}</span>
-                  </div>
                 </div>
               </div>
             )}

@@ -750,55 +750,41 @@
   margin: var(--space-2) 0 0 var(--space-4);
   padding: 0;
 }
-.addendum__table-wrap {
-  overflow: auto;
-  max-height: 46vh;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+/* Таблица «Доп. соглашение»: стили как у отчёта «Ход работ» (группировка по
+   разделам, подитоги групп, фиксированная ширина колонок, sticky-шапка). */
+.renov-rp__table--addendum {
+  min-width: 640px;
 }
-.addendum__table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-caption);
+.renov-rp__table--addendum col.renov-rp__col-name {
+  width: 240px;
 }
-.addendum__table th {
-  position: sticky;
-  top: 0;
-  background: var(--surface-muted);
-  text-align: left;
-  padding: var(--space-2);
+.renov-rp__table--addendum col.renov-rp__col-badge {
+  width: 110px;
+}
+.renov-rp__table--addendum col.renov-rp__col-check {
+  width: 64px;
+}
+/* Позиция в диффе: имя + единица измерения выделяется, как в отчёте. */
+.addendum__row--new .renov-rp__name {
   font-weight: 600;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
 }
-.addendum__table td {
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
+.addendum__row--remove .renov-rp__name {
+  opacity: 0.55;
 }
-.addendum__td-num {
-  white-space: nowrap;
+/* «Было» — приглушённое; зачёркнуто только у изменённых позиций. */
+.addendum__old {
   color: var(--text-muted);
-  font-size: var(--font-size-caption);
 }
-.addendum__td-name {
-  min-width: 220px;
-}
-.addendum__td-old,
-.addendum__td-new {
-  white-space: nowrap;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.addendum__td-old {
-  color: var(--text-muted);
+.addendum__old--changed {
   text-decoration: line-through;
 }
-.addendum__row--new .addendum__td-name {
-  font-weight: 600;
+/* Ячейки метки и чекбокса — по центру. */
+.renov-rp__badge-cell,
+.renov-rp__check-cell {
+  text-align: center;
 }
-.addendum__row--remove .addendum__td-name {
-  opacity: 0.55;
+.renov-rp__check-cell input[type='checkbox'] {
+  accent-color: var(--color-accent-orange);
 }
 .addendum__badge {
   display: inline-block;
@@ -827,26 +813,6 @@
 .addendum__muted {
   font-size: var(--font-size-2xs);
   color: var(--text-faint);
-}
-.addendum__totals {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  font-size: var(--font-size-sm);
-}
-.addendum__totals-row {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
-  color: var(--text-muted);
-  flex-wrap: wrap;
-}
-.addendum__totals-row--final {
-  font-weight: 700;
-  color: var(--text-strong);
-  font-size: var(--font-size-md);
-  border-top: 1px solid var(--border);
-  padding-top: var(--space-2);
 }
 /* Ряд кнопок действий модалки «Ремонта»: вправо */
 .addendum__actions,

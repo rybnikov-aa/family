@@ -349,8 +349,10 @@ PDF во встроенном просмотрщике); кнопка «Доп. 
 список соглашений (`GET /estimate/versions`) → выбор → дифф (Было/Стало, метки
 изменение/добавление/без изменений) → чекбоксы «Удалить» для позиций `keep` → итоги
 (Итого по всем разделам / Накладные 5% / Итого) → «Применить доп. соглашение» → перезагрузка
-сводки. API-клиент: `fetchRenovationEstimateVersions`, `fetchRenovationAddendumProposal`,
-`confirmRenovationAddendum` (`api/client.ts`).
+сводки. Таблица диффа сгруппирована по разделам (заголовок раздела + подитог «Итого по разделу»,
+разделы отсортированы по названию) и оформлена стилями отчёта «Ход работ»
+(`renov-rp__table--addendum`); модалка расширена (`modal--addendum`, `max-width: min(1080px, 96vw)`). API-клиент: `fetchRenovationEstimateVersions`,
+`fetchRenovationAddendumProposal`, `confirmRenovationAddendum` (`api/client.ts`).
 
 **Проверено (curl + браузер):** proposal по соглашению №2 — 8 изменений + 54 без изменений,
 итог без изменений (соглашение уже встроено в `current`); confirm — старая `current` → `history`
