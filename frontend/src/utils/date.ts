@@ -16,3 +16,12 @@ export function calendarDaysBetween(from: string, to: string): number {
   if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 0;
   return Math.round((end - start) / 86400000);
 }
+
+/** Прибавить `days` календарных дней к дате `ГГГГ-ММ-ДД` → `ГГГГ-ММ-ДД`. */
+export function addDaysIso(iso: string, days: number): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${m}-${day}`;
+}

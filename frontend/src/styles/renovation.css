@@ -97,14 +97,27 @@
   border-radius: var(--radius-1xl);
 }
 .renov-meta__progress-label {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
   white-space: nowrap;
   font-size: var(--font-size-sm);
-  color: var(--text-strong);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   margin-bottom: var(--space-3);
+}
+.renov-meta__progress-date {
+  color: var(--text-muted);
+}
+.renov-meta__progress-date--start {
+  justify-self: start;
+}
+.renov-meta__progress-date--today {
+  color: var(--text-strong);
+  justify-self: center;
+}
+.renov-meta__progress-date--end {
+  justify-self: end;
 }
 .renov-meta__progress-track,
 .renov-card__progress-track {

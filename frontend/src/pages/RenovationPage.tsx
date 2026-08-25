@@ -20,7 +20,7 @@ import StatRow from '../components/StatRow';
 import { useRenovationOverview } from '../hooks/useRenovationOverview';
 import { useRenovationReports } from '../hooks/useRenovationReports';
 import { useAuth } from '../hooks/useAuth';
-import { calendarDaysBetween, todayIso } from '../utils/date';
+import { addDaysIso, calendarDaysBetween, todayIso } from '../utils/date';
 import { formatDateIso, formatKopecks } from '../utils/money';
 import { pluralize } from '../utils/plural';
 
@@ -217,6 +217,7 @@ function RenovationPage() {
       : null;
   // Прогресс «Прошло времени от старта»: календарные дни от старта к сроку.
   // Срок в раб. днях ≈ ×1,4 календарных (как в отчётах «Ход работ»).
+  // Дата окончания — старт + расчётный календарный срок.
   const startProgress =
     meta?.startDate && meta.deadlineDays != null && meta.deadlineDays > 0
       ? (() => {
@@ -226,6 +227,7 @@ function RenovationPage() {
             percent: total > 0 ? Math.round((elapsed / total) * 1000) / 10 : 0,
             elapsed,
             total,
+            endDate: addDaysIso(meta.startDate, total),
           };
         })()
       : null;
@@ -323,7 +325,15 @@ function RenovationPage() {
                 {meta.startDate && startProgress && (
                   <div className="renov-meta__start">
                     <div className="renov-meta__progress-label">
-                      {formatDateIso(meta.startDate)} → {formatDateIso(todayIso())}
+                      <span className="renov-meta__progress-date renov-meta__progress-date--start">
+                        {formatDateIso(meta.startDate)}
+                      </span>
+                      <span className="renov-meta__progress-date renov-meta__progress-date--today">
+                        {formatDateIso(todayIso())}
+                      </span>
+                      <span className="renov-meta__progress-date renov-meta__progress-date--end">
+                        {formatDateIso(startProgress.endDate)}
+                      </span>
                     </div>
                     <div className="renov-meta__progress-track">
                       <div
