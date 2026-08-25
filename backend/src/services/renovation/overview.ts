@@ -72,6 +72,8 @@ export interface RenovationOverview {
       balance: number | null;
       /** URL исходного PDF ведомости (просмотр в приложении). */
       pdfPath: string | null;
+      /** Сноска о коррекции данных (например, ошибка в дате документа). */
+      note: string | null;
       /** Сумма «подотчётные прораба» в ведомости, копейки; null — нет. */
       foremenAmount: number | null;
     } | null;
@@ -82,6 +84,8 @@ export interface RenovationOverview {
       balance: number | null;
       /** URL исходного PDF ведомости (просмотр в приложении). */
       pdfPath: string | null;
+      /** Сноска о коррекции данных (например, ошибка в дате документа). */
+      note: string | null;
       /** Сумма «подотчётные прораба» в ведомости, копейки; null — нет. */
       foremenAmount: number | null;
     } | null;
@@ -106,6 +110,7 @@ function totalsOf(
     used: totalRow?.used ?? null,
     balance: totalRow?.balance ?? null,
     pdfPath: act.pdfPath,
+    note: act.note,
     foremenAmount: foremenAmount > 0 ? foremenAmount : null,
   };
 }

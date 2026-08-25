@@ -292,6 +292,7 @@ interface SettlementActRow {
   date: string;
   source_path: string | null;
   pdf_path: string | null;
+  note: string | null;
 }
 
 /** Акты взаиморасчётов с строками. */
@@ -331,6 +332,7 @@ export function listSettlementActs(type?: SettlementType): SettlementAct[] {
     date: row.date,
     sourcePath: row.source_path,
     pdfPath: row.pdf_path,
+    note: row.note,
     rows: rowsByAct.get(row.id) ?? [],
   }));
 }
@@ -345,6 +347,33 @@ export function findDocByTypeAndDate(type: RenovationDocType, date: string): Ren
     .get(type, date) as unknown as DocRow | undefined;
   if (!row) return null;
   return listRenovationDocs(type).find((d) => d.id === row.id) ?? null;
+}
+
+/** Существует ли документ того же типа с тем же номером (замена при переимпорте). */
+export function findDocByTypeAndNumber(
+  type: RenovationDocType,
+  number: string,
+): RenovationDoc | null {
+  const db = getRenovationDb();
+  const row = db
+    .prepare('SELECT * FROM renovation_docs WHERE type = ? AND number = ? LIMIT 1')
+    .get(type, number) as unknown as DocRow | undefined;
+  if (!row) return null;
+  return listRenovationDocs(type).find((d) => d.id === row.id) ?? null;
+}
+
+/**
+ * Удаляет документ (акт/заказ) с позициями (каскад по `renovation_doc_items`)
+ * и возвращает `pdf_path` удалённого документа — для удаления связанного PDF.
+ * Возвращает `null`, если документа с таким id не было.
+ */
+export function deleteRenovationDoc(id: number): { pdfPath: string | null } | null {
+  const db = getRenovationDb();
+  const row = db.prepare('SELECT pdf_path FROM renovation_docs WHERE id = ?').get(id) as unknown as
+    { pdf_path: string | null } | undefined;
+  if (!row) return null;
+  db.prepare('DELETE FROM renovation_docs WHERE id = ?').run(id);
+  return { pdfPath: row.pdf_path };
 }
 
 /** Существует ли ведомость того же типа с той же датой (идемпотентность импорта). */
@@ -423,9 +452,9 @@ export function insertSettlementAct(act: SettlementAct): number {
   try {
     const res = db
       .prepare(
-        'INSERT INTO settlement_acts (type, date, source_path, pdf_path) VALUES (?, ?, ?, ?)',
+        'INSERT INTO settlement_acts (type, date, source_path, pdf_path, note) VALUES (?, ?, ?, ?, ?)',
       )
-      .run(act.type, act.date, act.sourcePath, act.pdfPath);
+      .run(act.type, act.date, act.sourcePath, act.pdfPath, act.note);
     const actId = Number(res.lastInsertRowid);
     const ins = db.prepare(
       `INSERT INTO settlement_rows (act_id, position, kind, row_date, reason, paid_in, used, balance)

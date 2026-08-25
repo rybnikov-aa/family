@@ -134,9 +134,11 @@ function parseItemTables(
       if (isRowEmpty(row)) continue;
       const name = cell(row, cols.name);
       const sumText = cell(row, cols.sum);
-      const lower = (name + ' ' + sumText).toLowerCase();
 
-      if (lower.includes('итого')) {
+      // «Итого» как отдельное слово (начало наименования/после пробела), а не
+      // подстрока русского слова («сшитого») — иначе строка позиции ошибочно
+      // принимается за итог (та же грабля, что и с totalRe в parseItemText).
+      if (/(?:^|\s)итого(?=[\s,:;]|$)/i.test(name)) {
         const t = parseKopecks(sumText);
         if (t != null) total = t;
         continue;
@@ -309,7 +311,12 @@ function parseItemText(
   let currentSection: string | null = null; // «Раздел N. …» для следующих позиций
 
   const lines = joinWrappedItemLines(text);
-  const totalRe = /итого[^\d]*([\d\s.,]+)/i;
+  // «Итого» — только как отдельное слово в начале строки/после пробела, иначе
+  // regex матчит подстроку «итого» внутри русского слова («сшитого» → ложный
+  // «Итого») и преждевременно включает seenTotal — из-за этого теряются имена
+  // последующих позиций. \b для кириллицы не работает (см. AGENTS.md, правило 5),
+  // поэтому границы задаём явно: начало/пробел и разделитель/конец строки.
+  const totalRe = /(?:^|\s)итого(?=[\s,.:;-]|$)[^\d]*([\d\s.,]+)/i;
   const num = (s: string) => {
     const n = Number.parseInt(s.replace(/[^\d]/g, ''), 10);
     return Number.isNaN(n) ? null : n;

@@ -90,8 +90,7 @@ const SCHEMA = `
     type        TEXT NOT NULL,
     date        TEXT NOT NULL,
     source_path TEXT,
-    pdf_path    TEXT,
-    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    pdf_path    TEXT,    note        TEXT,    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE TABLE IF NOT EXISTS settlement_rows (
     id       INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,6 +121,15 @@ function openDatabase(): DatabaseSync {
   db.exec('PRAGMA foreign_keys = ON');
   db.exec('PRAGMA busy_timeout = 5000');
   db.exec(SCHEMA);
+  // Миграция уже существующих БД: колонка `note` в `settlement_acts` (сноски
+  // о коррекциях) добавляется, если её ещё нет (CREATE TABLE IF NOT EXISTS не
+  // меняет существующую таблицу).
+  const cols = db.prepare('PRAGMA table_info(settlement_acts)').all() as unknown as {
+    name: string;
+  }[];
+  if (!cols.some((c) => c.name === 'note')) {
+    db.exec('ALTER TABLE settlement_acts ADD COLUMN note TEXT');
+  }
   return db;
 }
 

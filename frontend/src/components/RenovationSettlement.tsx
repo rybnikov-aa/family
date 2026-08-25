@@ -25,6 +25,8 @@ interface RenovationSettlementProps {
   pdfPath?: string | null;
   /** Открыть PDF во встроенном просмотрщике (url, заголовок). */
   onOpenPdf?: (url: string, title: string) => void;
+  /** Сноска о коррекции данных — номер в блоке «Примечания» у заголовка секции. */
+  titleNoteRef?: number | null;
 }
 
 /**
@@ -44,6 +46,7 @@ function RenovationSettlement({
   diffNoteRef,
   pdfPath,
   onOpenPdf,
+  titleNoteRef,
 }: RenovationSettlementProps) {
   const balanceTone =
     balance == null ? undefined : balance > 0 ? 'pos' : balance < 0 ? 'neg' : undefined;
@@ -62,6 +65,7 @@ function RenovationSettlement({
               title
             )}
             {date && <span className="renov-pill">{formatDateIso(date)}</span>}
+            {titleNoteRef != null && <sup className="renov-note-ref">{titleNoteRef}</sup>}
           </>
         }
       />

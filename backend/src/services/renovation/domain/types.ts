@@ -116,6 +116,8 @@ export interface SettlementAct {
   date: string;
   sourcePath: string | null;
   pdfPath: string | null;
+  /** Сноска о коррекции данных (например, об ошибке в дате документа) — выводится в «Примечания». */
+  note: string | null;
   rows: SettlementRow[];
 }
 

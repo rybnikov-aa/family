@@ -171,6 +171,13 @@ function RenovationPage() {
           amount: materialsDiff,
         }
       : null;
+  // Сноски о коррекциях данных (например, ошибка в дате документа в исходной ведомости).
+  const worksCorrectionNote = overview?.settlements.works?.note
+    ? { ref: addNote(<>{overview.settlements.works.note}</>) }
+    : null;
+  const materialsCorrectionNote = overview?.settlements.materials?.note
+    ? { ref: addNote(<>{overview.settlements.materials.note}</>) }
+    : null;
   // Прогресс освоения бюджета (факт по актам из плана сметы) — для прогресс-бара.
   const worksProgress =
     works && est && est.total != null && works.factTotal != null && est.total !== 0
@@ -408,6 +415,7 @@ function RenovationPage() {
                     noteRef={worksNote?.ref ?? null}
                     diffAmount={worksDiffNote?.amount ?? null}
                     diffNoteRef={worksDiffNote?.ref ?? null}
+                    titleNoteRef={worksCorrectionNote?.ref ?? null}
                   />
                 ) : (
                   <div className="renov-section">
@@ -467,6 +475,7 @@ function RenovationPage() {
                     noteRef={materialsNote?.ref ?? null}
                     diffAmount={materialsDiffNote?.amount ?? null}
                     diffNoteRef={materialsDiffNote?.ref ?? null}
+                    titleNoteRef={materialsCorrectionNote?.ref ?? null}
                   />
                 ) : (
                   <div className="renov-section">

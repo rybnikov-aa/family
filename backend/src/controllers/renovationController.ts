@@ -2,8 +2,10 @@ import { existsSync } from 'node:fs';
 import type { Request, Response } from 'express';
 import {
   applyAddendumVersion,
+  deleteRenovationDoc,
   findAddendumByDate,
   findDocByTypeAndDate,
+  findDocByTypeAndNumber,
   findSettlementByTypeAndDate,
   getCurrentEstimateVersion,
   getEstimateVersion,
@@ -235,6 +237,16 @@ function finalizeDraftPdf(
 }
 
 /**
+ * Удаляет сохранённый PDF по значению `pdf_path` (URL приложения) — при замене
+ * документа на новую версию того же номера, чтобы не оставлять «осиротевший» файл.
+ */
+function discardPdfByPath(pdfPath: string | null): void {
+  if (!pdfPath) return;
+  const name = pdfPath.split('/').pop();
+  if (name) discardPdf(decodeURIComponent(name));
+}
+
+/**
  * Импорт PDF → черновик: `POST /api/renovation/pdf` (multipart, admin).
  * Извлекает содержимое (pdfplumber), определяет тип/дату, строит черновик
  * и возвращает его сводку для подтверждения. Ответ — 201 `{ draft }`.
@@ -268,7 +280,10 @@ export function uploadPdfController(req: Request, res: Response): void {
 
 /**
  * Подтверждение импорта черновика: `POST /api/renovation/pdf/:id/confirm` (admin).
- * Проверяет идемпотентность (тип+дата уже есть → 409) и сохраняет в БД.
+ * Для документов с номером (акты работ / заказы материалов) повторная загрузка
+ * с тем же номером **заменяет** предыдущую версию: удаляется её запись в БД и
+ * сохранённый PDF, затем импортируется новая версия. Для документов без номера
+ * (и для ведомостей/доп. соглашений) — прежняя идемпотентность (тип+дата → 409).
  */
 export function confirmPdfController(req: Request, res: Response): void {
   const draft = getDraft(String(req.params.id));
@@ -302,6 +317,7 @@ export function confirmPdfController(req: Request, res: Response): void {
         date: cls.date,
         sourcePath: null,
         pdfPath,
+        note: null,
         rows: draft.settlementRows.map((r): SettlementRow => ({
           position: r.position,
           kind: r.kind,
@@ -322,7 +338,19 @@ export function confirmPdfController(req: Request, res: Response): void {
         res.status(400).json({ message: 'Не определена дата документа' });
         return;
       }
-      if (findDocByTypeAndDate(cls.type, cls.date)) {
+      // Повторная загрузка документа с тем же номером заменяет предыдущую версию:
+      // удаляем её разобранное содержимое (запись БД + сохранённый PDF) и импортируем
+      // новую версию. Для документов без номера — прежняя идемпотентность (тип+дата → 409).
+      let replaced = false;
+      if (cls.number) {
+        const existing = findDocByTypeAndNumber(cls.type, cls.number);
+        if (existing) {
+          const removed = deleteRenovationDoc(existing.id);
+          discardPdfByPath(removed?.pdfPath ?? null);
+          replaced = true;
+        }
+      }
+      if (!replaced && findDocByTypeAndDate(cls.type, cls.date)) {
         res.status(409).json({ message: 'Документ этого типа с такой датой уже импортирован' });
         return;
       }
