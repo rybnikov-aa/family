@@ -1,50 +1,56 @@
 # Модели и цены DeepSeek API
 
 > Источник: [Models & Pricing | DeepSeek API Docs](https://api-docs.deepseek.com/quick_start/pricing/).
-> Снимок данных — 2026-08-25. Цены могут меняться: DeepSeek оставляет за собой право
+> Снимок данных — 2026-09-18. Цены могут меняться: DeepSeek оставляет за собой право
 > корректировать их, актуальные значения — на указанной странице. Документ необходимо
 > **периодически актуализировать** из первоисточника (см. «Актуализация» ниже).
 
 ## Модели
 
-| Параметр                      | deepseek-v4-flash                                              | deepseek-v4-pro      | deepseek-v4-flash-vision-exp |
-| ----------------------------- | -------------------------------------------------------------- | -------------------- | ---------------------------- |
-| Версия модели                 | DeepSeek-V4-Flash-0731                                         | DeepSeek-V4-Pro-0813 | DeepSeek-V4-Flash-Vision-Exp |
+| Параметр                      | deepseek-flash                                                 | deepseek-v4-pro      |
+| ----------------------------- | -------------------------------------------------------------- | -------------------- |
+| Версия модели                 | DeepSeek-V4.1-Flash                                            | DeepSeek-V4-Pro-0813 |
 | Base URL (OpenAI-формат)      | `https://api.deepseek.com`                                     |
 | Base URL (Anthropic-формат)   | `https://api.deepseek.com/anthropic`                           |
 | Режим мышления                | Поддерживает non-thinking и thinking (по умолчанию — thinking) |
 | Контекст                      | 1M                                                             |
 | Макс. выход                   | Максимум: 384K                                                 |
-| JSON Output                   | ✓                                                              | ✓                    | ✓                            |
-| Tool Calls                    | ✓                                                              | ✓                    | ✓                            |
-| Responses API                 | ✓                                                              | ✓                    | ✓                            |
-| Anthropic API                 | ✓                                                              | ✓                    | ✓                            |
-| Chat Prefix Completion (Beta) | ✓                                                              | ✓                    | ✓                            |
-| FIM Completion (Beta)         | Только non-thinking                                            | Только non-thinking  | Не поддерживается            |
+| JSON Output                   | ✓                                                              | ✓                    |
+| Tool Calls                    | ✓                                                              | ✓                    |
+| Responses API                 | ✓                                                              | ✓                    |
+| Anthropic API                 | ✓                                                              | ✓                    |
+| Chat Prefix Completion (Beta) | ✓                                                              | ✓                    |
+| FIM Completion (Beta)         | Только non-thinking                                            | Только non-thinking  |
+| Vision                        | ✓                                                              | Не поддерживается    |
 
 ## Цены (за 1M токенов)
 
 Токен — наименьшая единица текста, распознаваемая моделью (слово, число, знак
 препинания). Счёт идёт по суммарному числу входных и выходных токенов.
 
-| Цена (1,2)                      |          | deepseek-v4-flash | deepseek-v4-pro | deepseek-v4-flash-vision-exp |
-| ------------------------------- | -------- | ----------------- | --------------- | ---------------------------- |
-| 1M входных токенов (cache hit)  | off-peak | $0.007            | $0.022          | $0.007                       |
-|                                 | peak     | $0.014            | $0.044          | $0.014                       |
-| 1M входных токенов (cache miss) | off-peak | $0.22             | $0.66           | $0.22                        |
-|                                 | peak     | $0.44             | $1.32           | $0.44                        |
-| 1M выходных токенов             | off-peak | $0.66             | $1.98           | $0.66                        |
-|                                 | peak     | $1.32             | $3.96           | $1.32                        |
-| Лимит конкурентности (3)        |          | 2500              | 500             | 2500                         |
+| Цена (1,2,3)                    |          | deepseek-flash | deepseek-v4-pro |
+| ------------------------------- | -------- | -------------- | --------------- |
+| 1M входных токенов (cache hit)  | off-peak | $0.003         | $0.022          |
+|                                 | peak     | $0.006         | $0.044          |
+| 1M входных токенов (cache miss) | off-peak | $0.15          | $0.66           |
+|                                 | peak     | $0.30          | $1.32           |
+| 1M выходных токенов             | off-peak | $0.60          | $1.98           |
+|                                 | peak     | $1.20          | $3.96           |
+| Лимит конкурентности (4)        |          | 2500           | 500             |
 
 Примечания:
 
 1. **Peak/off-peak:** off-peak тарифы в два раза ниже peak. Пиковые часы —
    **01:00–04:00 и 06:00–10:00 UTC по будням (понедельник–пятница)**; все
    остальные часы — off-peak.
-2. **Vision (`deepseek-v4-flash-vision-exp`):** изображения конвертируются в
-   токены по размерам и тарифицируются как входные токены вместе с текстовыми.
-3. Лимит конкурентности — подробнее: [Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit).
+2. **Имена моделей:** актуальное имя Flash — `deepseek-flash` (версия DeepSeek-V4.1-Flash);
+   прежние `deepseek-v4-flash` и `deepseek-v4-flash-vision-exp` **выведены из эксплуатации** —
+   их запросы обслуживает DeepSeek-V4.1-Flash и тарифицирует по цене Flash. DeepSeek V4 Pro
+   продолжает работу после 14.09.2026, тарификация без изменений.
+3. **Vision — только Flash (`deepseek-flash`):** изображения конвертируются в
+   токены по размерам и тарифицируются как входные токены вместе с текстовыми;
+   `deepseek-v4-pro` vision не поддерживает.
+4. Лимит конкурентности — подробнее: [Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit).
 
 ## Правила списания
 
