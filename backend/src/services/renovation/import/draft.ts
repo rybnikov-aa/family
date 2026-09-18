@@ -573,6 +573,26 @@ function parseSettlementText(
   return { rows, needsReview };
 }
 
+/** `dd.mm.yyyy` → `yyyy-MM-dd` (или null, если формат не распознан). */
+function toIsoDate(value: string | null): string | null {
+  const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(value ?? '');
+  return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : null;
+}
+
+/**
+ * Дата ведомости взаиморасчётов — дата последней записи (ведомости кумулятивные).
+ * В классификации дата берётся из шапки текста (первые ~700 символов), а у «длинных»
+ * ведомостей последние строки в это окно не попадают (например, «Отчет №9» и «Оплата»
+ * за сентябрь при 14 строках) — поэтому уточняем дату по уже разобранным строкам.
+ */
+function lastRowDate(rows: DraftSettlementRow[]): string | null {
+  const dates = rows
+    .map((r) => toIsoDate(r.rowDate))
+    .filter((d): d is string => d !== null)
+    .sort();
+  return dates.at(-1) ?? null;
+}
+
 /** Строит черновик документа из извлечённого содержимого и классификации. */
 export function buildDraft(
   fileName: string,
@@ -584,6 +604,8 @@ export function buildDraft(
   const settlementRows: DraftSettlementRow[] = [];
   let total: number | null = null;
   let needsReview = false;
+  // Классификация с уточнённой датой (для ведомостей — дата последней записи).
+  let effectiveCls = cls;
 
   if (cls.type === 'settlement') {
     const hasTables = extraction.tables.length > 0;
@@ -591,6 +613,8 @@ export function buildDraft(
       ? parseSettlementTables(extraction, warnings)
       : parseSettlementText(extraction.text, warnings);
     settlementRows.push(...res.rows);
+    const rowDate = lastRowDate(settlementRows);
+    if (rowDate) effectiveCls = { ...cls, date: rowDate };
     needsReview = res.needsReview;
     if (!cls.subtype) {
       needsReview = true;
@@ -617,7 +641,7 @@ export function buildDraft(
     id: randomUUID(),
     createdAt: Date.now(),
     fileName,
-    cls,
+    cls: effectiveCls,
     items,
     settlementRows,
     total,

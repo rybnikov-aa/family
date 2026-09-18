@@ -100,10 +100,12 @@ function totalsOf(
 ): RenovationOverview['settlements']['works'] | null {
   if (!act) return null;
   const totalRow = act.rows.find((r) => r.kind === 'total');
-  // Строка-подсумма «Подотчётные прораба»: сумма = модуль баланса строки.
+  // Строка-подсумма «Подотчётные прораба»: её единственное число попадает либо в
+  // колонку «Остаток» (`balance`), либо в «Использовано» (`used`) — зависит от того,
+  // как pdfplumber разложил ячейки PDF, поэтому учитываем обе колонки.
   const foremenAmount = act.rows
     .filter((r) => r.kind === 'subtotal')
-    .reduce((sum, r) => sum + Math.abs(r.balance ?? 0), 0);
+    .reduce((sum, r) => sum + Math.abs(r.balance ?? r.used ?? 0), 0);
   return {
     date: act.date,
     paidIn: totalRow?.paidIn ?? null,
