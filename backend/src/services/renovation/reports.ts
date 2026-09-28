@@ -180,7 +180,12 @@ export function buildWorkReport(): ReportWork {
       const idx = factCursor.get(key) ?? 0;
       factCursor.set(key, idx + 1);
       // Факты сверх числа одинаковых позиций сметы — добавленные объёмы.
-      if (estCount === 0 || idx >= estCount) {
+      // Уникальное имя (estCount === 1) не считается «сверх»: выше все факты по
+      // этому ключу суммируются в ОДНУ строку плана независимо от числа актов
+      // (пусть их будет хоть 5) — иначе 2-й и последующий акт с тем же именем
+      // ошибочно попадал сюда ЕЩЁ РАЗ как отдельная строка «добавлено»,
+      // задваивая факт (то же имя — и сопоставленная строка, и «добавлено»).
+      if (estCount === 0 || (estCount > 1 && idx >= estCount)) {
         const prev = addedByKey.get(key) ?? {
           section: it.section || 'Прочее',
           name: it.name,
