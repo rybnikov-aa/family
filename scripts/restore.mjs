@@ -5,7 +5,7 @@
  *   data/ (5 SQLite-БД), docs/ (PDF «Ремонта»), images/ (фото «Дневника»), .env
  * Справочные server-config (nginx/letsencrypt) из архива НЕ восстанавливаются —
  * провижининг нового хоста (node, nginx, letsencrypt, pm2, python-venv) выполняется
- * по чек-листу в docs/server.md, а код приложения публикуется штатным npm run deploy.
+ * по чек-листу в docs/operations/server.md, а код приложения публикуется штатным npm run deploy.
  *
  * Flow:
  *   1. (Для локального архива) scp архива на целевой сервер.
@@ -292,7 +292,7 @@ function main() {
     '  2. Опубликуйте код: npm run deploy (с DEPLOY_HOST/... на целевой хост) — код и node_modules.',
   );
   log(
-    '  3. Провижининг нового VPS (nginx, letsencrypt, pm2, python-venv) — чек-лист в docs/server.md.',
+    '  3. Провижининг нового VPS (nginx, letsencrypt, pm2, python-venv) — чек-лист в docs/operations/server.md.',
   );
 }
 

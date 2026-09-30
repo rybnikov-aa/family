@@ -35,7 +35,7 @@
  *   DEPLOY_PM2_HOME     absolute PM2_HOME for pm2 on the SERVER (e.g. /home/rybnikov/.pm2).
  *                        Если не задан, pm2 использует $HOME/.pm2 — а т.к. Windows-ssh шлёт
  *                        HOME=C:Usersalex, PM2_HOME резолвится относительно CWD и демон
- *                        нестабилен. Задавать ОБЯЗАТЕЛЬНО (см. docs/server.md §1.4).
+ *                        нестабилен. Задавать ОБЯЗАТЕЛЬНО (см. docs/operations/server.md §1.4).
  *
  * Requires the OpenSSH client (ssh/scp) on PATH — built into Windows 10+.
  * Auth is interactive (password/key prompt). An SSH key is recommended so

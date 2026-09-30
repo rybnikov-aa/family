@@ -21,7 +21,7 @@ import { env } from '../../../config/env';
  *   - скрипт: `scripts/extract_pdf.py`.
  * Переопределяются переменными `RENOVATION_PYTHON` и `RENOVATION_EXTRACT_SCRIPT`
  * (на сервере python с pdfplumber ставится отдельно и путь задаётся явно,
- * см. docs/server.md).
+ * см. docs/operations/server.md).
  */
 
 export interface PdfTable {

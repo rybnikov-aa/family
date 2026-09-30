@@ -1,7 +1,7 @@
 # HR-006: Окружение и контроль изменений
 
 - **Статус:** действует
-- **Источники:** `AGENTS.md`, `.env.example`, `docs/server.md`, `docs/backup.md`, guardrails.
+- **Источники:** `AGENTS.md`, `.env.example`, `docs/operations/server.md`, `docs/operations/backup.md`, guardrails.
 
 ## Требования
 

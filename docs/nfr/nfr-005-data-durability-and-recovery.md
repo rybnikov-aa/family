@@ -2,7 +2,7 @@
 
 - **Статус:** действует
 - **Область:** persistent databases, imported PDFs, diary images and production deployment.
-- **Источники:** `docs/layers/backend.md`, `docs/backup.md`, `docs/server.md`, domain specs.
+- **Источники:** `docs/layers/backend.md`, `docs/operations/backup.md`, `docs/operations/server.md`, domain specs.
 
 ## Требования
 
@@ -13,4 +13,4 @@
 
 ## Проверка
 
-Критерии состава и восстановления — `docs/backup.md`; deployment preservation — `docs/server.md`; структура доменных файлов — `docs/layers/backend.md` и соответствующие domain specs.
+Критерии состава и восстановления — `docs/operations/backup.md`; deployment preservation — `docs/operations/server.md`; структура доменных файлов — `docs/layers/backend.md` и соответствующие domain specs.

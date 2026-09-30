@@ -76,7 +76,7 @@
 ## Актуализация из первоисточника
 
 Ценовая политика может меняться. **Не реже одного раза в неделю** (и раньше, если
-снимок подозрительно устарел) сверять `docs/pricing.md` с первоисточником:
+снимок подозрительно устарел) сверять `docs/policies/deepseek-pricing.md` с первоисточником:
 
 1. Открыть [Models & Pricing | DeepSeek API Docs](https://api-docs.deepseek.com/quick_start/pricing/)
    и сравнить модели, цены (peak/off-peak, cache hit/miss, выходные токены) и лимиты

@@ -2,7 +2,7 @@
 
 - **Статус:** действует
 - **Область:** повторные запросы, объемы фото/PDF и загрузка frontend.
-- **Источники:** `docs/domains/vps.md`, `docs/domains/diary.md`, `docs/immich.md`, `docs/layers/frontend.md`.
+- **Источники:** `docs/domains/vps.md`, `docs/domains/diary.md`, `docs/integrations/immich.md`, `docs/layers/frontend.md`.
 
 ## Требования
 

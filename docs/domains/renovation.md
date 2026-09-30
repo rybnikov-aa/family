@@ -195,7 +195,7 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   `RENOVATION_EXTRACT_SCRIPT`). **Кросс-платформенно:** дефолтный python — локальный venv с
   pdfplumber, путь зависит от ОС (Windows — `../.venv/Scripts/python.exe`, Debian/Ubuntu —
   `../.venv/bin/python`, иначе системный `python`/`python3`); на сервере путь задаётся явно
-  через `RENOVATION_PYTHON` (см. `docs/server.md`).
+  через `RENOVATION_PYTHON` (см. `docs/operations/server.md`).
 - **Классификация** — `services/renovation/import/classify.ts`: тип по ключевым словам (заказ
   материалов / акт работ / ведомость / доп. соглашение), подтип ведомости (работы/материалы),
   дата (приоритет — из имени файла; для ведомостей — самая поздняя дата в шапке текста),
@@ -471,7 +471,7 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   `projects/renovation/` больше не ссылается из приложения (ссылка «Открыть статичный архив»
   убрана — все документы доступны через модалки и встроенный просмотрщик).
 - Сервер: `python3` + `pdfplumber` ставятся отдельно, путь задаётся `RENOVATION_PYTHON` в
-  `server/.env` (см. `docs/server.md`); БД `data/renovation.sqlite` сохраняется при деплое
+  `server/.env` (см. `docs/operations/server.md`); БД `data/renovation.sqlite` сохраняется при деплое
   (как и `data/vps.sqlite`). Публикация на production выполняется через `npm run deploy`.
 
 ## 6. Критерии приёмки (этапы 1–7)

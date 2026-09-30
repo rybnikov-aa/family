@@ -1,13 +1,13 @@
 # HR-005: Проверки и завершение задачи
 
 - **Статус:** действует
-- **Источники:** `AGENTS.md`, `package.json`, `docs/frontend-design.md`, layer/domain acceptance criteria.
+- **Источники:** `AGENTS.md`, `package.json`, `docs/layers/design-system.md`, layer/domain acceptance criteria.
 
 ## Требования
 
 - **HR-005.1** `npm run typecheck` — единственный обязательный статический gate; запускать gate, относящийся к измененному слою, либо root gate по области риска.
 - **HR-005.2** Для изменения поведения обновить соответствующую domain spec; cross-layer behavior/API обновляет layer/API docs и связанные domain docs.
-- **HR-005.3** Для UI-изменений проверить фактический browser render по процедуре `docs/frontend-design.md` и указать непроверенные viewport/device сценарии.
+- **HR-005.3** Для UI-изменений проверить фактический browser render по процедуре `docs/layers/design-system.md` и указать непроверенные viewport/device сценарии.
 - **HR-005.4** Перед завершением просмотреть `git status`, искать затронутые stale markers, проверять относительные Markdown links после перемещения документов.
 - **HR-005.5** В итоговом сообщении отличать выполненные проверки от непроведенных; незапущенный test не отмечать как passed.
 - **HR-005.6** Если в репозитории нет тестов/линтера, не выдумывать дополнительные gates; отражать фактически доступные проверки.

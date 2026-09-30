@@ -10,7 +10,7 @@
 | [FR-004](fr-004-project-catalog.md)                 | Каталог и пользовательские проекты               | [domain projects](../domains/projects.md), [API](../layers/api.md)         | CJ-005         |
 | [FR-005](fr-005-renovation-reporting.md)            | Отчетность ремонта, PDF, смета и доп. соглашения | [domain renovation](../domains/renovation.md), [API](../layers/api.md)     | CJ-006–CJ-008  |
 | [FR-006](fr-006-family-diary.md)                    | Семейный дневник и управление событиями          | [domain diary](../domains/diary.md), [API](../layers/api.md)               | CJ-009–CJ-011  |
-| [FR-007](fr-007-immich-integration.md)              | Подключение Immich и фотоимпорт                  | [Immich guide](../immich.md), [API](../layers/api.md)                      | CJ-011, CJ-012 |
+| [FR-007](fr-007-immich-integration.md)              | Подключение Immich и фотоимпорт                  | [Immich guide](../integrations/immich.md), [API](../layers/api.md)         | CJ-011, CJ-012 |
 | [FR-008](fr-008-home-news-and-health.md)            | Главная, навигация, новости и health status      | [layer frontend](../layers/frontend.md), `frontend/src/pages/NewsPage.tsx` | CJ-001         |
 
 Нефункциональные требования размещены отдельно в [`docs/nfr/`](../nfr/index.md); требования к процессу разработки и агентскому харнессу — в [`docs/hr/`](../hr/index.md).

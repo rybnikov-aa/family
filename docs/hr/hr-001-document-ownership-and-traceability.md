@@ -1,15 +1,16 @@
 # HR-001: Владение документами и трассируемость
 
 - **Статус:** действует
-- **Источники:** `AGENTS.md`, `docs/specification.md`, `docs/layers/`, `docs/domains/`.
+- **Источники:** `AGENTS.md`, `docs/specification.md`, `docs/layers/`, `docs/domains/`, `docs/integrations/`, `docs/operations/`, `docs/policies/`.
 
 ## Требования
 
 - **HR-001.1** Git repository является источником долговременных проектных фактов; local repo memory не используется как нормативный источник.
 - **HR-001.2** `docs/specification.md` — индекс и общие системные положения, не копия layer/domain/API specifications.
-- **HR-001.3** `docs/layers/` владеет сквозными техническими архитектурами; `docs/domains/` владеет продуктовыми правилами, доменными данными, поведением и acceptance criteria.
+- **HR-001.3** `docs/layers/` владеет сквозной технической архитектурой и общей frontend design system; `docs/domains/` владеет продуктовыми правилами, доменными данными, поведением и acceptance criteria.
 - **HR-001.4** `docs/layers/api.md` — единый HTTP контракт; изменения доступа/schema отражаются также в затронутых domain documents.
 - **HR-001.5** CJ/FR/NFR/HR документы имеют явные links между journey, requirements, реализации и проверкой; устаревшие исходные assumptions маркируются, а не выдаются за текущие.
+- **HR-001.6** Внешние сервисные интеграции, эксплуатационные runbooks и внешние ценовые/модельные политики размещаются соответственно в `docs/integrations/`, `docs/operations/` и `docs/policies/`; их наличие отражается в `docs/specification.md`.
 
 ## Проверка
 

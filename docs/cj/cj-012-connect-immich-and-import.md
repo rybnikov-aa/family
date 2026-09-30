@@ -20,5 +20,5 @@
 ## Трассировка
 
 - Требования: [FR-007](../fr/fr-007-immich-integration.md)
-- Внешняя интеграция: [docs/immich.md](../immich.md)
+- Внешняя интеграция: [Immich](../integrations/immich.md)
 - Контракты: settings и `/api/immich/*` в [API](../layers/api.md)

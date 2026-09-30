@@ -51,4 +51,4 @@
 | Ремонт                | `data/renovation.sqlite`, документы в `docs/renovation/` | `RENOVATION_DB_PATH`, `RENOVATION_DOCS_DIR`, `RENOVATION_*` | `db/renovationDatabase.ts` |
 | Дневник               | `data/diary.sqlite`, изображения в `images/`             | `DIARY_DB_PATH`, `DIARY_IMAGES_DIR`                         | `db/diaryDatabase.ts`      |
 
-Есть три независимых env-пространства: корневой `.env` — deploy-скрипты, `backend/.env` — runtime backend, `frontend/.env` — только `VITE_*`. Реальные `.env` не коммитятся; загруженные runtime-данные сохраняются при deploy. Полная конфигурация production — в [server guide](../server.md).
+Есть три независимых env-пространства: корневой `.env` — deploy-скрипты, `backend/.env` — runtime backend, `frontend/.env` — только `VITE_*`. Реальные `.env` не коммитятся; загруженные runtime-данные сохраняются при deploy. Полная конфигурация production — в [server guide](../operations/server.md).

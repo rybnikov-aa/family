@@ -60,14 +60,14 @@ npm run backup -- --print-config    # показать итоговую конф
 Читается из корневого `.env` (шаблон — `.env.example`; существующие переменные окружения не
 переопределяются). Базовые параметры цели — как у деплоя:
 
-| Переменная           | По умолчанию             | Назначение                                           |
-| -------------------- | ------------------------ | ---------------------------------------------------- |
-| `DEPLOY_HOST`        | `my.rybnikov.su`         | SSH-хост                                             |
-| `DEPLOY_USER`        | `rybnikov`               | SSH-пользователь                                     |
-| `DEPLOY_PORT`        | `22`                     | SSH-порт                                             |
-| `DEPLOY_BACKEND_DIR` | `/var/www/<host>/server` | каталог бэкенда на сервере                           |
-| `DEPLOY_PM2_APP`     | `family-backend`         | имя pm2-приложения                                   |
-| `DEPLOY_PM2_HOME`    | `/home/rybnikov/.pm2`    | стабильный PM2_HOME (обязателен, см. docs/server.md) |
+| Переменная           | По умолчанию             | Назначение                                                      |
+| -------------------- | ------------------------ | --------------------------------------------------------------- |
+| `DEPLOY_HOST`        | `my.rybnikov.su`         | SSH-хост                                                        |
+| `DEPLOY_USER`        | `rybnikov`               | SSH-пользователь                                                |
+| `DEPLOY_PORT`        | `22`                     | SSH-порт                                                        |
+| `DEPLOY_BACKEND_DIR` | `/var/www/<host>/server` | каталог бэкенда на сервере                                      |
+| `DEPLOY_PM2_APP`     | `family-backend`         | имя pm2-приложения                                              |
+| `DEPLOY_PM2_HOME`    | `/home/rybnikov/.pm2`    | стабильный PM2_HOME (обязателен, см. docs/operations/server.md) |
 
 Специфичные для бэкапа:
 
@@ -128,7 +128,7 @@ npm run restore -- <archive> --skip-health                 # без health-check
 
 ## 6. Восстановление на новый VPS (пошагово)
 
-1. **Провижининг хоста** (вручную, чек-лист — подробно в `docs/server.md`):
+1. **Провижининг хоста** (вручную, чек-лист — подробно в `docs/operations/server.md`):
    - пользователь с passwordless sudo, Node ≥ 22.5, nginx + letsencrypt (сертификат на **новый**
      домен), pm2 + systemd-автозапуск (`pm2-rybnikov.service`), python-venv для PDF-импорта;
    - каталог `/var/www/<host>/` с правами; конфиги nginx — из `server-config/` архива как образец

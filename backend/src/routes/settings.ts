@@ -10,7 +10,7 @@ import { requireAdmin } from '../middlewares/auth';
  * Монтируется под `requireAuth` в `app.ts`. Чтение (`GET /immich`) доступно
  * любому авторизованному — адрес инстанса нужен для ссылок «Фотоархив»/«Архив»
  * (ключ при этом не возвращается); мутация (`POST /immich/check`) — только
- * роли `admin`. Сейчас здесь — настройки подключения к Immich (см. `docs/immich.md`).
+ * роли `admin`. Сейчас здесь — настройки подключения к Immich (см. `docs/integrations/immich.md`).
  */
 export const settingsRouter = Router();
 

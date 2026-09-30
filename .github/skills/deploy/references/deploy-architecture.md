@@ -1,6 +1,6 @@
 # Архитектура деплоя (family)
 
-Справочник по `scripts/deploy.mjs` и remote-скрипту. Процедуры — в `../SKILL.md`, сервер/nginx/SSL — в `docs/server.md`.
+Справочник по `scripts/deploy.mjs` и remote-скрипту. Процедуры — в `../SKILL.md`, сервер/nginx/SSL — в `docs/operations/server.md`.
 
 ## Команда и флаги
 

@@ -7,7 +7,7 @@ user-invocable: true
 
 # Деплой и сервер (family)
 
-Публикация фронтенда/бэкенда/проектов на сервер через `scripts/deploy.mjs` и диагностика после деплоя. Полный справочник по серверу/nginx/SSL — в [docs/server.md](../../../docs/server.md) и [README.md](../../../README.md) «Деплой».
+Публикация фронтенда/бэкенда/проектов на сервер через `scripts/deploy.mjs` и диагностика после деплоя. Полный справочник по серверу/nginx/SSL — в [server operations](../../../docs/operations/server.md) и [README.md](../../../README.md) «Деплой».
 
 Обязательные ограничения на production-действия, секреты и сохранение данных — в
 [guardrails.md](../../harness/guardrails.md); этот навык не разрешает деплой без явного запроса.
@@ -36,7 +36,7 @@ user-invocable: true
 - `npm run deploy -- --no-restart` — файлы обновятся, pm2 не перезапустится.
 - `npm run deploy -- --no-pdf-setup` — не готовить сервер к импорту PDF (по умолчанию деплой сам ставит `python3-venv` + `~/renov-venv` с pdfplumber и дописывает `RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT` в `server/.env`, создавая файл при его отсутствии; идемпотентно, не роняет деплой). На Python 3.8 последний pdfplumber не ставится (нужен Python>=3.9) — деплой откатывается на `pdfplumber==0.11.0` и предупреждает.
 
-**Рестарт pm2 в деплое — обычный (`pm2 restart`, без `--update-env`):** приложение само читает `server/.env` через dotenv при старте, а `--update-env` в неинтерактивных SSH-сессиях может падать с `env: 'node': No such file or directory` (node не в PATH на части хостов) — рестарт не происходит. Если вручную правили `server/.env` и рестартите вне деплоя — `export PM2_HOME=/home/rybnikov/.pm2` и `pm2 restart family-backend` (см. `docs/server.md`).
+**Рестарт pm2 в деплое — обычный (`pm2 restart`, без `--update-env`):** приложение само читает `server/.env` через dotenv при старте, а `--update-env` в неинтерактивных SSH-сессиях может падать с `env: 'node': No such file or directory` (node не в PATH на части хостов) — рестарт не происходит. Если вручную правили `server/.env` и рестартите вне деплоя — `export PM2_HOME=/home/rybnikov/.pm2` и `pm2 restart family-backend` (см. `docs/operations/server.md`).
 
 ### Предпросмотр без деплоя
 
@@ -86,7 +86,7 @@ node .github/skills/deploy/scripts/check-server.mjs [--host <хост>] [--user 
 4. pm2-логи: `export PM2_HOME=/home/rybnikov/.pm2; pm2 logs family-backend --lines 50 --nostream` (на текущих хостах pm2 в `/usr/bin/pm2`).
 5. nginx: `sudo nginx -t && sudo systemctl reload nginx` (после правки конфига).
 6. Если бэкенд не слушает: проверить `NODE_ENV=production` (без него `app.listen` не вызывается под pm2) и `pm2 describe family-backend`.
-7. **После правки `server/.env` (например, `RENOVATION_*` для импорта PDF) обязателен рестарт.** В неинтерактивной SSH-сессии `pm2 restart --update-env` может падать с `env: 'node': No such file or directory` (node не в PATH на части хостов) — рестарт не происходит, приложение работает со старым env. Правильно: `export PM2_HOME=/home/rybnikov/.pm2` затем `pm2 restart family-backend` (без `--update-env` — dotenv перечитает `.env` при старте). Подробно — `docs/server.md`.
+7. **После правки `server/.env` (например, `RENOVATION_*` для импорта PDF) обязателен рестарт.** В неинтерактивной SSH-сессии `pm2 restart --update-env` может падать с `env: 'node': No such file or directory` (node не в PATH на части хостов) — рестарт не происходит, приложение работает со старым env. Правильно: `export PM2_HOME=/home/rybnikov/.pm2` затем `pm2 restart family-backend` (без `--update-env` — dotenv перечитает `.env` при старте). Подробно — `docs/operations/server.md`.
 
 ## Что сохраняется на сервере при деплое (не затирается)
 
@@ -100,5 +100,5 @@ node .github/skills/deploy/scripts/check-server.mjs [--host <хост>] [--user 
 ## Справочник
 
 - [Архитектура деплоя](./references/deploy-architecture.md) — этапы `deploy.mjs`, переменные `DEPLOY_*`, шаги remote-скрипта, грабли.
-- [docs/server.md](../../../docs/server.md) — пути на сервере, полный nginx vhost, SSL, хосты, команды диагностики.
+- [server operations](../../../docs/operations/server.md) — пути на сервере, полный nginx vhost, SSL, хосты, команды диагностики.
 - [README.md](../../../README.md) — раздел «Деплой на my.rybnikov.su» (флаги, настройка, требования).

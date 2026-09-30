@@ -2,7 +2,7 @@
 
 - **Статус:** реализовано (настройки подключения и photo picker)
 - **Актор:** admin настраивает интеграцию и импортирует фото; авторизованные пользователи могут открыть внешнюю ссылку на архив.
-- **Источники:** [Immich guide](../immich.md), [API](../layers/api.md), [domain diary](../domains/diary.md).
+- **Источники:** [Immich guide](../integrations/immich.md), [API](../layers/api.md), [domain diary](../domains/diary.md).
 
 ## Требования
 
@@ -15,4 +15,4 @@
 
 ## Проверяемость
 
-Точная конфигурация, paging, права API key и ограничения — [Immich guide](../immich.md); endpoints — [API](../layers/api.md).
+Точная конфигурация, paging, права API key и ограничения — [Immich guide](../integrations/immich.md); endpoints — [API](../layers/api.md).

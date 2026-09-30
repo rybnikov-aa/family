@@ -9,7 +9,7 @@ import {
  * Маршруты пикера фото Immich (вариант B2) — только роль `admin`.
  * Монтируется под `requireAdmin` в `app.ts`. Прокси к инстансу Immich
  * (поиск по датам, миниатюры, оригиналы); API-ключ хранится в БД и
- * клиенту не отдаётся. См. `docs/immich.md`.
+ * клиенту не отдаётся. См. `docs/integrations/immich.md`.
  */
 export const immichRouter = Router();
 

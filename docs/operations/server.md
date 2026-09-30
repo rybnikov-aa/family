@@ -209,7 +209,7 @@ curl -i https://my.rybnikov.su/api/health
 
 ## 3. Бэкап и восстановление
 
-Полные инструкции — в **`docs/backup.md`** (состав архива, команды `npm run backup` /
+Полные инструкции — в **`docs/operations/backup.md`** (состав архива, команды `npm run backup` /
 `npm run restore`, конфигурация `BACKUP_*`/`RESTORE_*`, cron, восстановление на новый VPS,
 подводные камни). Кратко:
 

@@ -2,7 +2,7 @@
 
 - **Статус:** действует
 - **Область:** локальная разработка, production runtime, URLs и file processing.
-- **Источники:** `AGENTS.md`, `docs/layers/backend.md`, `docs/layers/frontend.md`, `docs/server.md`.
+- **Источники:** `AGENTS.md`, `docs/layers/backend.md`, `docs/layers/frontend.md`, `docs/operations/server.md`.
 
 ## Требования
 
@@ -14,4 +14,4 @@
 
 ## Проверка
 
-Node engines и startup behavior — backend layer spec; host/nginx/pm2 — `docs/server.md`; build/typecheck commands — `AGENTS.md` and package manifests.
+Node engines и startup behavior — backend layer spec; host/nginx/pm2 — `docs/operations/server.md`; build/typecheck commands — `AGENTS.md` and package manifests.
