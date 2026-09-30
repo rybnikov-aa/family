@@ -5,7 +5,6 @@ import { DocIcon, EditIcon, PrinterIcon, RenovationIcon, UploadIcon } from '../c
 import IconButton from '../components/IconButton';
 import Button from '../components/Button';
 import RenovationAddressModal from '../components/RenovationAddressModal';
-import RenovationDesignModal from '../components/RenovationDesignModal';
 import RenovationEstimateModal from '../components/RenovationEstimateModal';
 import RenovationPdfModal from '../components/RenovationPdfModal';
 import RenovationStartDateModal from '../components/RenovationStartDateModal';
@@ -35,6 +34,9 @@ interface ViewPdfDoc {
   fitToWidth?: boolean;
 }
 
+const DESIGN_ALBUM_URL = '/api/renovation/docs/design/album-chertezhey-s-razvertkami.pdf';
+const DESIGN_ALBUM_TITLE = 'Альбом чертежей с развертками';
+
 /**
  * Страница «Ремонт» (этапы 2–5): сводка (Работы / Материалы) из отдельной БД
  * `renovation.sqlite` (`GET /api/renovation`), отчёты — по ссылкам «Ход работ» /
@@ -48,7 +50,6 @@ function RenovationPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [importOpen, setImportOpen] = useState(false);
-  const [designOpen, setDesignOpen] = useState(false);
   const [estimateOpen, setEstimateOpen] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
   const [startDateOpen, setStartDateOpen] = useState(false);
@@ -250,7 +251,7 @@ function RenovationPage() {
             <RenovationIcon />
           </span>
           <div>
-            <h2>Ремонт квартиры</h2>
+            <h2>Ремонт Сиверса 8, 548</h2>
             {meta?.object ? (
               <div className="page__sub">
                 {meta.object}
@@ -354,7 +355,13 @@ function RenovationPage() {
                       <button
                         type="button"
                         className="renov-meta__link"
-                        onClick={() => setDesignOpen(true)}
+                        onClick={() =>
+                          setViewPdf({
+                            url: DESIGN_ALBUM_URL,
+                            title: DESIGN_ALBUM_TITLE,
+                            fitToWidth: true,
+                          })
+                        }
                       >
                         <DocIcon />
                         Дизайн-проект
@@ -512,9 +519,6 @@ function RenovationPage() {
 
       {importOpen && (
         <RenovationPdfModal onClose={() => setImportOpen(false)} onImported={() => reload()} />
-      )}
-      {designOpen && (
-        <RenovationDesignModal onClose={() => setDesignOpen(false)} onOpenPdf={openPdf} />
       )}
       {estimateOpen && (
         <RenovationEstimateModal

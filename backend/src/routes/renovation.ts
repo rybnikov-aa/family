@@ -3,7 +3,6 @@ import {
   addendumConfirmController,
   addendumProposalController,
   confirmPdfController,
-  designDocsController,
   designPdfController,
   docsController,
   estimateController,
@@ -32,8 +31,7 @@ renovationRouter.get('/estimate/versions', estimateVersionsController);
 renovationRouter.get('/estimate', estimateController);
 renovationRouter.get('/docs', docsController);
 renovationRouter.get('/docs/:file', pdfFileController);
-// Документы дизайн-проекта: список + PDF из подпапки `design/` каталога документов.
-renovationRouter.get('/design', designDocsController);
+// PDF дизайн-проекта из подпапки `design/` каталога документов.
 renovationRouter.get('/docs/design/:file', designPdfController);
 renovationRouter.get('/settlements', settlementsController);
 

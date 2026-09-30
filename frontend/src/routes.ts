@@ -19,7 +19,8 @@ export const ROUTES = {
   /** Админ-настройки (подключение к Immich и т.п.). */
   adminSettings: '/admin/settings',
   renovation: '/projects/renovation',
-  /** Страница прикладного проекта (созданного через UI), например `/projects/dacha`. */
+  furniture: '/projects/mebel-siversa-8-548',
+  /** Общая страница проекта из БД или встроенного реестра, например `/projects/dacha`. */
   project: '/projects/:slug',
 } as const;
 

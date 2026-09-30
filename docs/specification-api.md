@@ -77,24 +77,23 @@
 мутации (импорт PDF, применение доп. соглашений) — под `requireAdmin`. Подробно о
 данных/домене — `docs/specification-renovation.md`.
 
-| Метод | Путь                                        | Назначение                                                        | Параметры/ответ                                                                                                                                                                                                                                       |
-| ----- | ------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET   | `/api/renovation`                           | Сводка: Работы / Материалы (план/факт, заказы, ведомости)         | —; ответ — `RenovationOverview` (копейки)                                                                                                                                                                                                             |
-| GET   | `/api/renovation/estimate/versions`         | Список версий сметы (сводки)                                      | —; ответ — `{versions: EstimateVersion[]}`                                                                                                                                                                                                            |
-| GET   | `/api/renovation/estimate`                  | Версия сметы с позициями                                          | `version` — числовой id либо тип `seed\|current\|history\|addendum` (по умолчанию `current`); 404 — не найдена                                                                                                                                        |
-| GET   | `/api/renovation/docs`                      | Документы: акты работ / заказы материалов                         | `type` — `work_act\|material_order` (необязательно); ответ — `{docs: RenovationDoc[]}`                                                                                                                                                                |
-| GET   | `/api/renovation/docs/:file`                | Загруженный PDF «Ремонта» из `RENOVATION_DOCS_DIR`                | `file` — имя сохранённого файла; ответ — PDF (`application/pdf`); 400 — некорректное имя (path traversal), 404 — файл не найден                                                                                                                       |
-| GET   | `/api/renovation/design`                    | Документы дизайн-проекта (подпапка `design/` каталога документов) | —; ответ — `{docs: {fileName, title, url}[]}` (по заголовку)                                                                                                                                                                                          |
-| GET   | `/api/renovation/docs/design/:file`         | PDF дизайн-проекта из подпапки `design/`                          | `file` — имя файла (`[a-z0-9._-]`); ответ — PDF (`application/pdf`); 400 — некорректное имя, 404 — файл не найден                                                                                                                                     |
-| GET   | `/api/renovation/settlements`               | Акты взаиморасчётов                                               | `type` — `works\|materials` (необязательно); ответ — `{acts: SettlementAct[]}`                                                                                                                                                                        |
-| POST  | `/api/renovation/pdf`                       | Импорт PDF → черновик (admin)                                     | multipart: `name` (имя файла), `file` (PDF); ответ — `{draft}` (201); 400 — не PDF; 413 — файл больше 20 МБ; 422 — не удалось извлечь; PDF сохраняется как pending, при подтверждении переносится в `docs/renovation/` и пишется `pdf_path`           |
-| POST  | `/api/renovation/pdf/:id/confirm`           | Подтверждение импорта черновика (admin)                           | —; ответ — `{id, type, date}` (201); для документов с номером повторная загрузка того же номера **заменяет** предыдущую версию (без 409); 409 — документ типа+даты уже есть (документ без номера); 400 — тип/дата не определены; 404 — черновик истёк |
-| POST  | `/api/renovation/estimate/addendum`         | Предложение применения доп. соглашения (admin)                    | тело — `{addendumId}`; ответ — `{proposal}` (дифф + новый итог); 404 — соглашение/смета не найдены                                                                                                                                                    |
-| POST  | `/api/renovation/estimate/addendum/confirm` | Применение доп. соглашения (admin)                                | тело — `{addendumId, removeKeys?: string[]}`; ответ — `{currentId, total, totalNoOverhead, overhead, itemsCount}` (201); 400 — нет даты; 404 — не найдено                                                                                             |
-| PUT   | `/api/renovation/materials-budget`          | Обновить бюджет на материалы (admin)                              | тело — `{mode: 'percent'\|'amount', percent?, amount?}` (сумма — копейки); ответ — `{budget: MaterialsBudget}` (настройка + действующий `value`); 403 — не admin                                                                                      |
-| PUT   | `/api/renovation/meta`                      | Обновить реквизиты: адрес и/или дату старта (admin)               | тело — подмножество `{object: string, startDate: 'ГГГГ-ММ-ДД'}` (`object` — непустая строка, пробелы обрезаются; `startDate` — корректная дата); ответ — `{meta: RenovationMeta}`; 400 — пустое/некорректное поле; 403 — не admin                     |
-| GET   | `/api/renovation/reports/work`              | Отчёт «Ход работ»: план vs факт по позициям сметы                 | —; ответ — `{work: ReportWork}` (секции/строки со статусами, итоги, `asOf`, взаиморасчёты)                                                                                                                                                            |
-| GET   | `/api/renovation/reports/materials`         | Отчёт «Материалы»: заказы с позициями и итогами                   | —; ответ — `{materials: ReportMaterials}` (заказы + сводка)                                                                                                                                                                                           |
+| Метод | Путь                                        | Назначение                                                | Параметры/ответ                                                                                                                                                                                                                                       |
+| ----- | ------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET   | `/api/renovation`                           | Сводка: Работы / Материалы (план/факт, заказы, ведомости) | —; ответ — `RenovationOverview` (копейки)                                                                                                                                                                                                             |
+| GET   | `/api/renovation/estimate/versions`         | Список версий сметы (сводки)                              | —; ответ — `{versions: EstimateVersion[]}`                                                                                                                                                                                                            |
+| GET   | `/api/renovation/estimate`                  | Версия сметы с позициями                                  | `version` — числовой id либо тип `seed\|current\|history\|addendum` (по умолчанию `current`); 404 — не найдена                                                                                                                                        |
+| GET   | `/api/renovation/docs`                      | Документы: акты работ / заказы материалов                 | `type` — `work_act\|material_order` (необязательно); ответ — `{docs: RenovationDoc[]}`                                                                                                                                                                |
+| GET   | `/api/renovation/docs/:file`                | Загруженный PDF «Ремонта» из `RENOVATION_DOCS_DIR`        | `file` — имя сохранённого файла; ответ — PDF (`application/pdf`); 400 — некорректное имя (path traversal), 404 — файл не найден                                                                                                                       |
+| GET   | `/api/renovation/docs/design/:file`         | Альбом дизайн-проекта из подпапки `design/`               | `file` — имя файла (`[a-z0-9._-]`); ответ — PDF (`application/pdf`); 400 — некорректное имя, 404 — файл не найден                                                                                                                                     |
+| GET   | `/api/renovation/settlements`               | Акты взаиморасчётов                                       | `type` — `works\|materials` (необязательно); ответ — `{acts: SettlementAct[]}`                                                                                                                                                                        |
+| POST  | `/api/renovation/pdf`                       | Импорт PDF → черновик (admin)                             | multipart: `name` (имя файла), `file` (PDF); ответ — `{draft}` (201); 400 — не PDF; 413 — файл больше 20 МБ; 422 — не удалось извлечь; PDF сохраняется как pending, при подтверждении переносится в `docs/renovation/` и пишется `pdf_path`           |
+| POST  | `/api/renovation/pdf/:id/confirm`           | Подтверждение импорта черновика (admin)                   | —; ответ — `{id, type, date}` (201); для документов с номером повторная загрузка того же номера **заменяет** предыдущую версию (без 409); 409 — документ типа+даты уже есть (документ без номера); 400 — тип/дата не определены; 404 — черновик истёк |
+| POST  | `/api/renovation/estimate/addendum`         | Предложение применения доп. соглашения (admin)            | тело — `{addendumId}`; ответ — `{proposal}` (дифф + новый итог); 404 — соглашение/смета не найдены                                                                                                                                                    |
+| POST  | `/api/renovation/estimate/addendum/confirm` | Применение доп. соглашения (admin)                        | тело — `{addendumId, removeKeys?: string[]}`; ответ — `{currentId, total, totalNoOverhead, overhead, itemsCount}` (201); 400 — нет даты; 404 — не найдено                                                                                             |
+| PUT   | `/api/renovation/materials-budget`          | Обновить бюджет на материалы (admin)                      | тело — `{mode: 'percent'\|'amount', percent?, amount?}` (сумма — копейки); ответ — `{budget: MaterialsBudget}` (настройка + действующий `value`); 403 — не admin                                                                                      |
+| PUT   | `/api/renovation/meta`                      | Обновить реквизиты: адрес и/или дату старта (admin)       | тело — подмножество `{object: string, startDate: 'ГГГГ-ММ-ДД'}` (`object` — непустая строка, пробелы обрезаются; `startDate` — корректная дата); ответ — `{meta: RenovationMeta}`; 400 — пустое/некорректное поле; 403 — не admin                     |
+| GET   | `/api/renovation/reports/work`              | Отчёт «Ход работ»: план vs факт по позициям сметы         | —; ответ — `{work: ReportWork}` (секции/строки со статусами, итоги, `asOf`, взаиморасчёты)                                                                                                                                                            |
+| GET   | `/api/renovation/reports/materials`         | Отчёт «Материалы»: заказы с позициями и итогами           | —; ответ — `{materials: ReportMaterials}` (заказы + сводка)                                                                                                                                                                                           |
 
 ### 2.6. Дневник (diary)
 
@@ -176,7 +175,7 @@
 [
   {
     "slug": "renovation",
-    "title": "Ремонт квартиры",
+    "title": "Ремонт Сиверса 8, 548",
     "description": "Отчётность по ремонту: смета, внесённые средства, отчёты о работах и материалах.",
     "accent": "#e8872e",
     "icon": "renovation",
@@ -184,12 +183,23 @@
     "url": "/projects/renovation",
     "order": 0,
     "editable": false
+  },
+  {
+    "slug": "mebel-siversa-8-548",
+    "title": "Мебель Сиверса 8, 548",
+    "description": "Проект мебели",
+    "accent": "#3b82f6",
+    "icon": "projects",
+    "kind": "app",
+    "url": "/projects/mebel-siversa-8-548",
+    "order": 1,
+    "editable": false
   }
 ]
 ```
 
-`GET /api/projects/:slug` возвращает те же поля + `content` (markdown) для созданных через UI
-проектов (`content: ''` — у встроенных).
+`GET /api/projects/:slug` возвращает те же поля + `content` (markdown): из БД для созданных через UI
+проектов и из реестра для встроенных (пустая строка, если контент не задан).
 
 ### 3.3. `GET /api/renovation`
 

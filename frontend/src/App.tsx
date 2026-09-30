@@ -33,15 +33,17 @@ function RouteLayout() {
               ? 'Проекты'
               : location.pathname === ROUTES.renovation
                 ? 'Ремонт'
-                : location.pathname.startsWith('/projects/')
-                  ? 'Проект'
-                  : location.pathname === ROUTES.profile
-                    ? 'Профиль'
-                    : location.pathname === ROUTES.adminUsers
-                      ? 'Пользователи'
-                      : location.pathname === ROUTES.adminSettings
-                        ? 'Настройки'
-                        : 'Семейное пространство';
+                : location.pathname === ROUTES.furniture
+                  ? 'Мебель'
+                  : location.pathname.startsWith('/projects/')
+                    ? 'Проект'
+                    : location.pathname === ROUTES.profile
+                      ? 'Профиль'
+                      : location.pathname === ROUTES.adminUsers
+                        ? 'Пользователи'
+                        : location.pathname === ROUTES.adminSettings
+                          ? 'Настройки'
+                          : 'Семейное пространство';
     document.title = pageTitle(section);
   }, [location.pathname]);
 

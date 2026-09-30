@@ -96,7 +96,7 @@
 - **NFR-3. Адаптивность:** блок состояния и модалка адаптивны (grid/flex, перенос строк).
 - **NFR-4. Доступность (a11y):** кликабельные карточки доступны с клавиатуры (Enter/Space), кнопки имеют `aria-label`, у иконок тултипы.
 - **NFR-5. Конфигурируемость:** список VPS хранится в SQLite и меняется правкой БД без изменения кода и пересборки бандла.
-- **NFR-6. Масштабируемость проектов:** проекты — прикладные (реестр `appProjects.ts` + записи БД `projects`); новый проект создаётся через UI (запись в БД), без правок кода и деплоя.
+- **NFR-6. Масштабируемость проектов:** проекты — прикладные (реестр `appProjects.ts` + записи БД `projects`); обычные проекты создаются через UI без правок кода и деплоя, встроенные модули добавляются в реестр.
 - **NFR-7. Целостность деплоя:** при деплое сохраняются данные приложения (`server/.env`, `data/`, `docs/`, `images/`); `projects/` репозитория на сервер не копируется (папка — история).
 - **NFR-8. Безопасность авторизации:** пароли — только хэши scrypt (соль, constant-time сравнение); токен сессии в БД — только SHA-256, клиенту — в httpOnly `SameSite=Lax` cookie (`Secure` в проде); сессии имеют срок жизни и удаляются при выходе/протухании.
 
@@ -351,7 +351,7 @@ VPS наполняется вручную/через UI/импорт — см. [
 - `backend/src/middlewares/auth.ts` — `requireAuth`/`requireAdmin` (чтение httpOnly-cookie).
 - `backend/src/controllers/authController.ts`, `backend/src/routes/auth.ts` — вход/выход/текущий пользователь, профиль; админ-эндпоинты `/api/auth/admin/users*`.
 - `backend/scripts/users.mjs` — CLI управления пользователями (`npm run user -w backend`: add/list/set-role/remove).
-- `backend/src/config/appProjects.ts` — встроенный реестр прикладных проектов (напр. «Ремонт», `kind: 'app'`).
+- `backend/src/config/appProjects.ts`, `backend/src/config/furnitureProjectContent.ts` — встроенный реестр и markdown-контент прикладных проектов (напр. «Ремонт» и «Мебель», `kind: 'app'`).
 - `backend/src/db/projectsDatabase.ts`, `backend/src/db/projectsRepository.ts` — БД `projects` (`data/projects.sqlite`, `PROJECTS_DB_PATH`).
 - `backend/src/services/projectsService.ts` — проекты: реестр `appProjects.ts` + записи БД (без сканирования ФС).
 - `backend/src/controllers/projectsController.ts`, `backend/src/routes/projects.ts` — `GET`/`POST`/`PATCH`/`DELETE /api/projects` (мутации — admin).

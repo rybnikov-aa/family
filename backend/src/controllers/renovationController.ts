@@ -35,7 +35,6 @@ import {
   cleanupPendingPdfs,
   discardPdf,
   finalizePdf,
-  listDesignDocs,
   pdfFileName,
   pdfUrl,
   resolveStoredDesignPdf,
@@ -168,15 +167,6 @@ export function pdfFileController(req: Request, res: Response): void {
   }
   res.type('application/pdf');
   res.sendFile(filePath);
-}
-
-/**
- * Список документов дизайн-проекта: `GET /api/renovation/design`.
- * Файлы — в подпапке `design/` каталога документов (`RENOVATION_DOCS_DIR`).
- * Ответ — `{ docs: { fileName, title, url }[] }`.
- */
-export function designDocsController(_req: Request, res: Response): void {
-  res.json({ docs: listDesignDocs() });
 }
 
 /**

@@ -168,7 +168,7 @@ export function listProjects(): ProjectInfo[] {
 export function getProject(slug: string): ProjectDetail {
   const registry = findRegistry(slug);
   if (registry) {
-    return { ...registryToInfo(registry), content: '' };
+    return { ...registryToInfo(registry), content: registry.content ?? '' };
   }
   const row = getProjectRow(slug);
   if (!row) {
