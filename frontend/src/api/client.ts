@@ -442,12 +442,20 @@ export async function fetchPushConfig(): Promise<PushConfig> {
 }
 
 export async function subscribePush(subscription: PushSubscription): Promise<void> {
-  const res = await apiFetch('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(subscription.toJSON()) });
+  const res = await apiFetch('/push/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(subscription.toJSON()),
+  });
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
 }
 
 export async function unsubscribePush(endpoint: string): Promise<void> {
-  const res = await apiFetch('/push/subscribe', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint }) });
+  const res = await apiFetch('/push/subscribe', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ endpoint }),
+  });
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
 }
 

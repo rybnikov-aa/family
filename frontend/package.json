@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run design-system:check && tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "npm run design-system:check && tsc --noEmit",
+    "design-system:check": "node ../scripts/check-design-system.mjs"
   },
   "dependencies": {
     "pdfjs-dist": "^6.2.108",

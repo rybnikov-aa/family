@@ -8,8 +8,8 @@
 
 .card {
   background: var(--card-bg);
-  border-radius: var(--radius-2xl);
-  padding: 24px 18px 20px;
+  border-radius: var(--radius-3xl);
+  padding: var(--space-6) var(--space-4-5) var(--space-5);
   text-align: left;
   text-decoration: none;
   color: var(--text);
@@ -33,7 +33,7 @@
   width: 46px;
   height: 46px;
   border-radius: var(--radius-13px);
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
   background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);
 }
@@ -44,7 +44,7 @@
 .card h3 {
   font-size: var(--font-size-md);
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
   letter-spacing: -0.01em;
 }
 .card p {
@@ -56,14 +56,14 @@
   flex-grow: 1;
 }
 .card .tag {
-  margin-top: 14px;
+  margin-top: var(--space-3-5);
   font-size: var(--font-size-2xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-fainter);
   border-top: 1px solid var(--border);
-  padding-top: 12px;
+  padding-top: var(--space-3);
   width: 100%;
 }
 
@@ -91,7 +91,7 @@
   top: 10px;
   right: 10px;
   display: flex;
-  gap: 4px;
+  gap: var(--space-1);
   padding: 2px;
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--card-bg) 85%, transparent);
@@ -144,14 +144,14 @@
   font-size: 0.9em;
   background: var(--surface-muted);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 0.1em 0.35em;
 }
 .markdown pre {
   background: var(--surface-muted);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 12px 14px;
+  padding: var(--space-3) var(--space-3-5);
   overflow-x: auto;
   margin: 0 0 1em;
 }
@@ -182,7 +182,7 @@
 .project-page__top-section {
   padding: var(--space-4);
   border: 1px solid var(--border);
-  border-radius: var(--radius-1xl);
+  border-radius: var(--radius-2xl);
   background: var(--card-bg);
 }
 .project-page__top-section h3 {
@@ -203,13 +203,13 @@
 
 /* News page */
 .page {
-  padding-bottom: 8px;
+  padding-bottom: var(--space-2);
 }
 .page__head {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: var(--space-4-5);
   margin-bottom: var(--space-8);
 }
 .page__icon {
@@ -218,7 +218,7 @@
   justify-content: center;
   width: 54px;
   height: 54px;
-  border-radius: var(--radius-1xl);
+  border-radius: var(--radius-2xl);
   flex-shrink: 0;
   background: color-mix(in srgb, var(--color-accent-teal) 14%, transparent);
   color: var(--color-accent-teal);
@@ -250,7 +250,7 @@
 .page__sub {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 .news-list {
@@ -261,11 +261,11 @@
 .news-item {
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-1xl);
-  padding: 20px 22px;
+  border-radius: var(--radius-2xl);
+  padding: var(--space-5) 22px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2-5);
   transition:
     border-color 0.15s ease,
     background 0.15s ease;
@@ -277,7 +277,7 @@
 .news-item__meta {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   font-size: var(--font-size-2xs);
   font-weight: 600;
   text-transform: uppercase;
@@ -303,7 +303,7 @@
   padding: var(--space-12) var(--space-6);
   color: var(--text-faint);
   border: 1px dashed var(--border);
-  border-radius: var(--radius-1xl);
+  border-radius: var(--radius-2xl);
 }
 
 /* Footer */
@@ -315,7 +315,7 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px 24px;
+  gap: var(--space-3) var(--space-6);
   font-size: var(--font-size-caption);
   color: var(--text-fainter);
 }
@@ -323,7 +323,7 @@
   color: var(--text);
   text-decoration: none;
   font-weight: 500;
-  margin: 0 8px;
+  margin: 0 var(--space-2);
 }
 .footer a:hover {
   color: var(--link-hover);
@@ -337,12 +337,12 @@
 .footer-status {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .status-card {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   font-size: var(--font-size-caption);
   color: var(--text-faint);
   white-space: nowrap;
@@ -389,11 +389,11 @@
 .theme-toggle__option {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   border: none;
   background: transparent;
   border-radius: var(--radius-pill);
-  padding: 6px 12px;
+  padding: var(--space-1-5) var(--space-3);
   font-size: var(--font-size-caption);
   font-weight: 500;
   font-family: inherit;

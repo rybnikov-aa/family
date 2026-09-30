@@ -109,10 +109,10 @@ npm install
 | `npm run dev`              | Запуск фронтенда и бэкенда одновременно                                     |
 | `npm run dev:frontend`     | Только фронтенд (http://localhost:5173)                                     |
 | `npm run dev:backend`      | Только бэкенд (http://localhost:3000)                                       |
-| `npm run build`            | Сборка фронтенда и бэкенда                                                  |
+| `npm run build`            | CSS-гейт дизайн-системы и сборка фронтенда/бэкенда                          |
 | `npm run start -w backend` | Запуск собранного бэкенда (`backend/dist/app.cjs`)                          |
-| `npm run typecheck`        | Проверка типов во всех воркспейсах                                          |
-| `npm run docs:check`       | Проверка полноты индексов CJ/FR и матрицы трассировки                        |
+| `npm run typecheck`        | CSS-гейт дизайн-системы и проверка типов во всех воркспейсах                |
+| `npm run docs:check`       | Проверка полноты индексов CJ/FR и матрицы трассировки                       |
 | `npm run format`           | Форматирование кода через Prettier                                          |
 | `npm run user -w backend`  | Управление пользователями авторизации (`add`, `list`, `set-role`, `remove`) |
 
@@ -162,11 +162,11 @@ node scripts/users.mjs add mama Мама user
 
 В проекте три независимых «пространства» переменных окружения. У каждого есть шаблон `.env.example` (в git, документированный) и, при необходимости, реальный `.env` (в git не попадает). Реальные `.env` не переопределяют уже заданные переменные окружения процесса.
 
-| Файл            | Кто читает                                  | Переменные                                                                                                                                                                                         |
-| --------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Корневой `.env` | `scripts/deploy.mjs` (деплой)               | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH`, `DEPLOY_PM2_HOME`, `DEPLOY_PDF_SETUP`                              |
+| Файл            | Кто читает                                  | Переменные                                                                                                                                                                                                                                                                                                                            |
+| --------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Корневой `.env` | `scripts/deploy.mjs` (деплой)               | `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, `DEPLOY_FRONTEND_DIR`, `DEPLOY_BACKEND_DIR`, `DEPLOY_PM2_APP`, `DEPLOY_NODE_PATH`, `DEPLOY_PM2_HOME`, `DEPLOY_PDF_SETUP`                                                                                                                                                                 |
 | `backend/.env`  | Бэкенд (`src/config/env.ts` через `dotenv`) | `PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `AUTH_DB_PATH`, `PROJECTS_DB_PATH`, `PLANS_DB_PATH`, `NEWS_DB_PATH`, `NEWS_ATTACHMENTS_DIR`, `PUSH_DB_PATH`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `AUTH_COOKIE_NAME`, `SESSION_TTL_HOURS`, `AUTH_BOOTSTRAP_*`, `RENOVATION_*`, `DIARY_DB_PATH`, `DIARY_IMAGES_DIR` |
-| `frontend/.env` | Vite (только `VITE_*`)                      | `VITE_API_BASE_URL`                                                                                                                                                                                |
+| `frontend/.env` | Vite (только `VITE_*`)                      | `VITE_API_BASE_URL`                                                                                                                                                                                                                                                                                                                   |
 
 - **Корневой `.env` / `.env.example`** — конфигурация **деплоя** (SSH-хост, пользователь, пути на сервере, имя pm2-приложения). Загружается `scripts/deploy.mjs` собственным мини-загрузчиком. Шаблон — `.env.example` в корне.
 - **`backend/.env.example`** — конфигурация **рантайма бэкенда**: порт API (`PORT`), разрешённый CORS-origin (`CORS_ORIGIN`), окружение (`NODE_ENV`), пути к раздельным SQLite-базам (`DB_PATH` — `data/vps.sqlite`, БД VPS; `AUTH_DB_PATH` — `data/auth.sqlite`, авторизация; `PROJECTS_DB_PATH` — `data/projects.sqlite`, прикладные проекты; `PLANS_DB_PATH` — `data/plans.sqlite`, задачи), а также авторизация: `AUTH_COOKIE_NAME` (имя cookie сессии, `sid`), `SESSION_TTL_HOURS` (срок жизни сессии, 168 ч), `AUTH_BOOTSTRAP_PASSWORD`/`AUTH_BOOTSTRAP_USERNAME`/`AUTH_BOOTSTRAP_NAME` (создание первого администратора при старте, если в БД нет пользователей). Модуль «Ремонт» — `RENOVATION_DB_PATH`/`RENOVATION_DOCS_DIR` (каталог загруженных PDF)/`RENOVATION_PYTHON`/`RENOVATION_EXTRACT_SCRIPT`; модуль «Дневник» — `DIARY_DB_PATH` (БД событий)/`DIARY_IMAGES_DIR` (каталог изображений). В dev подхватывается `dotenv` из `backend/.env`; в проде — из `server/.env`, который сохраняется при деплое. Переменной `PROJECTS_DIR` больше нет — проекты хранятся в БД.
@@ -178,29 +178,29 @@ node scripts/users.mjs add mama Мама user
 
 Актуальные документы находятся в каталоге `docs/`:
 
-| Файл                               | Назначение                                                                                                                                           |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `docs/specification.md`            | Общая спецификация и индекс архитектуры                                                                                                              |
-| `docs/layers/backend.md`           | Backend-архитектура, конфигурация и владельцы хранилищ                                                                                               |
-| `docs/layers/middleware.md`        | Сквозная обработка запросов, доступ, загрузка и ошибки                                                                                              |
-| `docs/layers/frontend.md`          | Frontend-архитектура, маршруты, API-клиент и состояние                                                                                              |
-| `docs/layers/api.md`               | HTTP API: endpoints, матрица доступа, форматы ответов и коды ошибок                                                                                 |
-| `docs/domains/vps.md`              | Домен VPS-мониторинга (FR-1…FR-9, критерии и сценарии)                                                                                              |
-| `docs/domains/projects.md`         | Домен «Проекты» (FR-10, критерии и сценарии)                                                                                                        |
-| `docs/domains/auth.md`             | Домен авторизации (FR-11, роли, сессии и управление пользователями)                                                                                 |
-| `docs/domains/renovation.md`       | Домен «Ремонт»: БД, импорт PDF, доп. соглашения и отчеты                                                                                            |
-| `docs/domains/diary.md`            | Домен «Дневник»: события, БД, изображения и редакторы                                                                                               |
-| `docs/adr/index.md`                | Индекс ADR; каждый ADR хранится отдельным `adr-xxx-short-name.md`                                                                                   |
-| `docs/cj/index.md`                 | Индекс customer journeys; записи `cj-xxx-short-name.md`                                                                                            |
-| `docs/fr/index.md`                 | Индекс функциональных требований; записи `fr-xxx-short-name.md`                                                                                   |
-| `docs/nfr/index.md`                | Индекс нефункциональных требований; записи `nfr-xxx-short-name.md`                                                                                |
-| `docs/hr/index.md`                 | Индекс требований к харнессу; записи `hr-xxx-short-name.md`                                                                                        |
-| `docs/traceability.md`             | Матрица связи journeys, требований, реализации и проверок                                                                                            |
-| `docs/layers/design-system.md`     | Дизайн-система фронтенда: токены, шкалы, примитивы, адаптивность и визуальная проверка                                                               |
-| `docs/integrations/immich.md`      | Справочник интеграции Immich: внешний API и использование в приложении                                                                             |
-| `docs/policies/deepseek-pricing.md`| Ценовая политика DeepSeek API (peak/off-peak) и gate перед использованием модели                                                                   |
-| `docs/operations/server.md`        | Production-сервер: пути, nginx, SSL, деплой и диагностика                                                                                           |
-| `docs/operations/backup.md`        | Backup/restore: команды, конфигурация `BACKUP_*`/`RESTORE_*`, cron и восстановление на новый VPS                                                   |
+| Файл                                | Назначение                                                                                       |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `docs/specification.md`             | Общая спецификация и индекс архитектуры                                                          |
+| `docs/layers/backend.md`            | Backend-архитектура, конфигурация и владельцы хранилищ                                           |
+| `docs/layers/middleware.md`         | Сквозная обработка запросов, доступ, загрузка и ошибки                                           |
+| `docs/layers/frontend.md`           | Frontend-архитектура, маршруты, API-клиент и состояние                                           |
+| `docs/layers/api.md`                | HTTP API: endpoints, матрица доступа, форматы ответов и коды ошибок                              |
+| `docs/domains/vps.md`               | Домен VPS-мониторинга (FR-1…FR-9, критерии и сценарии)                                           |
+| `docs/domains/projects.md`          | Домен «Проекты» (FR-10, критерии и сценарии)                                                     |
+| `docs/domains/auth.md`              | Домен авторизации (FR-11, роли, сессии и управление пользователями)                              |
+| `docs/domains/renovation.md`        | Домен «Ремонт»: БД, импорт PDF, доп. соглашения и отчеты                                         |
+| `docs/domains/diary.md`             | Домен «Дневник»: события, БД, изображения и редакторы                                            |
+| `docs/adr/index.md`                 | Индекс ADR; каждый ADR хранится отдельным `adr-xxx-short-name.md`                                |
+| `docs/cj/index.md`                  | Индекс customer journeys; записи `cj-xxx-short-name.md`                                          |
+| `docs/fr/index.md`                  | Индекс функциональных требований; записи `fr-xxx-short-name.md`                                  |
+| `docs/nfr/index.md`                 | Индекс нефункциональных требований; записи `nfr-xxx-short-name.md`                               |
+| `docs/hr/index.md`                  | Индекс требований к харнессу; записи `hr-xxx-short-name.md`                                      |
+| `docs/traceability.md`              | Матрица связи journeys, требований, реализации и проверок                                        |
+| `docs/layers/design-system.md`      | Дизайн-система фронтенда: токены, шкалы, примитивы, адаптивность и визуальная проверка           |
+| `docs/integrations/immich.md`       | Справочник интеграции Immich: внешний API и использование в приложении                           |
+| `docs/policies/deepseek-pricing.md` | Ценовая политика DeepSeek API (peak/off-peak) и gate перед использованием модели                 |
+| `docs/operations/server.md`         | Production-сервер: пути, nginx, SSL, деплой и диагностика                                        |
+| `docs/operations/backup.md`         | Backup/restore: команды, конфигурация `BACKUP_*`/`RESTORE_*`, cron и восстановление на новый VPS |
 
 Помимо `docs/`, в корне есть `AGENTS.md` — инструкции для ИИ-агентов (команды, правила, типичные грабли). Специализированные рабочие процессы вынесены в `.github/`: скиллы `.github/skills/` (например, `vps` — VPS-мониторинг, `deploy` — деплой и диагностика сервера), агенты `.github/agents/` (например, `frontend-dev`, `backend-dev` и `fullstack-dev` — разработка фронтенда, бэкенда и сквозных фич) и промпты `.github/prompts/` (повторяемые задачи; например, `init-harness` — инициализация харнесса и спецификации в новом монорепозитории по шаблонам навыка `.github/skills/harness-init/`). Все конвенции кода (фронтенд/бэкенд) сосредоточены в `AGENTS.md`.
 

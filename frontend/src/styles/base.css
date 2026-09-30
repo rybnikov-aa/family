@@ -29,19 +29,24 @@ body {
   justify-content: center;
 }
 
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
 /* Экран-заглушка при ленивой загрузке маршрута (Suspense) */
 .route-loading {
   color: var(--text-muted);
   font-size: var(--font-size-sm);
-  padding: 24px;
+  padding: var(--space-6);
 }
 
 .container {
   max-width: 1200px;
   width: 100%;
   background: var(--surface);
-  border-radius: var(--radius-3xl);
-  padding: 48px 56px 40px;
+  border-radius: var(--radius-4xl);
+  padding: var(--space-12) 56px var(--space-10);
   box-shadow: var(--shadow-container);
   border: 1px solid var(--border);
   transition: all 0.2s ease;

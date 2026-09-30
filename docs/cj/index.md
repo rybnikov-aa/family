@@ -27,7 +27,7 @@
 | CJ-019 | [Читать и публиковать новости](cj-019-manage-news.md)                                | user/admin    | FR-015         |
 | CJ-020 | [Установить и использовать портал на телефоне](cj-020-install-and-use-mobile-pwa.md) | user          | FR-016         |
 | CJ-021 | [Планировать и отслеживать повторяющиеся задачи](cj-021-use-plans-productivity.md)   | user/admin    | FR-017         |
-| CJ-022 | [Включить push-уведомления](cj-022-enable-push-notifications.md)                    | user          | FR-018         |
+| CJ-022 | [Включить push-уведомления](cj-022-enable-push-notifications.md)                     | user          | FR-018         |
 
 ## Границы
 

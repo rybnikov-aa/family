@@ -12,7 +12,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-left: 6px;
+  margin-left: var(--space-1-5);
   padding: 2px;
   border: none;
   border-radius: var(--radius-sm);
@@ -56,7 +56,7 @@
   padding: var(--space-4);
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-1xl);
+  border-radius: var(--radius-2xl);
 }
 .renov-meta__grid {
   display: grid;
@@ -76,7 +76,7 @@
 .renov-meta__value {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   color: var(--text-strong);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -94,7 +94,7 @@
   padding: var(--space-3) var(--space-4);
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-1xl);
+  border-radius: var(--radius-2xl);
 }
 .renov-meta__progress-label {
   display: grid;
@@ -155,7 +155,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-icon-gap);
-  padding: 5px 12px;
+  padding: 5px var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   color: var(--text-strong);
@@ -182,7 +182,7 @@
   flex-direction: column;
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-3xl);
   padding: var(--space-6) var(--space-4) var(--space-5);
 }
 .renov-card__head {
@@ -336,12 +336,12 @@
   color: var(--text-muted);
   background: color-mix(in srgb, var(--text) 10%, transparent);
   border-radius: var(--radius-pill);
-  padding: 5px 10px;
+  padding: 5px var(--space-2-5);
 }
 /* Малый pill (например, счётчик «выполнено строк N / M» в заголовке группы «Ход работ») */
 .renov-pill--sm {
   font-size: var(--font-size-2xs);
-  padding: 2px 6px;
+  padding: 2px var(--space-1-5);
 }
 /* Pill внутри подписи (дата ведомости) — отступ от текста заголовка */
 .renov-label .renov-pill {
@@ -632,340 +632,4 @@
 }
 .renov-rp__order .renov-rp__table thead {
   position: static;
-}
-
-/* ── Экспорт отчётов «Ремонта» в PDF (печать) ───────────────────────────────
-   Оверлей `.print-report` рендерится через portal в body (RenovationPage.tsx)
-   и виден только в print-медиа: при печати скрывается весь интерфейс
-   приложения (`body > :not(.print-report)`), остаётся только отчёт. */
-.print-report {
-  display: none;
-}
-@media print {
-  @page {
-    margin: 14mm;
-  }
-  /* Модалка в инлайн-стиле ставит body overflow:hidden — при печати снимаем,
-     иначе длинный отчёт обрезается по высоте вьюпорта. */
-  html,
-  body {
-    overflow: visible !important;
-  }
-  body > :not(.print-report) {
-    display: none !important;
-  }
-  .print-report {
-    display: block !important;
-    color: #111;
-    /* Печать цветов статусов (точки «выполнено/отклонение/добавлено»). */
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .print-report__head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: var(--space-3);
-    margin-bottom: var(--space-3);
-    padding-bottom: var(--space-2);
-    border-bottom: 2px solid #111;
-  }
-  .print-report__title {
-    font-size: 16px;
-    font-weight: 700;
-  }
-  .print-report__date {
-    font-size: var(--font-size-caption);
-    color: #444;
-  }
-  .print-report .renov-card__progress,
-  .print-report .renov-rp__legend {
-    margin-bottom: var(--space-2);
-  }
-  .print-report .renov-rp__table-wrap {
-    overflow: visible;
-    max-height: none;
-    border: none;
-    border-radius: 0;
-  }
-  .print-report .renov-rp__table {
-    min-width: 0;
-    font-size: 11px;
-  }
-  .print-report .renov-rp__table th,
-  .print-report .renov-rp__table td {
-    padding: 4px 6px;
-  }
-  .print-report .renov-rp__table thead {
-    position: static;
-    /* Повтор шапки таблицы на каждой странице PDF. */
-    display: table-header-group;
-  }
-  .print-report tr {
-    break-inside: avoid;
-  }
-  /* Заказы материалов не «склеиваем» в одну страницу (break-inside: avoid не
-     применяем): длинные заказы с множеством позиций должны разрываться между
-     строками, а не обрезаться по высоте страницы. */
-}
-
-/* Модалка «Доп. соглашение» */
-.addendum {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-.addendum__select {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  font-size: var(--font-size-sm);
-}
-.addendum__select select {
-  padding: var(--space-2) 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--text);
-  font-size: var(--font-size-sm);
-}
-.addendum__hint {
-  font-size: var(--font-size-caption);
-  color: var(--text-muted);
-}
-.addendum__error {
-  font-size: var(--font-size-caption);
-  color: var(--color-danger-strong);
-}
-.addendum__summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
-  font-size: var(--font-size-sm);
-  align-items: baseline;
-}
-.addendum__summary strong {
-  color: var(--color-accent-orange);
-}
-.addendum__counts {
-  font-size: var(--font-size-caption);
-  color: var(--text-muted);
-}
-.addendum__warn {
-  font-size: var(--font-size-caption);
-  color: var(--color-warning-strong);
-  background: var(--color-warning-bg);
-  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
-  border-radius: var(--radius-md);
-  padding: var(--space-2) 10px;
-}
-.addendum__warn ul {
-  margin: var(--space-2) 0 0 var(--space-4);
-  padding: 0;
-}
-/* Таблица «Доп. соглашение»: стили как у отчёта «Ход работ» (группировка по
-   разделам, подитоги групп, фиксированная ширина колонок, sticky-шапка). */
-.renov-rp__table--addendum {
-  min-width: 640px;
-}
-.renov-rp__table--addendum col.renov-rp__col-name {
-  width: 240px;
-}
-.renov-rp__table--addendum col.renov-rp__col-badge {
-  width: 110px;
-}
-.renov-rp__table--addendum col.renov-rp__col-check {
-  width: 64px;
-}
-/* Позиция в диффе: имя + единица измерения выделяется, как в отчёте. */
-.addendum__row--new .renov-rp__name {
-  font-weight: 600;
-}
-.addendum__row--remove .renov-rp__name {
-  opacity: 0.55;
-}
-/* «Было» — приглушённое; зачёркнуто только у изменённых позиций. */
-.addendum__old {
-  color: var(--text-muted);
-}
-.addendum__old--changed {
-  text-decoration: line-through;
-}
-/* Ячейки метки и чекбокса — по центру. */
-.renov-rp__badge-cell,
-.renov-rp__check-cell {
-  text-align: center;
-}
-.renov-rp__check-cell input[type='checkbox'] {
-  accent-color: var(--color-accent-orange);
-}
-.addendum__badge {
-  display: inline-block;
-  font-size: var(--font-size-2xs);
-  padding: 1px 7px;
-  border-radius: var(--radius-pill);
-  white-space: nowrap;
-}
-.addendum__badge--new {
-  background: var(--color-success-bg);
-  color: var(--color-success-strong);
-}
-.addendum__badge--update {
-  background: var(--color-warning-bg);
-  color: var(--color-warning-strong);
-}
-.addendum__badge--keep {
-  background: var(--surface-muted);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-}
-.addendum__badge--remove {
-  background: var(--color-danger-bg);
-  color: var(--color-danger-strong);
-}
-.addendum__muted {
-  font-size: var(--font-size-2xs);
-  color: var(--text-faint);
-}
-/* Ряд кнопок действий модалки «Ремонта»: вправо */
-.addendum__actions,
-.renov-pdf__actions,
-.modal-done__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-/* Успешный результат модалки («готово»): галочка, сообщение, кнопка «Закрыть» */
-.modal-done {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) 0;
-  text-align: center;
-}
-.modal-done__icon {
-  color: var(--color-success-strong);
-}
-
-/* Модалка «Импорт PDF» */
-.renov-pdf {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-.renov-pdf__file {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  font-size: var(--font-size-sm);
-}
-.renov-pdf__file-name {
-  color: var(--text-muted);
-  font-size: var(--font-size-caption);
-}
-.renov-pdf__hint {
-  font-size: var(--font-size-caption);
-  color: var(--text-muted);
-}
-.renov-pdf__error {
-  font-size: var(--font-size-caption);
-  color: var(--color-danger-strong);
-}
-
-/* ── Модалка «Смета»: версии сметы из БД + ссылки на исходные PDF ── */
-.est-modal {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-.est-modal__hint,
-.est-modal__error {
-  padding: var(--space-6) 0;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-}
-.est-modal__error {
-  color: var(--color-danger-strong);
-}
-.est-modal__block {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-.est-modal__title {
-  font-size: var(--font-size-caption);
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-/* Строка версии сметы в 3 столбца (как списки документов «Ход работ» /
-   «Закупка материалов»): дата | имя-ссылка (иконка + PDF) | сумма */
-.est-doc-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-  font-size: var(--font-size-caption);
-}
-.est-doc-row:last-child {
-  border-bottom: none;
-}
-.est-doc-date {
-  color: var(--text-muted);
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  /* Резервируем ширину под дату «ДД.ММ.ГГГГ» — у строки без даты («Актуальная
-     смета») имя выравнивается с именами доп. соглашений, как в таблице */
-  min-width: 70px;
-}
-.est-doc-total {
-  font-weight: 600;
-  text-align: right;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.est-modal__muted {
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-}
-.est-modal__actions {
-  margin-top: var(--space-2);
-}
-.renov-pdf__draft {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 10px var(--space-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  font-size: var(--font-size-sm);
-}
-.renov-pdf__line {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-.renov-pdf__line span {
-  color: var(--text-muted);
-}
-.renov-pdf__line strong {
-  text-align: right;
-}
-.renov-pdf__warn {
-  margin-top: var(--space-1);
-  font-size: var(--font-size-caption);
-  color: var(--color-warning-strong);
-  background: var(--color-warning-bg);
-  border-radius: var(--radius-md);
-  padding: var(--space-2) 10px;
-}
-.renov-pdf__warn ul {
-  margin: var(--space-2) 0 0;
-  padding-left: 18px;
 }

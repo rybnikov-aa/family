@@ -3,7 +3,15 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import StatusCard from './StatusCard';
 import ThemeToggle from './ThemeToggle';
 import IconButton from './IconButton';
-import { BellIcon, DownloadIcon, LogoutIcon, SearchIcon, SettingsIcon, UserIcon, UsersIcon } from './icons';
+import {
+  BellIcon,
+  DownloadIcon,
+  LogoutIcon,
+  SearchIcon,
+  SettingsIcon,
+  UserIcon,
+  UsersIcon,
+} from './icons';
 import { ROUTES } from '../routes';
 import { useHealth } from '../hooks/useHealth';
 import { useAuth } from '../hooks/useAuth';
@@ -20,7 +28,13 @@ function PageLayout({ children }: PageLayoutProps) {
   const { error, loading } = useHealth();
   const { user, logout } = useAuth();
   const { canInstall, install } = usePwaInstall();
-  const { supported: pushSupported, enabled: pushEnabled, busy: pushBusy, enable: enablePush, disable: disablePush } = usePushNotifications();
+  const {
+    supported: pushSupported,
+    enabled: pushEnabled,
+    busy: pushBusy,
+    enable: enablePush,
+    disable: disablePush,
+  } = usePushNotifications();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');

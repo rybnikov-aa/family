@@ -2,7 +2,7 @@
 .auth-loading {
   color: var(--text-muted);
   font-size: var(--font-size-md);
-  padding: 24px;
+  padding: var(--space-6);
 }
 .login {
   width: 100%;
@@ -19,12 +19,12 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-3xl);
-  padding: 40px 36px 32px;
+  padding: var(--space-10) var(--space-9) var(--space-8);
   box-shadow: var(--shadow-container);
   text-align: center;
 }
 .login__brand {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
 }
 .login__brand-mark {
   display: inline-flex;
@@ -32,7 +32,7 @@
   justify-content: center;
   width: 64px;
   height: 64px;
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-4xl);
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--text);
 }
@@ -45,19 +45,19 @@
 .login__sub {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
-  margin: 6px 0 28px;
+  margin: var(--space-1-5) 0 var(--space-7);
 }
 .login__form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
   text-align: left;
 }
 .login__footer {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 24px;
+  gap: var(--space-1-5);
+  margin-top: var(--space-6);
   font-size: var(--font-size-caption);
   color: var(--text-faint);
 }
@@ -72,7 +72,7 @@
      «улетал» бы вверх — убираем его: переключатель остаётся на 8px выше карточки,
      как и на десктопе. */
   .login__card {
-    padding: 32px 24px 28px;
+    padding: var(--space-8) var(--space-6) var(--space-7);
   }
 }
 
@@ -87,9 +87,9 @@
      чтобы он не «уезжал» при прокрутке самой модалки */
   .services-editor-backdrop {
     position: fixed;
-    z-index: 200;
+    z-index: var(--layer-editor);
     border-radius: 0;
-    padding: 16px;
+    padding: var(--space-4);
   }
 }
 
@@ -98,8 +98,8 @@
 @media (max-height: 640px) {
   body {
     align-items: flex-start;
-    padding-top: 24px;
-    padding-bottom: 24px;
+    padding-top: var(--space-6);
+    padding-bottom: var(--space-6);
   }
 }
 

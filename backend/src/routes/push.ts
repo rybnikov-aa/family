@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { pushConfigController, subscribePushController, unsubscribePushController } from '../controllers/pushController';
+import {
+  pushConfigController,
+  subscribePushController,
+  unsubscribePushController,
+} from '../controllers/pushController';
 
 export const pushRouter = Router();
 

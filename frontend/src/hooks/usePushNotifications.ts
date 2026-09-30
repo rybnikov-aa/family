@@ -9,7 +9,8 @@ function decodeKey(value: string): ArrayBuffer {
 }
 
 export function usePushNotifications() {
-  const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  const supported =
+    'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -18,11 +19,15 @@ export function usePushNotifications() {
     setBusy(true);
     try {
       const config = await fetchPushConfig();
-      if (!config.configured || !config.publicKey) throw new Error('Push-уведомления не настроены на сервере');
+      if (!config.configured || !config.publicKey)
+        throw new Error('Push-уведомления не настроены на сервере');
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') throw new Error('Разрешение на уведомления не выдано');
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: decodeKey(config.publicKey) });
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: decodeKey(config.publicKey),
+      });
       await subscribePush(subscription);
       setEnabled(true);
     } finally {

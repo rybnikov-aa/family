@@ -9,8 +9,8 @@
 | Команда                    | Что делает                                                                                                                                                                                       |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `npm run dev`              | Фронтенд + бэкенд одновременно (concurrently)                                                                                                                                                    |
-| `npm run build`            | Сборка frontend (`tsc --noEmit && vite build`) + backend (`vite build`)                                                                                                                          |
-| `npm run typecheck`        | `tsc --noEmit` во всех воркспейсах — **единственный статический gate** (lint/тестов нет)                                                                                                         |
+| `npm run build`            | CSS design-system gate + сборка frontend (`tsc --noEmit && vite build`) + backend (`vite build`)                                                                                                                          |
+| `npm run typecheck`        | CSS design-system gate + `tsc --noEmit` во всех воркспейсах — **единственный статический gate** (lint/тестов нет)                                                                                                         |
 | `npm run format`           | Prettier (`.prettierrc.json`: singleQuote, semi, printWidth 100, trailingComma all)                                                                                                              |
 | `npm run start -w backend` | Запуск собранного бэкенда (`node dist/app.cjs`) — `start` есть только в backend-воркспейсе                                                                                                       |
 | `npm run deploy`           | Публикация на `my.rybnikov.su`; флаги: `--no-build`, `--no-restart`, `--no-pdf-setup`, `--print-script`, `--print-config`                                                                        |
@@ -67,7 +67,7 @@
    Синхронизация является частью завершения задачи. Не откладывай нужные документационные изменения до отдельного запроса.
 
 2. **Три независимых пространства `.env`** (реальные `.env` в git не попадают и не переопределяют уже заданные переменные окружения): корень — деплой (`DEPLOY_*`, читает `scripts/deploy.mjs`); `backend/.env` — рантайм (`PORT`, `CORS_ORIGIN`, `NODE_ENV`, `DB_PATH`, `RENOVATION_*`, `DIARY_*`); `frontend/.env` — только `VITE_API_BASE_URL`.
-3. **`npm run typecheck` — единственный gate.** `noUnusedLocals`/`noUnusedParameters` включены в обоих воркспейсах → неиспользуемые переменные/параметры — ошибки (TS6133); неиспользуемые параметры называть `_req`/`_next`. ESLint в репо нет.
+3. **`npm run typecheck` — единственный статический gate.** Frontend workspace запускает CSS design-system check перед `tsc --noEmit`; корневой gate проверяет frontend и backend. `npm run build` также запускает CSS check через frontend build. `noUnusedLocals`/`noUnusedParameters` включены → неиспользуемые переменные/параметры — ошибки (TS6133); неиспользуемые параметры называть `_req`/`_next`. ESLint в репо нет.
 4. **node:sqlite — осторожно:**
    - `db.transaction()` не реализован → ручные `BEGIN`/`COMMIT`/`ROLLBACK`.
    - Строки — `Record<string, SQLOutputValue>` → двойной каст `as unknown as MyRow`.

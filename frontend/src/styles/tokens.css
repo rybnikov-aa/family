@@ -1,18 +1,6 @@
 :root {
-  font-family:
-    'Inter',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
-  line-height: 1.5;
-  color: #1a1a1a;
-  background-color: #f5f5f5;
-  -webkit-font-smoothing: antialiased;
-
   color-scheme: light;
 
-  /* Светлая тема (по умолчанию) */
   --bg: #f5f5f5;
   --surface: #ffffff;
   --surface-muted: #f8f8f8;
@@ -20,8 +8,8 @@
   --text: #1a1a1a;
   --text-strong: #0a0a0a;
   --text-muted: #666;
-  --text-faint: #6e6e6e;
-  --text-fainter: #7a7a7a;
+  --text-faint: #686868;
+  --text-fainter: #6b6b6b;
   --border: #eaeaea;
   --border-strong: #f0f0f0;
   --card-bg: #fafafa;
@@ -30,6 +18,7 @@
   --card-renov-border: #d0d0d0;
   --shadow-container: 0 20px 60px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
   --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.04);
+  --shadow-flag: 0 0 0 1px rgba(0, 0, 0, 0.08);
   --dot-neutral: #bbb;
   --link-hover: #000;
   --accent: #000;
@@ -37,85 +26,84 @@
   --accent-hover: #2a2a2a;
   --toggle-active-bg: #ffffff;
   --toggle-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  /* Цвета иконок переключателя темы (сохранение цветов исходных эмодзи) */
   --toggle-icon-sun: #f59e0b;
   --toggle-icon-moon: #6366f1;
   --toggle-icon-system: #6b7280;
 
-  /* ── Дизайн-система: фокус-кольца ── */
   --focus-ring: 2px solid var(--link-hover);
   --focus-ring-soft: 0 0 0 3px color-mix(in srgb, var(--link-hover) 12%, transparent);
+  --layer-modal: 100;
+  --layer-modal-top: 110;
+  --layer-editor: 120;
   --layer-tooltip: 200;
-
-  /* ── Дизайн-система: бумага документов (просмотр PDF) — белая в обеих темах ── */
   --color-paper: #ffffff;
+  --color-print-text: #111;
+  --color-print-muted: #444;
+  --overlay-backdrop: rgba(0, 0, 0, 0.5);
+  --overlay-editor: rgba(0, 0, 0, 0.35);
 
-  /* ── Дизайн-система: семантические цвета статусов (одинаковы для обеих тем) ── */
-  --color-success: #22c55e;
-  --color-success-strong: #16a34a;
+  --color-success: #15803d;
+  --color-success-strong: #166534;
   --color-success-bg: rgba(34, 197, 94, 0.1);
   --color-success-halo: rgba(34, 197, 94, 0.15);
   --color-success-border: rgba(34, 197, 94, 0.25);
-
-  --color-warning: #f59e0b;
-  --color-warning-strong: #d97706;
+  --color-warning: #a16207;
+  --color-warning-strong: #854d0e;
   --color-warning-bg: rgba(245, 158, 11, 0.15);
   --color-warning-halo: rgba(245, 158, 11, 0.15);
-
-  --color-critical: #f97316;
-  --color-critical-strong: #ea580c;
+  --color-critical: #c2410c;
+  --color-critical-strong: #9a3412;
   --color-critical-bg: rgba(249, 115, 22, 0.15);
   --color-critical-halo: rgba(249, 115, 22, 0.15);
-
-  --color-danger: #ef4444;
-  --color-danger-strong: #dc2626;
+  --color-danger: #b91c1c;
+  --color-danger-strong: #991b1b;
   --color-danger-bg: rgba(239, 68, 68, 0.1);
   --color-danger-bg-strong: rgba(239, 68, 68, 0.12);
   --color-danger-halo: rgba(239, 68, 68, 0.15);
   --color-danger-border: rgba(239, 68, 68, 0.25);
 
-  /* Акценты разделов/страниц */
   --color-accent-teal: #14b8a6;
   --color-accent-sky: #0ea5e9;
   --color-accent-orange: #e8872e;
-  --color-accent-orange-strong: #d97706;
-  --color-accent-blue: #3b82f6; /* «Дневник»: иконка страницы, pill, обложка, карточки */
+  --color-accent-orange-strong: #854d0e;
+  --color-accent-blue: #3b82f6;
 
-  /* ── Дизайн-система: шкала радиусов ── */
   --radius-xs: 5px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 10px;
   --radius-xl: 14px;
-  --radius-1xl: 16px;
-  --radius-2xl: 20px;
-  --radius-3xl: 24px;
-  /* Специальные шаги (карточки-иконки) и пилюля */
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
   --radius-12px: 12px;
   --radius-13px: 13px;
   --radius-pill: 999px;
 
-  /* ── Дизайн-система: шкала отступов ── */
   --space-1: 4px;
+  --space-1-5: 6px;
   --space-2: 8px;
+  --space-2-5: 10px;
   --space-3: 12px;
+  --space-3-5: 14px;
   --space-4: 16px;
+  --space-4-5: 18px;
   --space-5: 20px;
   --space-6: 24px;
+  --space-7: 28px;
   --space-8: 32px;
+  --space-9: 36px;
   --space-10: 40px;
   --space-12: 48px;
-  /* Иконка–текст в инлайн-ссылке/кнопке (не-шкальный шаг между 4 и 8) */
-  --space-icon-gap: 6px;
+  --space-icon-gap: var(--space-1-5);
 
-  /* ── Дизайн-система: типографика (7 шагов; 3xs/xs/sm2 консолидированы) ── */
-  --font-size-2xs: 0.6875rem; /* микро: бейджи, мини-подписи */
-  --font-size-caption: 0.8rem; /* подписи, таблицы, под-строки */
-  --font-size-sm: 0.9rem; /* вторичный текст */
-  --font-size-md: 1rem; /* основной текст */
-  --font-size-lg: 1.2rem; /* заголовки секций/карточек */
-  --font-size-xl: 1.8rem; /* заголовки страниц */
-  --font-size-2xl: 2.6rem; /* display (hero) */
+  --font-size-2xs: 0.6875rem;
+  --font-size-caption: 0.8rem;
+  --font-size-sm: 0.9rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.2rem;
+  --font-size-xl: 1.8rem;
+  --font-size-2xl: 2.6rem;
 }
 
 [data-theme='dark'] {
@@ -129,6 +117,15 @@
   --text-muted: #a0a0a8;
   --text-faint: #9a9aa3;
   --text-fainter: #8d8d97;
+  --color-success: #4ade80;
+  --color-success-strong: #4ade80;
+  --color-warning: #fbbf24;
+  --color-warning-strong: #fbbf24;
+  --color-critical: #fb923c;
+  --color-critical-strong: #fb923c;
+  --color-danger: #f87171;
+  --color-danger-strong: #f87171;
+  --color-accent-orange-strong: #fbbf24;
   --border: #2c2c32;
   --border-strong: #2a2a30;
   --card-bg: #202026;

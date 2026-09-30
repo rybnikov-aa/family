@@ -112,7 +112,8 @@ function Modal({
         ref={dialogRef}
         className={`modal${wide ? ' modal--wide' : ''}${className ? ` ${className}` : ''}`}
         role="dialog"
-        aria-modal="true"
+        aria-modal={isForeground ? 'true' : undefined}
+        aria-hidden={!isForeground}
         aria-labelledby={titleId}
         tabIndex={-1}
         style={style}

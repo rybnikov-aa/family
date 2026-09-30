@@ -18,19 +18,27 @@ export interface PushSubscriptionInput {
 }
 
 export function upsertPushSubscription(input: PushSubscriptionInput): void {
-  getPushDb().prepare(
-    `INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth)
+  getPushDb()
+    .prepare(
+      `INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth)
      VALUES (?, ?, ?, ?)
      ON CONFLICT(endpoint) DO UPDATE SET user_id = excluded.user_id, p256dh = excluded.p256dh,
        auth = excluded.auth, updated_at = datetime('now')`,
-  ).run(input.userId, input.endpoint, input.p256dh, input.auth);
+    )
+    .run(input.userId, input.endpoint, input.p256dh, input.auth);
 }
 
 export function listPushSubscriptions(): PushSubscriptionRow[] {
-  return getPushDb().prepare('SELECT * FROM push_subscriptions').all() as unknown as PushSubscriptionRow[];
+  return getPushDb()
+    .prepare('SELECT * FROM push_subscriptions')
+    .all() as unknown as PushSubscriptionRow[];
 }
 
 export function deletePushSubscription(endpoint: string, userId?: number): void {
-  if (userId === undefined) getPushDb().prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').run(endpoint);
-  else getPushDb().prepare('DELETE FROM push_subscriptions WHERE endpoint = ? AND user_id = ?').run(endpoint, userId);
+  if (userId === undefined)
+    getPushDb().prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').run(endpoint);
+  else
+    getPushDb()
+      .prepare('DELETE FROM push_subscriptions WHERE endpoint = ? AND user_id = ?')
+      .run(endpoint, userId);
 }

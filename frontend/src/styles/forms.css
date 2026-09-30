@@ -2,21 +2,21 @@
 .vps-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-3-5);
 }
 .vps-form__note {
   font-size: var(--font-size-caption);
   color: var(--text-muted);
   background: var(--surface);
   border: 1px solid var(--border);
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-lg);
 }
 .vps-form__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 4px;
+  gap: var(--space-2-5);
+  margin-top: var(--space-1);
 }
 /* ── Примитив: кнопка (btn) — единый паттерн кнопок форм/действий ── */
 .btn {
@@ -24,7 +24,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-icon-gap);
-  padding: 9px 16px;
+  padding: 9px var(--space-4);
   font: inherit;
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -66,7 +66,7 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 .field__label {
   font-size: var(--font-size-caption);
@@ -82,7 +82,7 @@
 .field__radio {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   font-size: var(--font-size-sm);
   color: var(--text);
   cursor: pointer;
@@ -101,7 +101,7 @@
   width: 100%;
   font: inherit;
   font-size: var(--font-size-md);
-  padding: 10px 14px;
+  padding: var(--space-2-5) var(--space-3-5);
   color: var(--text);
   background: var(--surface-muted);
   border: 1px solid var(--border);
@@ -119,6 +119,10 @@
   border-color: var(--link-hover);
   background: var(--surface-hover);
   box-shadow: var(--focus-ring-soft);
+}
+.input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
 }
 /* Инпут на поверхности-карточке (профиль) — фон поверхности */
 .input--surface {
@@ -138,7 +142,7 @@ select.input {
 /* ── Примитив: алерт/уведомление (успех/ошибка/предупреждение) ── */
 .alert {
   font-size: var(--font-size-caption);
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
 }
@@ -172,8 +176,8 @@ select.input {
   color: var(--text-faint);
   background: var(--surface-muted);
   border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
-  padding: 2px 8px;
+  border-radius: var(--radius-3xl);
+  padding: 2px var(--space-2);
   white-space: nowrap;
 }
 /* Бейдж на поверхности-карточке (профиль, админ-таблица) */
@@ -200,7 +204,7 @@ select.input {
 .project-accent__row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
 }
 .project-accent__picker {
   flex: none;
@@ -224,8 +228,8 @@ select.input {
 .vps-services {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 8px 8px 12px;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface-muted);
@@ -234,16 +238,16 @@ select.input {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-1-5);
   flex: 1;
   min-width: 0;
 }
 .vps-services__chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--radius-2xl);
+  gap: var(--space-1-5);
+  padding: var(--space-1) var(--space-2-5);
+  border-radius: var(--radius-3xl);
   background: var(--surface);
   border: 1px solid var(--border);
   font-size: var(--font-size-caption);
@@ -276,29 +280,29 @@ select.input {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  background: var(--overlay-editor);
+  border-radius: var(--radius-3xl);
 }
 .services-editor {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-1xl);
+  border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-container);
   width: 100%;
   max-width: 576px; /* +20% от 480px (редактор сервисов) */
   max-height: 70vh;
   overflow-y: auto;
-  padding: 20px;
+  padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-3-5);
 }
 .services-editor__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .services-editor__head h4 {
   font-size: var(--font-size-md);
@@ -313,7 +317,7 @@ select.input {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .services-editor__item {
   display: grid;
@@ -321,9 +325,9 @@ select.input {
   grid-template-areas:
     'fields trash'
     'addr trash';
-  column-gap: 8px;
-  row-gap: 8px;
-  padding: 12px;
+  column-gap: var(--space-2);
+  row-gap: var(--space-2);
+  padding: var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-12px);
   background: var(--card-bg);
@@ -333,7 +337,7 @@ select.input {
   grid-area: fields;
   display: grid;
   grid-template-columns: minmax(0, 4fr) minmax(0, 3fr); /* имя : тип = 4:3 */
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
   min-width: 0;
 }

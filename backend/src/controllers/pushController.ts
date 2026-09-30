@@ -1,5 +1,10 @@
 import type { Request, Response } from 'express';
-import { getPushPublicKey, isPushConfigured, removePushSubscription, savePushSubscription } from '../services/pushService';
+import {
+  getPushPublicKey,
+  isPushConfigured,
+  removePushSubscription,
+  savePushSubscription,
+} from '../services/pushService';
 
 export function pushConfigController(_req: Request, res: Response): void {
   res.json({ configured: isPushConfigured(), publicKey: getPushPublicKey() });
@@ -10,7 +15,9 @@ export function subscribePushController(req: Request, res: Response): void {
     savePushSubscription(req.user?.id ?? 0, req.body);
     res.status(204).end();
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Некорректная подписка' });
+    res
+      .status(400)
+      .json({ message: error instanceof Error ? error.message : 'Некорректная подписка' });
   }
 }
 
