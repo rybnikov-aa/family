@@ -16,7 +16,7 @@
   text-decoration: none;
   background: var(--surface-muted);
   border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-md);
   transition:
     border-color 0.15s ease,
     background 0.15s ease;
@@ -69,7 +69,7 @@
   padding: var(--space-3-5);
   background: var(--surface-muted);
   border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-md);
 }
 .plans-column__head {
   display: flex;
@@ -97,7 +97,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-left: 3px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
 }
 .plan-task:last-child {
   margin-bottom: 0;
@@ -262,12 +262,12 @@
   font-size: var(--font-size-2xl);
   font-weight: 300;
   color: var(--text);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 .profile__card {
   background: var(--surface-muted);
   border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-md);
   padding: var(--space-6);
 }
 .profile__card-head {
@@ -331,7 +331,7 @@
   font-size: var(--font-size-2xl);
   font-weight: 300;
   color: var(--text);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 .admin__sub {
   font-size: var(--font-size-sm);
@@ -341,7 +341,7 @@
 .admin__card {
   background: var(--surface-muted);
   border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-md);
   padding: var(--space-5);
   overflow-x: auto;
 }
@@ -428,19 +428,20 @@
 
 /* Hero */
 .hero {
-  margin-bottom: var(--space-12);
+  max-width: 760px;
+  margin-bottom: var(--space-6);
 }
 .hero h2 {
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-xl);
   font-weight: 300;
   color: var(--text);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 .hero h2 strong {
   font-weight: 700;
 }
 .hero p {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
   color: var(--text-muted);
   max-width: 580px;
   margin-top: var(--space-2-5);
@@ -454,9 +455,9 @@
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--space-3);
   background: var(--surface-muted);
-  border-radius: var(--radius-2xl);
-  padding: var(--space-5) var(--space-7);
-  margin-bottom: 44px;
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-6);
   border: 1px solid var(--border);
 }
 .stat-item {

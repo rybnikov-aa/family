@@ -15,7 +15,7 @@ interface CreateProjectModalProps {
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 /** Допустимый акцентный цвет (`#RRGGBB`). */
 const ACCENT_RE = /^#[0-9a-fA-F]{6}$/;
-const DEFAULT_ACCENT = '#3b82f6';
+const DEFAULT_ACCENT = '#4c6fa8';
 
 /** Иконки карточки проекта (маппятся в `projectIcons` на странице «Проекты»). */
 const PROJECT_ICONS = [
@@ -155,7 +155,7 @@ function CreateProjectModal({ onClose, onCreated }: CreateProjectModalProps) {
               type="text"
               value={accent}
               onChange={(event) => setAccent(event.target.value)}
-              placeholder="#3b82f6"
+              placeholder="#4c6fa8"
               maxLength={7}
             />
           </div>

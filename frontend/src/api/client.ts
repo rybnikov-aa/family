@@ -255,7 +255,7 @@ export interface ProjectInput {
   title: string;
   /** Описание для карточки. */
   description: string;
-  /** Акцентный цвет карточки (`#RRGGBB`), по умолчанию `#3b82f6`. */
+  /** Акцентный цвет карточки (`#RRGGBB`), по умолчанию `#4c6fa8`. */
   accent?: string;
   /** Имя иконки: `renovation` | `folder` | `projects`, по умолчанию `projects`. */
   icon?: string;

@@ -1,20 +1,23 @@
 /* Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: var(--space-4);
   margin-top: var(--space-2);
 }
 
 .card {
   background: var(--card-bg);
-  border-radius: var(--radius-3xl);
-  padding: var(--space-6) var(--space-4-5) var(--space-5);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-4);
   text-align: left;
   text-decoration: none;
   color: var(--text);
   border: 1px solid var(--border);
-  transition: all 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -23,7 +26,6 @@
   background: var(--card-hover-bg);
   border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
   box-shadow: var(--shadow-card);
-  transform: translateY(-2px);
 }
 
 .card__icon {
@@ -32,7 +34,7 @@
   justify-content: center;
   width: 46px;
   height: 46px;
-  border-radius: var(--radius-13px);
+  border-radius: var(--radius-md);
   margin-bottom: var(--space-3);
   background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);
@@ -45,7 +47,7 @@
   font-size: var(--font-size-md);
   font-weight: 600;
   margin-bottom: var(--space-1);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 .card p {
   font-size: var(--font-size-caption);
@@ -112,7 +114,7 @@
 .markdown h2,
 .markdown h3 {
   margin: 1.4em 0 0.5em;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 .markdown h1 {
   font-size: var(--font-size-xl);
@@ -218,7 +220,7 @@
   justify-content: center;
   width: 54px;
   height: 54px;
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-md);
   flex-shrink: 0;
   background: color-mix(in srgb, var(--color-accent-teal) 14%, transparent);
   color: var(--color-accent-teal);
@@ -244,7 +246,7 @@
 .page__head h2 {
   font-size: var(--font-size-xl);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   color: var(--text-strong);
 }
 .page__sub {
@@ -261,7 +263,7 @@
 .news-item {
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-md);
   padding: var(--space-5) 22px;
   display: flex;
   flex-direction: column;
@@ -290,7 +292,7 @@
 .news-item h3 {
   font-size: var(--font-size-md);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   color: var(--text-strong);
 }
 .news-item p {
@@ -303,7 +305,7 @@
   padding: var(--space-12) var(--space-6);
   color: var(--text-faint);
   border: 1px dashed var(--border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-md);
 }
 
 /* Footer */

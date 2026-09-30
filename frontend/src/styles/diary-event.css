@@ -285,7 +285,7 @@
 }
 .diary-form-section {
   border: 1px solid var(--border);
-  border-radius: var(--radius-3xl);
+  border-radius: var(--radius-md);
   background: var(--surface-muted);
   overflow: hidden;
 }

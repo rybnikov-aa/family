@@ -157,27 +157,29 @@ function PageLayout({ children }: PageLayoutProps) {
               </IconButton>
             </div>
           )}
-          <ThemeToggle />
-          {canInstall && (
-            <IconButton
-              label="Установить приложение"
-              tooltip="Установить приложение"
-              onClick={() => void install()}
-            >
-              <DownloadIcon />
-            </IconButton>
-          )}
-          {pushSupported && (
-            <IconButton
-              label={pushEnabled ? 'Выключить push-уведомления' : 'Включить push-уведомления'}
-              tooltip={pushEnabled ? 'Выключить push' : 'Включить push'}
-              disabled={pushBusy}
-              active={pushEnabled}
-              onClick={() => void (pushEnabled ? disablePush() : enablePush())}
-            >
-              <BellIcon />
-            </IconButton>
-          )}
+          <div className="header-tools">
+            <ThemeToggle />
+            {canInstall && (
+              <IconButton
+                label="Установить приложение"
+                tooltip="Установить приложение"
+                onClick={() => void install()}
+              >
+                <DownloadIcon />
+              </IconButton>
+            )}
+            {pushSupported && (
+              <IconButton
+                label={pushEnabled ? 'Выключить push-уведомления' : 'Включить push-уведомления'}
+                tooltip={pushEnabled ? 'Выключить push' : 'Включить push'}
+                disabled={pushBusy}
+                active={pushEnabled}
+                onClick={() => void (pushEnabled ? disablePush() : enablePush())}
+              >
+                <BellIcon />
+              </IconButton>
+            )}
+          </div>
         </div>
       </header>
 

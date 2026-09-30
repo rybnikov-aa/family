@@ -34,7 +34,7 @@ function openDatabase(): DatabaseSync {
       slug        TEXT    NOT NULL UNIQUE,          -- латиница, цифры, дефисы
       title       TEXT    NOT NULL,
       description TEXT    NOT NULL,
-      accent      TEXT    NOT NULL DEFAULT '#3b82f6',
+      accent      TEXT    NOT NULL DEFAULT '#4c6fa8',
       icon        TEXT    NOT NULL DEFAULT 'projects', -- renovation | folder | projects
       order_num   INTEGER NOT NULL DEFAULT 2147483647, -- меньше — раньше в списке
       content     TEXT    NOT NULL DEFAULT '',          -- markdown-контент страницы проекта

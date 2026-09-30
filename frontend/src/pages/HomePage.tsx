@@ -13,7 +13,7 @@ import { useImmichSettings } from '../hooks/useImmichSettings';
 const sections = [
   {
     icon: NewsIcon,
-    color: '#14b8a6',
+    color: 'var(--color-accent-teal)',
     title: 'Новости',
     description: 'Анонсы, события и хроника семьи.',
     tag: 'лента',
@@ -21,7 +21,7 @@ const sections = [
   },
   {
     icon: DiaryIcon,
-    color: '#3b82f6',
+    color: 'var(--color-accent-blue)',
     title: 'Дневник',
     description: 'События, даты, маршруты. Хронология семьи.',
     tag: 'архив',
@@ -29,7 +29,7 @@ const sections = [
   },
   {
     icon: ProjectsIcon,
-    color: '#0ea5e9',
+    color: 'var(--color-accent-sky)',
     title: 'Проекты',
     description: 'Отдельные подпроекты: документация, отчёты и архивы.',
     tag: 'каталог',
@@ -37,7 +37,7 @@ const sections = [
   },
   {
     icon: PlansIcon,
-    color: '#ec4899',
+    color: 'var(--color-accent-orange)',
     title: 'Планы',
     description: 'Цели, задачи, дорожная карта развития.',
     tag: 'стратегия',
@@ -55,7 +55,7 @@ function HomePage() {
     ? [
         {
           icon: PhotoIcon,
-          color: '#a855f7',
+          color: 'var(--color-accent-sky)',
           title: 'Фотоархив',
           description: 'Снимки, события, люди. Визуальный ряд.',
           tag: 'медиатека',

@@ -59,7 +59,7 @@ export interface ProjectInput {
   title: string;
   /** Описание для карточки. */
   description: string;
-  /** Акцентный цвет карточки (`#RRGGBB`), по умолчанию `#3b82f6`. */
+  /** Акцентный цвет карточки (`#RRGGBB`), по умолчанию `#4c6fa8`. */
   accent?: string;
   /** Имя иконки: `renovation` | `folder` | `projects`, по умолчанию `projects`. */
   icon?: string;
@@ -76,7 +76,7 @@ const ACCENT_RE = /^#[0-9a-fA-F]{6}$/;
 /** Допустимые иконки карточки (маппятся на фронтенде в `projectIcons`). */
 const PROJECT_ICONS = ['renovation', 'folder', 'projects'];
 /** Акцентный цвет по умолчанию. */
-const DEFAULT_ACCENT = '#3b82f6';
+const DEFAULT_ACCENT = '#4c6fa8';
 /** Порядок по умолчанию — проект уходит в конец списка. */
 const DEFAULT_ORDER = Number.MAX_SAFE_INTEGER;
 

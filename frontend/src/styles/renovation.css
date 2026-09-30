@@ -56,7 +56,7 @@
   padding: var(--space-4);
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-md);
 }
 .renov-meta__grid {
   display: grid;
@@ -94,7 +94,7 @@
   padding: var(--space-3) var(--space-4);
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-md);
 }
 .renov-meta__progress-label {
   display: grid;
@@ -182,7 +182,7 @@
   flex-direction: column;
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-3xl);
+  border-radius: var(--radius-md);
   padding: var(--space-6) var(--space-4) var(--space-5);
 }
 .renov-card__head {

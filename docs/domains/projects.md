@@ -50,7 +50,7 @@
     "slug": "renovation",
     "title": "Ремонт Сиверса 8, 548",
     "description": "Отчётность по ремонту: смета, внесённые средства, отчёты о работах и материалах.",
-    "accent": "#e8872e",
+    "accent": "#9a5a1e",
     "icon": "renovation",
     "kind": "app",
     "url": "/projects/renovation",
@@ -61,7 +61,7 @@
     "slug": "mebel-siversa-8-548",
     "title": "Мебель Сиверса 8, 548",
     "description": "Проект мебели",
-    "accent": "#3b82f6",
+    "accent": "#4c6fa8",
     "icon": "projects",
     "kind": "app",
     "url": "/projects/mebel-siversa-8-548",
@@ -72,7 +72,7 @@
     "slug": "dacha",
     "title": "Дача",
     "description": "…",
-    "accent": "#3b82f6",
+    "accent": "#4c6fa8",
     "icon": "projects",
     "kind": "app",
     "url": "/projects/dacha",
@@ -89,7 +89,7 @@
 - `POST /api/projects` (admin): JSON `{slug, title, description, accent?, icon?, order?, content?}` —
   вставка в БД `projects`. `slug` — латиница, цифры и дефисы (`/^[a-z0-9]+(?:-[a-z0-9]+)*$/`), без
   `_`/`.` в начале; занятое имя (запись реестра или БД) → 409; `title`/`description` — обязательные
-  непустые → 400; `accent` — hex `#RRGGBB` (по умолчанию `#3b82f6`), `icon` — `renovation|folder|projects`,
+  непустые → 400; `accent` — hex `#RRGGBB` (по умолчанию `#4c6fa8`), `icon` — `renovation|folder|projects`,
   `order` — неотрицательное целое (по умолчанию — в конец списка), `content` — markdown (по умолчанию '').
   Ответ — метаданные созданного проекта (201).
 - `PATCH /api/projects/:slug` (admin): обновляет заданные поля (метаданные и/или `content`);

@@ -195,7 +195,7 @@
   font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--text-strong);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 /* Pill-дата в заголовке модалки (например, «Отчет о ходе работ 08.08.2026») */
 .modal__head h3 .renov-pill {
