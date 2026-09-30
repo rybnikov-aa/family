@@ -26,6 +26,13 @@ export interface AppProject {
   route: string;
   /** Markdown-контент встроенной страницы, если он есть. */
   content?: string;
+  /** Короткие карточки, которые показываются перед основным markdown-контентом. */
+  topSections?: readonly ProjectTopSection[];
+}
+
+export interface ProjectTopSection {
+  title: string;
+  content: string;
 }
 
 /** Реестр прикладных проектов. При переносе проекта в приложение — добавить запись сюда. */
@@ -47,6 +54,18 @@ export const APP_PROJECTS: AppProject[] = [
     icon: 'projects',
     order: 1,
     route: '/projects/mebel-siversa-8-548',
+    topSections: [
+      {
+        title: 'Договор №2018',
+        content:
+          '**1 857 050 ₽**\n\nот 13.08.2026 · изготовление и установка — 60 рабочих дней · гарантия — 12 месяцев',
+      },
+      {
+        title: 'Спецификация',
+        content:
+          '**2 509 200 ₽**\n\nБезналично с учётом НДС — **2 885 580 ₽** · предоплата — 300 000 ₽',
+      },
+    ],
     content: FURNITURE_PROJECT_CONTENT,
   },
 ];

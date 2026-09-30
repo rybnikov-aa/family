@@ -54,6 +54,19 @@ function ProjectPage() {
               )}
             </div>
 
+            {project.topSections.length > 0 && (
+              <div className="project-page__top-sections">
+                {project.topSections.map((section) => (
+                  <article key={section.title} className="project-page__top-section">
+                    <h3>{section.title}</h3>
+                    <div className="project-page__top-section-content">
+                      {renderMarkdown(section.content)}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+
             {project.content.trim() === '' ? (
               <div className="news-empty">Контент пока не добавлен.</div>
             ) : (

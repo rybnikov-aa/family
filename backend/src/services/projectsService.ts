@@ -1,4 +1,4 @@
-import { APP_PROJECTS, type AppProject } from '../config/appProjects';
+import { APP_PROJECTS, type AppProject, type ProjectTopSection } from '../config/appProjects';
 import { isConstraintError } from '../db/errors';
 import {
   createProjectRow,
@@ -47,6 +47,8 @@ export interface ProjectInfo {
 export interface ProjectDetail extends ProjectInfo {
   /** Markdown-контент страницы проекта (пусто у встроенных проектов). */
   content: string;
+  /** Верхние секции встроенного проекта перед markdown-контентом. */
+  topSections: readonly ProjectTopSection[];
 }
 
 /** Входные данные создания/обновления проекта (`POST`/`PATCH /api/projects`). */
@@ -171,13 +173,17 @@ export function listProjects(): ProjectInfo[] {
 export function getProject(slug: string): ProjectDetail {
   const registry = findRegistry(slug);
   if (registry) {
-    return { ...registryToInfo(registry), content: registry.content ?? '' };
+    return {
+      ...registryToInfo(registry),
+      content: registry.content ?? '',
+      topSections: registry.topSections ?? [],
+    };
   }
   const row = getProjectRow(slug);
   if (!row) {
     throw new HttpError(404, 'Проект не найден');
   }
-  return { ...rowToInfo(row), content: row.content };
+  return { ...rowToInfo(row), content: row.content, topSections: [] };
 }
 
 /**
@@ -258,7 +264,7 @@ export function updateProject(slug: string, input: ProjectInput): ProjectDetail 
   if (!row) {
     throw new HttpError(404, 'Проект не найден');
   }
-  return { ...rowToInfo(row), content: row.content };
+  return { ...rowToInfo(row), content: row.content, topSections: [] };
 }
 
 /** Удаляет проект (admin). Встроенные проекты удалить нельзя → 400. */

@@ -172,6 +172,35 @@
   margin: 1.4em 0;
 }
 
+/* Короткие верхние секции встроенного проекта. */
+.project-page__top-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: var(--space-4);
+  margin: 0 0 var(--space-6);
+}
+.project-page__top-section {
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-1xl);
+  background: var(--card-bg);
+}
+.project-page__top-section h3 {
+  margin: 0 0 var(--space-3);
+  color: var(--text-strong);
+  font-size: var(--font-size-md);
+}
+.project-page__top-section-content {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.project-page__top-section-content p {
+  margin: 0;
+}
+.project-page__top-section-content strong {
+  color: var(--text-strong);
+}
+
 /* News page */
 .page {
   padding-bottom: 8px;

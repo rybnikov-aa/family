@@ -229,6 +229,8 @@ export interface Project {
 export interface ProjectDetail extends Project {
   /** Markdown-контент страницы проекта (пусто у встроенных проектов). */
   content: string;
+  /** Верхние секции встроенного проекта перед markdown-контентом. */
+  topSections: readonly { title: string; content: string }[];
 }
 
 /** Список проектов: `GET /api/projects`. Кэша сканирования больше нет, `force` игнорируется. */
