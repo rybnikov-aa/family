@@ -18,5 +18,6 @@
 | [FR-012](fr-012-diary-enrichment.md)                | Расширенный дневник                              | [domain diary](../domains/diary.md), [API](../layers/api.md)               | CJ-016         |
 | [FR-013](fr-013-diary-export.md)                    | Экспорт дневника                                 | [domain diary](../domains/diary.md), [API](../layers/api.md)               | CJ-017         |
 | [FR-014](fr-014-diary-albums.md)                    | Альбомы и подборки дневника                      | [domain diary](../domains/diary.md), [API](../layers/api.md)               | CJ-018         |
+| [FR-015](fr-015-news-management.md)                 | Управляемые новости                              | [domain news](../domains/news.md), [API](../layers/api.md)                 | CJ-019         |
 
 Нефункциональные требования размещены отдельно в [`docs/nfr/`](../nfr/index.md); требования к процессу разработки и агентскому харнессу — в [`docs/hr/`](../hr/index.md).

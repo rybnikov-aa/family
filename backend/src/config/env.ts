@@ -29,6 +29,11 @@ export const env = {
   /** Путь к отдельной БД задач раздела «Планы». */
   PLANS_DB_PATH: process.env.PLANS_DB_PATH ?? 'data/plans.sqlite',
 
+  /** БД публикаций новостей. */
+  NEWS_DB_PATH: process.env.NEWS_DB_PATH ?? 'data/news.sqlite',
+  /** Каталог изображений-вложений новостей. */
+  NEWS_ATTACHMENTS_DIR: process.env.NEWS_ATTACHMENTS_DIR ?? 'news-attachments',
+
   // ── Дневник (diary) ────────────────────────────────────────────────────────
   /**
    * Путь к отдельной БД событий «Дневника». Это НЕ `DB_PATH` (база VPS) —

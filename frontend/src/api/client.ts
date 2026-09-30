@@ -358,6 +358,75 @@ export async function deletePlan(id: number): Promise<void> {
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
 }
 
+// ── Новости ─────────────────────────────────────────────────────────────────
+
+export interface NewsAttachment {
+  id: number;
+  originalName: string;
+  url: string;
+}
+
+export interface NewsPost {
+  id: number;
+  title: string;
+  tag: string;
+  text: string;
+  publishAt: string;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+  read: boolean;
+  attachments: NewsAttachment[];
+}
+
+export interface NewsInput {
+  title: string;
+  tag: string;
+  text: string;
+  publishAt: string;
+  pinned: boolean;
+  files: File[];
+}
+
+function newsFormData(input: NewsInput): FormData {
+  const form = new FormData();
+  form.set('title', input.title);
+  form.set('tag', input.tag);
+  form.set('text', input.text);
+  form.set('publishAt', input.publishAt);
+  form.set('pinned', String(input.pinned));
+  input.files.forEach((file) => form.append('images', file, file.name));
+  return form;
+}
+
+export async function fetchNews(admin = false): Promise<NewsPost[]> {
+  const res = await apiFetch(admin ? '/news/admin' : '/news');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<NewsPost[]>;
+}
+
+export async function createNews(input: NewsInput): Promise<NewsPost> {
+  const res = await apiFetch('/news', { method: 'POST', body: newsFormData(input) });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<NewsPost>;
+}
+
+export async function updateNews(id: number, input: NewsInput): Promise<NewsPost> {
+  const res = await apiFetch(`/news/${id}`, { method: 'PATCH', body: newsFormData(input) });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<NewsPost>;
+}
+
+export async function deleteNews(id: number): Promise<void> {
+  const res = await apiFetch(`/news/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+}
+
+export async function markNewsRead(id: number): Promise<void> {
+  const res = await apiFetch(`/news/${id}/read`, { method: 'POST' });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+}
+
 export interface SearchResult {
   kind: 'project' | 'plan' | 'diary';
   id: string;

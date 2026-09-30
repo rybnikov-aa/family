@@ -12,6 +12,7 @@ import { diaryRouter } from './routes/diary';
 import { settingsRouter } from './routes/settings';
 import { immichRouter } from './routes/immich';
 import { plansRouter } from './routes/plans';
+import { newsRouter } from './routes/news';
 import { searchRouter } from './routes/search';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler';
 import { requireAdmin, requireAuth } from './middlewares/auth';
@@ -34,6 +35,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/vps', requireAuth, vpsRouter);
 app.use('/api/projects', requireAuth, projectsRouter);
 app.use('/api/plans', requireAuth, plansRouter);
+app.use('/api/news', requireAuth, newsRouter);
 app.use('/api/search', requireAuth, searchRouter);
 // Модуль «Ремонт» (этап 2 — чтение отчётности из отдельной БД renovation.sqlite).
 app.use('/api/renovation', requireAuth, renovationRouter);
