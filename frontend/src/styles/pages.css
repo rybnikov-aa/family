@@ -2,6 +2,54 @@
 .plans-page {
   max-width: 1180px;
 }
+.search-page {
+  max-width: 860px;
+}
+.search-results {
+  display: grid;
+  gap: 10px;
+}
+.search-result {
+  display: block;
+  padding: 16px 18px;
+  color: inherit;
+  text-decoration: none;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-1xl);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.search-result:hover {
+  background: var(--surface-hover);
+  border-color: var(--link-hover);
+}
+.search-result__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.search-result__head strong {
+  color: var(--text-strong);
+  font-size: var(--font-size-md);
+}
+.search-result__head span,
+.search-result small {
+  color: var(--text-faint);
+  font-size: var(--font-size-2xs);
+}
+.search-result p {
+  margin-top: 7px;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+}
+.search-result small {
+  display: block;
+  margin-top: 9px;
+}
 .plans-toolbar {
   display: flex;
   gap: 10px;

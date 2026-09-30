@@ -358,6 +358,22 @@ export async function deletePlan(id: number): Promise<void> {
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
 }
 
+export interface SearchResult {
+  kind: 'project' | 'plan' | 'diary';
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  meta: string | null;
+}
+
+export async function fetchSearch(query: string): Promise<SearchResult[]> {
+  const res = await apiFetch(`/search?q=${encodeURIComponent(query)}`);
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  const data = (await res.json()) as { results: SearchResult[] };
+  return data.results;
+}
+
 export interface VpsServiceStatus {
   name: string;
   type: string;

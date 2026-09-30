@@ -3,6 +3,7 @@ import { Navigate, Outlet, RouterProvider, createHashRouter, useLocation } from 
 import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
 import PlansPage from './pages/PlansPage';
+import SearchPage from './pages/SearchPage';
 import DiaryPage from './pages/DiaryPage';
 import DiaryEventPage from './pages/DiaryEventPage';
 import ProjectsPage from './pages/ProjectsPage';
@@ -90,6 +91,7 @@ const router = createHashRouter([
           { path: ROUTES.home, element: <HomePage /> },
           { path: ROUTES.news, element: <NewsPage /> },
           { path: ROUTES.plans, element: <PlansPage /> },
+          { path: ROUTES.search, element: <SearchPage /> },
           { path: ROUTES.diary, element: <DiaryPage /> },
           { path: ROUTES.diaryEvent, element: <DiaryEventPage /> },
           { path: ROUTES.projects, element: <ProjectsPage /> },

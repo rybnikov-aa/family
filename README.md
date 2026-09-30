@@ -119,7 +119,7 @@ npm install
 
 - **Фронтенд** запускается через Vite dev-сервер на порту `5173`. Запросы к `/api/*` проксируются на бэкенд (`vite.config.ts`), поэтому в разработке не нужен CORS.
 - **Бэкенд** запускается через Vite c плагином `vite-plugin-node` — Express-приложение получает горячую перезагрузку при изменении кода. Приложение экспортируется из `src/app.ts`; при прямом запуске собранного `dist/app.cjs` (`npm run start -w backend`) оно само стартует сервер на порту из `PORT`.
-- **Продуктовые модули:** [VPS](docs/domains/vps.md), [Проекты](docs/domains/projects.md), [Планы](docs/domains/plans.md), [Авторизация](docs/domains/auth.md), [Ремонт](docs/domains/renovation.md) и [Дневник](docs/domains/diary.md) — владельцы поведения, данных и критериев приемки.
+- **Продуктовые модули:** [VPS](docs/domains/vps.md), [Проекты](docs/domains/projects.md), [Планы](docs/domains/plans.md), [Поиск](docs/domains/search.md), [Авторизация](docs/domains/auth.md), [Ремонт](docs/domains/renovation.md) и [Дневник](docs/domains/diary.md) — владельцы поведения, данных и критериев приемки.
 - **Архитектура и API:** [слои](docs/layers/) описывают backend/frontend и сквозные контракты; [HTTP API](docs/layers/api.md) — матрицу доступа и форматы обмена.
 - **Внешняя интеграция:** [Immich](docs/integrations/immich.md) настраивается администратором; пикер импортирует выбранные оригиналы в самостоятельное хранилище «Дневника».
 - **Эксплуатация и ограничения:** [server operations](docs/operations/server.md), [backup/restore](docs/operations/backup.md) и [DeepSeek pricing policy](docs/policies/deepseek-pricing.md) имеют отдельные документы-владельцы.

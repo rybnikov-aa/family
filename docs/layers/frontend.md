@@ -40,6 +40,7 @@
 - [VPS-мониторинг](../domains/vps.md)
 - [Проекты](../domains/projects.md)
 - [Планы](../domains/plans.md)
+- [Поиск](../domains/search.md)
 - [Авторизация](../domains/auth.md)
 - [Дневник](../domains/diary.md)
 - [Ремонт](../domains/renovation.md)

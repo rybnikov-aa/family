@@ -33,6 +33,40 @@
   gap: var(--space-5);
   flex-wrap: wrap;
 }
+.header-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: 150px;
+  padding: 6px 10px;
+  color: var(--text-faint);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.header-search:focus-within {
+  border-color: var(--link-hover);
+  box-shadow: var(--focus-ring-soft);
+}
+.header-search svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.header-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  font-size: var(--font-size-caption);
+}
+.header-search input::placeholder {
+  color: var(--text-faint);
+}
 
 .nav {
   display: flex;

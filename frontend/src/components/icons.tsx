@@ -130,6 +130,16 @@ export function PlansIcon(props: IconProps) {
   );
 }
 
+/** Поиск */
+export function SearchIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-4-4" />
+    </svg>
+  );
+}
+
 /** Дом */
 export function HomeIcon(props: IconProps) {
   return (

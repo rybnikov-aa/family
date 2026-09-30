@@ -1,9 +1,9 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import StatusCard from './StatusCard';
 import ThemeToggle from './ThemeToggle';
 import IconButton from './IconButton';
-import { LogoutIcon, SettingsIcon, UserIcon, UsersIcon } from './icons';
+import { LogoutIcon, SearchIcon, SettingsIcon, UserIcon, UsersIcon } from './icons';
 import { ROUTES } from '../routes';
 import { useHealth } from '../hooks/useHealth';
 import { useAuth } from '../hooks/useAuth';
@@ -19,6 +19,7 @@ function PageLayout({ children }: PageLayoutProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
   // Адрес инстанса Immich из админ-настроек (ссылка «Архив» в футере).
   const immichUrl = useImmichSettings();
 
@@ -46,6 +47,12 @@ function PageLayout({ children }: PageLayoutProps) {
     }
   };
 
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    if (query.length >= 2) navigate(`${ROUTES.search}?q=${encodeURIComponent(query)}`);
+  };
+
   return (
     <div className="container">
       <header className="header">
@@ -57,6 +64,15 @@ function PageLayout({ children }: PageLayoutProps) {
           </h1>
         </Link>
         <div className="header-actions">
+          <form className="header-search" onSubmit={submitSearch} role="search">
+            <SearchIcon />
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Поиск"
+              aria-label="Поиск"
+            />
+          </form>
           <nav className="nav">
             <NavLink
               to={ROUTES.home}
