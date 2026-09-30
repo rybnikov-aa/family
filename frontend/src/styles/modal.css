@@ -72,6 +72,35 @@
   flex-direction: column;
   gap: var(--space-3);
 }
+.pdf-viewer__tabs {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+.pdf-viewer__tab {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pdf-viewer__tab:hover {
+  color: var(--text-strong);
+}
+.pdf-viewer__tab--active {
+  border-bottom-color: var(--color-accent-orange);
+  color: var(--text-strong);
+  font-weight: 600;
+}
 .pdf-viewer__toolbar {
   display: flex;
   align-items: center;

@@ -38,6 +38,7 @@ import {
   pdfFileName,
   pdfUrl,
   resolveStoredDesignPdf,
+  resolveStoredReplanningPdf,
   resolveStoredPdf,
   savePendingPdf,
 } from '../services/renovation/import/pdfStore';
@@ -178,6 +179,22 @@ export function pdfFileController(req: Request, res: Response): void {
 export function designPdfController(req: Request, res: Response): void {
   const name = String(req.params.file);
   const filePath = resolveStoredDesignPdf(name);
+  if (!filePath) {
+    res.status(400).json({ message: 'Некорректное имя файла' });
+    return;
+  }
+  if (!existsSync(filePath)) {
+    res.status(404).json({ message: 'Файл не найден' });
+    return;
+  }
+  res.type('application/pdf');
+  res.sendFile(filePath);
+}
+
+/** PDF перепланировки: `GET /api/renovation/docs/replanning/:file` (под авторизацией). */
+export function replanningPdfController(req: Request, res: Response): void {
+  const name = String(req.params.file);
+  const filePath = resolveStoredReplanningPdf(name);
   if (!filePath) {
     res.status(400).json({ message: 'Некорректное имя файла' });
     return;

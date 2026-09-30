@@ -112,6 +112,7 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   - `GET /api/renovation/docs?type=…`, `GET /api/renovation/settlements?type=…`;
   - `GET /api/renovation/docs/:file` — загруженный PDF (под авторизацией);
   - `GET /api/renovation/docs/design/:file` — PDF альбома дизайн-проекта из `design/`;
+  - `GET /api/renovation/docs/replanning/:file` — PDF перепланировки из `replanning/`;
   - `PUT /api/renovation/meta` — обновить адрес объекта и/или дату старта (admin).
 - Фронтенд: `api/client.ts` (типы + `fetchRenovationOverview`), `hooks/useRenovationOverview.ts`,
   `utils/money.ts` (формат копеек/дат), страница `pages/RenovationPage.tsx` (Работы /
@@ -125,9 +126,11 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   расчётный календарный срок), полоса, подпись «N из ~M дн.» и % справа
   (календарные дни от старта к сроку, срок ≈ ×1,4 календарных,
   `utils/date.ts::calendarDaysBetween`/`addDaysIso`, без карандаша — дата правится через «Начало работ»); ниже
-  разделитель и кнопки «Дизайн-проект» и «Смета» (`.renov-meta__link`): «Дизайн-проект» сразу
-  открывает альбом `Альбом чертежей с развертками.pdf` во встроенном `PdfViewerModal` с
-  `fitToWidth`; «Смета» открывает модалку `components/RenovationEstimateModal.tsx` (версии сметы из БД
+  разделитель и кнопки «Дизайн-проект», «Перепланировка» и «Смета» (`.renov-meta__link`):
+  «Дизайн-проект» сразу открывает альбом `Альбом чертежей с развертками.pdf` во встроенном
+  `PdfViewerModal` с `fitToWidth`; «Перепланировка» открывает тот же просмотрщик с вкладками
+  «Решение 33» и «Согласованный проект»; «Смета» открывает модалку
+  `components/RenovationEstimateModal.tsx` (версии сметы из БД
   `GET /api/renovation/estimate/versions`; строки — в 3 столбца, как списки документов
   «Ход работ»/«Закупка материалов»: дата | имя-ссылка (иконка перед именем, PDF открывается
   по клику на имя) | сумма, без отдельной кнопки «Открыть PDF»; первый блок — «Исходная
@@ -298,10 +301,15 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   `GET /api/renovation/docs/design/:file` (под `requireAuth`, безопасное имя файла,
   path traversal-защита). Кнопка «Дизайн-проект» сразу открывает этот PDF в `PdfViewerModal`
   с `fitToWidth`, чтобы страница помещалась по ширине доступной формы.
+- **Документы перепланировки** — `decision-33.pdf` и `approved-replanning-project.pdf` в подпапке
+  `docs/renovation/replanning/`; раздаются через `GET /api/renovation/docs/replanning/:file`
+  под `requireAuth`. Кнопка «Перепланировка» открывает общий `PdfViewerModal` с двумя вкладками;
+  активный PDF отображается в той же форме.
 - **Просмотр:** фронтенд-компонент `components/PdfViewerModal.tsx` (pdf.js / `pdfjs-dist`,
   ленивый чанк): скачивает файл через `fetchFileBytes` (`api/client.ts`; для `/api/*` — с
   обработкой 401), рисует страницы на `<canvas>` с листанием, масштабом и индикатором страницы;
-  кнопка «На весь экран» разворачивает диалог, Escape сначала возвращает обычный режим просмотра.
+  кнопка «На весь экран» разворачивает диалог, Escape сначала возвращает обычный режим просмотра;
+  «Масштаб по размеру окна» подгоняет текущую страницу по ширине и высоте области просмотра.
   Ссылки-кнопки на исходные PDF (с иконкой документа, примитив `PdfLink`): в «Блоке 2.
   Материалы» сводки (`RenovationPage.tsx`) и в шапках заказов отчёта «Материалы»
   (`RenovationMaterialsReport.tsx`, `onOpenPdf`).

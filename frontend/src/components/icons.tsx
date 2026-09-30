@@ -381,6 +381,19 @@ export function ExitFullscreenIcon(props: IconProps) {
   );
 }
 
+/** Подогнать страницу по ширине и высоте окна */
+export function FitToWindowIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+      <path d="M16 3h3a2 2 0 0 1 2 2v3" />
+      <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+      <path d="M21 16v3a2 2 0 0 1-2 2h-3" />
+      <rect x="8" y="8" width="8" height="8" rx="1" />
+    </svg>
+  );
+}
+
 /** Выход — стрелка из двери */
 export function LogoutIcon(props: IconProps) {
   return (

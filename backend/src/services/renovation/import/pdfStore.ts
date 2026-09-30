@@ -154,3 +154,12 @@ export function resolveStoredDesignPdf(fileName: string): string | null {
   if (path !== base && !path.startsWith(base + sep)) return null;
   return path;
 }
+
+/** Абсолютный путь к PDF перепланировки; проверяет безопасное имя и корневой каталог. */
+export function resolveStoredReplanningPdf(fileName: string): string | null {
+  if (!isSafeFileName(fileName)) return null;
+  const base = docsDir();
+  const path = resolve(base, 'replanning', fileName);
+  if (path !== base && !path.startsWith(base + sep)) return null;
+  return path;
+}

@@ -10,6 +10,7 @@ import {
   materialsReportController,
   overviewController,
   pdfFileController,
+  replanningPdfController,
   settlementsController,
   updateMaterialsBudgetController,
   updateMetaController,
@@ -33,6 +34,8 @@ renovationRouter.get('/docs', docsController);
 renovationRouter.get('/docs/:file', pdfFileController);
 // PDF дизайн-проекта из подпапки `design/` каталога документов.
 renovationRouter.get('/docs/design/:file', designPdfController);
+// PDF перепланировки из подпапки `replanning/` каталога документов.
+renovationRouter.get('/docs/replanning/:file', replanningPdfController);
 renovationRouter.get('/settlements', settlementsController);
 
 // Отчёты (этап 5).

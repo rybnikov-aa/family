@@ -4,7 +4,7 @@ import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { fetchFileBytes } from '../api/client';
 import { installPdfPolyfills } from '../utils/pdfPolyfills';
 import IconButton from './IconButton';
-import { ExitFullscreenIcon, FullscreenIcon } from './icons';
+import { ExitFullscreenIcon, FitToWindowIcon, FullscreenIcon } from './icons';
 import Modal from './Modal';
 
 // Samsung Internet и часть старых WebView не имеют Map.prototype.getOrInsertComputed,
@@ -27,6 +27,16 @@ interface PdfViewerModalProps {
    * позволяет ширина экрана. Используется для документов дизайн-проекта.
    */
   fitToWidth?: boolean;
+  /** Набор документов, показываемых вкладками внутри формы. */
+  tabs?: readonly PdfViewerTab[];
+  /** Доступное имя списка вкладок. */
+  tabsLabel?: string;
+}
+
+export interface PdfViewerTab {
+  id: string;
+  label: string;
+  url: string;
 }
 
 const MIN_SCALE = 0.5;
@@ -47,7 +57,14 @@ const PDF_BACKDROP_X = 24 * 2 + 8;
  * (для `/api/*` — с обработкой 401, для статичного архива `/projects/…` —
  * обычным fetch). Компонент грузится лениво (pdfjs — тяжёлый чанк).
  */
-function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerModalProps) {
+function PdfViewerModal({
+  url,
+  title,
+  onClose,
+  fitToWidth = false,
+  tabs,
+  tabsLabel = 'Документы PDF',
+}: PdfViewerModalProps) {
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -63,6 +80,9 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
   const [pageWidth, setPageWidth] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenError, setFullscreenError] = useState('');
+  const [activeTabId, setActiveTabId] = useState(tabs?.[0]?.id ?? '');
+  const activeTab = tabs?.find((tab) => tab.id === activeTabId) ?? tabs?.[0];
+  const activeUrl = activeTab?.url ?? url;
 
   useEffect(() => {
     const syncFullscreen = () => {
@@ -102,7 +122,7 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
 
     (async () => {
       try {
-        const data = await fetchFileBytes(url);
+        const data = await fetchFileBytes(activeUrl);
         if (cancelled) return;
         const task = pdfjsLib.getDocument({ data: new Uint8Array(data) });
         taskRef.current = task;
@@ -141,7 +161,7 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
       taskRef.current = null;
       docRef.current = null;
     };
-  }, [url]);
+  }, [activeUrl]);
 
   // Рендер текущей страницы на canvas.
   useEffect(() => {
@@ -190,6 +210,38 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
   const zoomOut = () => setScale((s) => Math.max(MIN_SCALE, +(s - ZOOM_STEP).toFixed(2)));
   const prevPage = () => setPage((p) => Math.max(1, p - 1));
   const nextPage = () => setPage((p) => Math.min(numPages, p + 1));
+  const selectTab = (tab: PdfViewerTab) => {
+    if (tab.id === activeTabId) return;
+    setActiveTabId(tab.id);
+    setScale(1);
+  };
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (!tabs || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
+    event.preventDefault();
+    const currentIndex = tabs.findIndex((tab) => tab.id === activeTabId);
+    const direction = event.key === 'ArrowRight' ? 1 : -1;
+    const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+    selectTab(tabs[nextIndex]);
+    event.currentTarget.parentElement
+      ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+      [nextIndex]?.focus();
+  };
+  const fitToWindowSize = async () => {
+    const stage = stageRef.current;
+    const doc = docRef.current;
+    if (!stage || !doc) return;
+
+    const pdfPage = await doc.getPage(page);
+    const viewport = pdfPage.getViewport({ scale: 1 });
+    const availableWidth = stage.clientWidth - 32;
+    const availableHeight = stage.clientHeight - 32;
+    if (availableWidth <= 0 || availableHeight <= 0) return;
+
+    const fitScale = Math.min(availableWidth / viewport.width, availableHeight / viewport.height);
+    if (Number.isFinite(fitScale) && fitScale > 0) {
+      setScale(Math.min(MAX_SCALE, fitScale));
+    }
+  };
   const toggleFullscreen = async () => {
     const modal = viewerRef.current?.closest<HTMLElement>('.modal--pdf');
     if (!modal) return;
@@ -250,8 +302,28 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
   return (
     <Modal title={title} onClose={onClose} className="modal--pdf" style={modalStyle}>
       <div className="pdf-viewer" ref={viewerRef}>
+        {tabs && tabs.length > 1 && (
+          <div className="pdf-viewer__tabs" role="tablist" aria-label={tabsLabel}>
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                id={`pdf-viewer-tab-${tab.id}`}
+                type="button"
+                role="tab"
+                className={`pdf-viewer__tab${tab.id === activeTabId ? ' pdf-viewer__tab--active' : ''}`}
+                aria-selected={tab.id === activeTabId}
+                aria-controls="pdf-viewer-content"
+                tabIndex={tab.id === activeTabId ? 0 : -1}
+                onClick={() => selectTab(tab)}
+                onKeyDown={handleTabKeyDown}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="pdf-viewer__toolbar">
-          <span className="pdf-viewer__file">{url}</span>
+          <span className="pdf-viewer__file">{activeUrl}</span>
           <div className="pdf-viewer__toolbar-group">
             <button
               type="button"
@@ -263,6 +335,14 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
               −
             </button>
             <span className="pdf-viewer__zoom">{Math.round(scale * 100)}%</span>
+            <IconButton
+              size="sm"
+              label="Масштаб по размеру окна"
+              tooltip="Масштаб по размеру окна"
+              onClick={() => void fitToWindowSize()}
+            >
+              <FitToWindowIcon />
+            </IconButton>
             <button
               type="button"
               className="pdf-viewer__btn"
@@ -294,7 +374,13 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
 
         {status === 'ready' && (
           <>
-            <div className="pdf-viewer__stage" ref={stageRef}>
+            <div
+              className="pdf-viewer__stage"
+              id="pdf-viewer-content"
+              role={tabs && tabs.length > 1 ? 'tabpanel' : undefined}
+              aria-labelledby={activeTab ? `pdf-viewer-tab-${activeTab.id}` : undefined}
+              ref={stageRef}
+            >
               <canvas ref={canvasRef} />
             </div>
             <div className="pdf-viewer__toolbar pdf-viewer__toolbar--bottom">

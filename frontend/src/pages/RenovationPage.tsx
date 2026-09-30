@@ -22,6 +22,7 @@ import { useAuth } from '../hooks/useAuth';
 import { addDaysIso, calendarDaysBetween, todayIso } from '../utils/date';
 import { formatDateIso, formatKopecks } from '../utils/money';
 import { pluralize } from '../utils/plural';
+import type { PdfViewerTab } from '../components/PdfViewerModal';
 
 // Просмотрщик PDF (pdfjs) — тяжёлый чанк, грузится только при открытии документа.
 const PdfViewerModal = lazy(() => import('../components/PdfViewerModal'));
@@ -32,10 +33,24 @@ interface ViewPdfDoc {
   title: string;
   /** Растягивать форму под ширину документа (дизайн-проект). */
   fitToWidth?: boolean;
+  tabs?: readonly PdfViewerTab[];
+  tabsLabel?: string;
 }
 
 const DESIGN_ALBUM_URL = '/api/renovation/docs/design/album-chertezhey-s-razvertkami.pdf';
 const DESIGN_ALBUM_TITLE = 'Альбом чертежей с развертками';
+const REPLANNING_TABS: readonly PdfViewerTab[] = [
+  {
+    id: 'decision-33',
+    label: 'Решение 33',
+    url: '/api/renovation/docs/replanning/decision-33.pdf',
+  },
+  {
+    id: 'approved-project',
+    label: 'Согласованный проект',
+    url: '/api/renovation/docs/replanning/approved-replanning-project.pdf',
+  },
+];
 
 /**
  * Страница «Ремонт» (этапы 2–5): сводка (Работы / Материалы) из отдельной БД
@@ -369,6 +384,22 @@ function RenovationPage() {
                       <button
                         type="button"
                         className="renov-meta__link"
+                        onClick={() =>
+                          setViewPdf({
+                            url: REPLANNING_TABS[0].url,
+                            title: 'Перепланировка',
+                            fitToWidth: true,
+                            tabs: REPLANNING_TABS,
+                            tabsLabel: 'Документы перепланировки',
+                          })
+                        }
+                      >
+                        <DocIcon />
+                        Перепланировка
+                      </button>
+                      <button
+                        type="button"
+                        className="renov-meta__link"
                         onClick={() => setEstimateOpen(true)}
                       >
                         <DocIcon />
@@ -606,6 +637,8 @@ function RenovationPage() {
             url={viewPdf.url}
             title={viewPdf.title}
             fitToWidth={viewPdf.fitToWidth}
+            tabs={viewPdf.tabs}
+            tabsLabel={viewPdf.tabsLabel}
             onClose={() => setViewPdf(null)}
           />
         </Suspense>
