@@ -401,6 +401,32 @@ export async function fetchVps(force = false): Promise<VpsStatus[]> {
   return res.json() as Promise<VpsStatus[]>;
 }
 
+export interface VpsHistoryPoint {
+  checkedAt: string;
+  online: boolean;
+  latencyMs: number | null;
+  error: string | null;
+}
+
+export interface VpsIncident {
+  startedAt: string;
+  endedAt: string | null;
+  durationMs: number | null;
+}
+
+export interface VpsHistory {
+  name: string;
+  points: VpsHistoryPoint[];
+  incidents: VpsIncident[];
+}
+
+export async function fetchVpsHistory(name: string, hours = 168): Promise<VpsHistory> {
+  const params = new URLSearchParams({ name, hours: String(hours) });
+  const res = await apiFetch(`/vps/history?${params.toString()}`);
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<VpsHistory>;
+}
+
 /** Конфигурация сервиса внутри VPS (для создания). */
 export interface VpsServiceConfig {
   name: string;

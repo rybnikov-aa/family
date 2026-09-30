@@ -317,6 +317,97 @@
   font-size: var(--font-size-caption);
   overflow-wrap: anywhere;
 }
+.vps-history {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.vps-history__summary {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  align-items: baseline;
+  gap: 6px 10px;
+  padding: 12px 14px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.vps-history__summary strong {
+  color: var(--text-strong);
+  font-size: var(--font-size-lg);
+}
+.vps-history__summary span {
+  color: var(--text-faint);
+  font-size: var(--font-size-caption);
+}
+.vps-history__chart {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: 84px;
+  padding: 10px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.vps-history__point {
+  flex: 1 1 0;
+  min-width: 2px;
+  border-radius: 2px;
+  cursor: help;
+}
+.vps-history__point--online {
+  background: var(--color-success);
+}
+.vps-history__point--offline {
+  background: var(--color-danger);
+}
+.vps-history__legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-faint);
+  font-size: var(--font-size-2xs);
+}
+.vps-history__swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  margin-left: 8px;
+}
+.vps-history__swatch:first-child {
+  margin-left: 0;
+}
+.vps-history__swatch--online {
+  background: var(--color-success);
+}
+.vps-history__swatch--offline {
+  background: var(--color-danger);
+}
+.vps-history__incidents {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.vps-history__incidents h4 {
+  color: var(--text-strong);
+  font-size: var(--font-size-sm);
+}
+.vps-history__incident {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+}
+.vps-history__incident strong {
+  color: var(--color-danger-strong);
+  font-weight: 600;
+}
+.vps-history__ok {
+  color: var(--color-success-strong);
+  font-size: var(--font-size-caption);
+}
 .modal__list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

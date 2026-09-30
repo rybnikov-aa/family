@@ -4,6 +4,7 @@ import { deleteVps, importVps } from '../api/client';
 import { parseVpsImport } from '../utils/vpsImport';
 import {
   CheckIcon,
+  ChartIcon,
   CopyIcon,
   EditIcon,
   PlusIcon,
@@ -13,6 +14,7 @@ import {
   UploadIcon,
 } from './icons';
 import VpsAddModal from './VpsAddModal';
+import VpsHistoryModal from './VpsHistoryModal';
 import Modal from './Modal';
 import IconButton from './IconButton';
 import Tooltip from './Tooltip';
@@ -53,6 +55,7 @@ function VpsDetailsModal({
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [importState, setImportState] = useState<ImportState>({ status: 'idle' });
+  const [historyName, setHistoryName] = useState<string | null>(null);
   const copyTimerRef = useRef<number | null>(null);
   const importTimerRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -156,6 +159,9 @@ function VpsDetailsModal({
         onAdded={handleAdded}
       />
     );
+  }
+  if (historyName) {
+    return <VpsHistoryModal name={historyName} onClose={() => setHistoryName(null)} />;
   }
 
   // Кнопки-иконки в шапке модалки: «+» (добавить), импорт из JSON, «Обновить».
@@ -279,6 +285,15 @@ function VpsDetailsModal({
                       </a>
                     </Tooltip>
                   )}
+                  <IconButton
+                    size="sm"
+                    plain
+                    label="История доступности"
+                    tooltip="История доступности"
+                    onClick={() => setHistoryName(vps.name)}
+                  >
+                    <ChartIcon />
+                  </IconButton>
                   {isAdmin && (
                     <IconButton
                       size="sm"

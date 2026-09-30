@@ -140,6 +140,17 @@ export function SearchIcon(props: IconProps) {
   );
 }
 
+/** График истории */
+export function ChartIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 19V5" />
+      <path d="M4 19h16" />
+      <path d="m7 15 3-4 3 2 4-6" />
+    </svg>
+  );
+}
+
 /** Дом */
 export function HomeIcon(props: IconProps) {
   return (

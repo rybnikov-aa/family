@@ -112,6 +112,7 @@ npm install
 | `npm run build`            | Сборка фронтенда и бэкенда                                                  |
 | `npm run start -w backend` | Запуск собранного бэкенда (`backend/dist/app.cjs`)                          |
 | `npm run typecheck`        | Проверка типов во всех воркспейсах                                          |
+| `npm run docs:check`       | Проверка полноты индексов CJ/FR и матрицы трассировки                        |
 | `npm run format`           | Форматирование кода через Prettier                                          |
 | `npm run user -w backend`  | Управление пользователями авторизации (`add`, `list`, `set-role`, `remove`) |
 

@@ -7,11 +7,13 @@ import {
   vpsController,
 } from '../controllers/vpsController';
 import { requireAdmin } from '../middlewares/auth';
+import { vpsHistoryController } from '../controllers/vpsHistoryController';
 
 export const vpsRouter = Router();
 
 // Чтение — для любого авторизованного; изменение — только для admin.
 vpsRouter.get('/', vpsController);
+vpsRouter.get('/history', vpsHistoryController);
 vpsRouter.post('/import', requireAdmin, importVpsController);
 vpsRouter.post('/', requireAdmin, createVpsController);
 vpsRouter.patch('/:name', requireAdmin, updateVpsController);

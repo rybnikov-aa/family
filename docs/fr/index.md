@@ -12,5 +12,8 @@
 | [FR-006](fr-006-family-diary.md)                    | Семейный дневник и управление событиями          | [domain diary](../domains/diary.md), [API](../layers/api.md)               | CJ-009–CJ-011  |
 | [FR-007](fr-007-immich-integration.md)              | Подключение Immich и фотоимпорт                  | [Immich guide](../integrations/immich.md), [API](../layers/api.md)         | CJ-011, CJ-012 |
 | [FR-008](fr-008-home-news-and-health.md)            | Главная, навигация, новости и health status      | [layer frontend](../layers/frontend.md), `frontend/src/pages/NewsPage.tsx` | CJ-001         |
+| [FR-009](fr-009-plans.md)                           | Планы и задачи                                   | [domain plans](../domains/plans.md), [API](../layers/api.md)               | CJ-013         |
+| [FR-010](fr-010-global-search.md)                   | Глобальный поиск                                 | [domain search](../domains/search.md), [API](../layers/api.md)             | CJ-014         |
+| [FR-011](fr-011-vps-history.md)                     | История доступности VPS                          | [domain VPS](../domains/vps.md), [API](../layers/api.md)                   | CJ-015         |
 
 Нефункциональные требования размещены отдельно в [`docs/nfr/`](../nfr/index.md); требования к процессу разработки и агентскому харнессу — в [`docs/hr/`](../hr/index.md).

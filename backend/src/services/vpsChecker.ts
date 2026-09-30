@@ -9,6 +9,7 @@ import {
   type VpsServiceStatus,
   type VpsStatus,
 } from '../config/vps';
+import { recordVpsHistory } from '../db/vpsHistoryRepository';
 
 /** Таймаут на один HTTP-запрос. */
 const CHECK_TIMEOUT_MS = 5_000;
@@ -315,6 +316,7 @@ export async function getVpsStatuses(force = false): Promise<VpsStatus[]> {
   if (!inflight || inflight.entries !== entries) {
     const promise = (async () => {
       const statuses = await Promise.all(entries.map((entry) => checkVps(entry)));
+      recordVpsHistory(statuses);
       if (vpsEntries === entries) cache = { entries, statuses, checkedAt: Date.now() };
       return statuses;
     })();
