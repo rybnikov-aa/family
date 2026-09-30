@@ -470,8 +470,7 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   убрана — все документы доступны через модалки и встроенный просмотрщик).
 - Сервер: `python3` + `pdfplumber` ставятся отдельно, путь задаётся `RENOVATION_PYTHON` в
   `server/.env` (см. `docs/server.md`); БД `data/renovation.sqlite` сохраняется при деплое
-  (как и `data/vps.sqlite`). Публикация — `npm run pipeline` (основной способ; `npm run deploy` —
-  исторический прямой деплой).
+  (как и `data/vps.sqlite`). Публикация на production выполняется через `npm run deploy`.
 
 ## 6. Критерии приёмки (этапы 1–7)
 

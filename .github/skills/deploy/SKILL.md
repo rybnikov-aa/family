@@ -1,6 +1,6 @@
 ---
 name: deploy
-description: 'Деплой и диагностика сервера приложения family. Use when: публикация на сервер (npm run deploy, scripts/deploy.mjs), флаги --no-build/--no-restart/--print-script/--print-config, тестовый хост test.rybnikov.su, диагностика 502/health/pm2/nginx, SSL, сохранение .env и SQLite при деплое, ошибки деплоя (npm not found, pm2). Не для правки кода приложения — это скилл про деплой и сервер.'
+description: 'Деплой и диагностика production-сервера family. Use when: публикация на my.rybnikov.su (npm run deploy, scripts/deploy.mjs), флаги --no-build/--no-restart/--print-script/--print-config, диагностика 502/health/pm2/nginx, SSL, сохранение .env и SQLite при деплое, ошибки деплоя (npm not found, pm2). Не для правки кода приложения — это скилл про деплой и сервер.'
 argument-hint: 'Деплой'
 user-invocable: true
 ---
@@ -11,43 +11,21 @@ user-invocable: true
 
 ## Когда использовать
 
-- Деплой на `my.rybnikov.su` (основной хост, по умолчанию из `.env`) или `test.rybnikov.su` (тестовый, инстанс `family-backend-test`). Данные основного хоста мигрированы с прежнего хоста 2026-08-16 (прежний домен редиректится на `my.rybnikov.su`).
+- Деплой на production-хост `my.rybnikov.su` (по умолчанию из `.env`). Данные мигрированы с прежнего хоста 2026-08-16; прежний домен редиректится на `my.rybnikov.su`.
 - Предпросмотр того, что выполнится на сервере (`--print-script`, `--print-config`).
 - Диагностика после деплоя: 502, бэкенд не слушает порт, pm2-логи, nginx.
 - Вопросы «что сохраняется на сервере при деплое» (.env, data/, .well-known, проекты).
 
 ## Процедуры
 
-### Полный деплой
+### Публикация
 
-Для обычной публикации использовать `npm run pipeline`. Команда `npm run deploy` ниже описана
-как исторический прямой деплой без тестового этапа.
-
-1. Убедиться, что в корневом `.env` корректная конфигурация `DEPLOY_*` (или переменные окружения). Без `.env` скрипт идёт под `root`, а хосты деплоятся под `rybnikov` (шаблон — `.env.example`; основной хост: `DEPLOY_USER=rybnikov`, `DEPLOY_PM2_HOME=/home/rybnikov/.pm2`).
-2. `npm run deploy` — сборка (`npm run build`) + архив + scp + remote-скрипт (nginx не трогает).
-3. После деплоя проверить: health через домен; `GET /api/vps` и `GET /api/projects` — под авторизованной сессией (без cookie — 401; см. AGENTS.md «curl к защищённым API»).
-
-### Пошаговая публикация через тестовый сервер
-
-Для стандартного выпуска использовать `npm run pipeline`, а не прямой деплой на основной хост:
-
-```powershell
-npm run pipeline
-```
-
-Pipeline строго выполняет четыре этапа: деплой на тестовый сервер, очистка и копирование
-`data/` с основного сервера, ожидание готовности `GET /api/health` и sanity-тесты, затем
-деплой на основной сервер только при успехе.
-Перед тестами создаются временные `test` (admin) и `user` (user), после sanity они удаляются.
-`PIPELINE_SYNC_FILES=1` дополнительно копирует `docs/` и `images/`. Сухой просмотр конфигурации:
-`npm run pipeline -- --print-config`.
-
-**Единственное исключение из pipeline (только после явного подтверждения пользователя):** если
-тестовый сервер недоступен (сеть/хост, например глобальные проблемы с интернетом), разрешена
-публикация напрямую на основной сервер — `npm run deploy -- --no-pdf-setup` (с
-`DEPLOY_PM2_HOME=/home/rybnikov/.pm2`). Тестовый сервер при этом остаётся несинхронизированным
-(правило 14 AGENTS.md) — после возвращения сервера прогнать `npm run pipeline` для синхронизации
-версии.
+1. Убедиться, что корневой `.env` содержит корректные `DEPLOY_*` (или задать их окружением).
+   Шаблон — `.env.example`; на production используются `DEPLOY_USER=rybnikov` и
+   `DEPLOY_PM2_HOME=/home/rybnikov/.pm2`.
+2. Выполнить `npm run deploy -- --no-pdf-setup`: скрипт собирает проект, создаёт архив,
+   загружает его через scp и обновляет `/var/www/my.rybnikov.su`.
+3. Проверить `/api/health` и защищённые API с авторизованной сессией (см. AGENTS.md).
 
 Частичный деплой (npm требует `--` перед флагами):
 
@@ -62,27 +40,12 @@ Pipeline строго выполняет четыре этапа: деплой �
 - `node scripts/deploy.mjs --print-config` — итоговая конфигурация (host, пути, флаги).
 - `node scripts/deploy.mjs --print-script` — сгенерированный bash-скрипт, который выполнится на сервере.
 
-### Деплой на тестовый хост (test.rybnikov.su)
-
-- Сервер `31.76.227.98`. Отдельный инстанс `family-backend-test` на `127.0.0.1:3000` (`server/.env`: `PORT=3000`, `CORS_ORIGIN=https://test.rybnikov.su`) — порт совпадает с основным.
-- Автозапуск pm2 при загрузке включён (как и на основном): `pm2-rybnikov.service` + `pm2 save` — после перезагрузки `family-backend-test` поднимается сам.
-- Тот же скрипт; хост и пути задаются переменными окружения (приоритетнее `.env`):
-  ```powershell
-  $env:DEPLOY_HOST = "test.rybnikov.su"; $env:DEPLOY_USER = "rybnikov"
-  $env:DEPLOY_FRONTEND_DIR = "/var/www/test.rybnikov.su/public_html"
-  $env:DEPLOY_BACKEND_DIR = "/var/www/test.rybnikov.su/server"
-  $env:DEPLOY_PM2_APP = "family-backend-test"; $env:DEPLOY_PM2_HOME = "/home/rybnikov/.pm2"
-  npm run deploy -- --no-pdf-setup
-  ```
-- Пользователь `rybnikov`, SSH без пароля; на хосте есть passwordless `sudo`. node v24.19.0 `/usr/bin/node`, pm2 7.0.3 `/usr/bin/pm2`. CPU E5-2697 v4 (AVX2) — sharp `~0.35.3` подходит.
-
 ### Деплой на основной хост (my.rybnikov.su)
 
 - **Основной хост по умолчанию** (корневой `.env`: `DEPLOY_HOST=my.rybnikov.su`, `DEPLOY_PM2_HOME=/home/rybnikov/.pm2`). Команда — просто `npm run deploy -- --no-pdf-setup`.
 - Пользователь `rybnikov`, SSH без пароля, passwordless `sudo`. node v24.19.0 `/usr/bin/node`, pm2 7.0.3 `/usr/bin/pm2`. CPU Xeon Platinum 8260 (AVX2) — sharp `~0.35.3`.
 - **Обязательно `--no-pdf-setup`:** из-за грабли `HOME` (см. ниже) pdf-setup создаёт venv по битому пути. venv ставится вручную: `export HOME=/home/rybnikov; python3 -m venv /home/rybnikov/renov-venv; /home/rybnikov/renov-venv/bin/pip install pdfplumber`, затем `RENOVATION_*` дописываются в `server/.env`.
 - Данные перенесены с прежнего основного хоста (2026-08-16): `data/`, `docs/`, `images/`, `server/.env` (адаптирован под домен). Учётка `admin` уже в БД; старые сессии невалидны — вход заново.
-- **Конфигурация основного и тестового серверов синхронизируется** (AGENTS.md, правило 14): правки nginx/`server/.env`/pm2/зависимостей применять к **обоим** хостам; отличия — только по назначению (порт, домен, пути, имя pm2-приложения).
 
 ### Грабли: Windows OpenSSH передаёт на сервер `HOME=C:Usersalex`
 

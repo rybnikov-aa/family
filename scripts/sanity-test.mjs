@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const baseUrl = (process.env.SANITY_BASE_URL ?? 'https://test.rybnikov.su').replace(/\/$/, '');
-const username = process.env.SANITY_USERNAME ?? process.env.PIPELINE_TEST_USERNAME;
-const password = process.env.SANITY_PASSWORD ?? process.env.PIPELINE_TEST_PASSWORD;
+const baseUrl = (process.env.SANITY_BASE_URL ?? 'https://my.rybnikov.su').replace(/\/$/, '');
+const username = process.env.SANITY_USERNAME;
+const password = process.env.SANITY_PASSWORD;
 
 if (!username || !password) {
   console.error('[sanity] Укажите SANITY_USERNAME и SANITY_PASSWORD.');

@@ -17,7 +17,7 @@
 
 | Переменная            | Дефолт                                                                                                                                                     |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DEPLOY_HOST`         | `my.rybnikov.su` (основной; для тестового — `test.rybnikov.su`)                                                                                            |
+| `DEPLOY_HOST`         | `my.rybnikov.su`                                                                                                                                           |
 | `DEPLOY_USER`         | `root` (дефолт скрипта); в `.env.example` и фактически на основном хосте — `rybnikov`. Без корневого `.env` SSH пойдёт под `root` и подключение провалится |
 | `DEPLOY_PORT`         | `22`                                                                                                                                                       |
 | `DEPLOY_FRONTEND_DIR` | `/var/www/my.rybnikov.su/public_html`                                                                                                                      |
@@ -60,7 +60,6 @@
 - **502**: сначала локально `curl -i http://127.0.0.1:3000/api/health` (200 → проблема в nginx/прокси), `ss -ltnp | grep 3000`, `pm2 logs family-backend --lines 50 --nostream`.
 - **Деплой не обновляет**: `server/.env`, `server/data/` и `server/docs/` сохраняются намеренно — конфигурацию/БД/PDF не «перезаливать» деплоем.
 - **Флаги npm**: использовать `npm run deploy -- --no-build` (с `--`), иначе флаг уйдёт самому npm.
-- Тестовый хост `test.rybnikov.su`: SSL — letsencrypt (`/etc/letsencrypt/live/test.rybnikov.su/`), у пользователя `rybnikov` есть passwordless `sudo`.
 
 ## Проверка после деплоя
 

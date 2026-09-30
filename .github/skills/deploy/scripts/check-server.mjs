@@ -4,7 +4,7 @@
  *
  * Использование (из корня репозитория):
  *   node .github/skills/deploy/scripts/check-server.mjs
- *   node .github/skills/deploy/scripts/check-server.mjs --host test.rybnikov.su --user rybnikov
+ *   node .github/skills/deploy/scripts/check-server.mjs --host my.rybnikov.su --user rybnikov
  *   node .github/skills/deploy/scripts/check-server.mjs --lines 100 --app family-backend
  *   node .github/skills/deploy/scripts/check-server.mjs --batch   # без интерактивного пароля (для агентов)
  *

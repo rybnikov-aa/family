@@ -13,8 +13,7 @@
 | `npm run typecheck`        | `tsc --noEmit` во всех воркспейсах — **единственный статический gate** (lint/тестов нет)                                                                                                         |
 | `npm run format`           | Prettier (`.prettierrc.json`: singleQuote, semi, printWidth 100, trailingComma all)                                                                                                              |
 | `npm run start -w backend` | Запуск собранного бэкенда (`node dist/app.cjs`) — `start` есть только в backend-воркспейсе                                                                                                       |
-| `npm run pipeline`         | **Основной способ публикации:** тестовый сервер → синхронизация `data/` → sanity-тесты → основной сервер; credentials через `PIPELINE_TEST_*`                                                    |
-| `npm run deploy`           | Исторический прямой деплой; флаги: `--no-build`, `--no-restart`, `--no-pdf-setup`, `--print-script`, `--print-config`                                                                            |
+| `npm run deploy`           | Публикация на `my.rybnikov.su`; флаги: `--no-build`, `--no-restart`, `--no-pdf-setup`, `--print-script`, `--print-config`                                                                        |
 | `npm run backup`           | Полный бэкап runtime-данных основного сервера (`data/`+`docs/`+`images/`+`.env` + справочные nginx/SSL); флаги: `--local`, `--remote-only`, `--install-cron`, `--print-script`, `--print-config` |
 | `npm run restore`          | Восстановление сайта из бэкапа на целевой сервер (цель — `DEPLOY_HOST`/`--host`, каталог/имя — `RESTORE_*`); флаги: `--no-env`, `--dry-run`, `--skip-health`, `--print-script`                   |
 | `npm run sanity:test`      | Набор API sanity-тестов; URL и credentials через `SANITY_*`                                                                                                                                      |
@@ -169,14 +168,9 @@ Fullstack Dev — **владелец контракта и координато�
     документов «Ремонта» (карточки-сводки «Работы»/«Материалы», ведомости взаиморасчётов,
     отчёты, модалки «Смета»/«Дизайн-проект»); новые PDF-ссылки — только через него, без ручных
     `renov-link`-кнопок с PDF.
-14. **Синхронизация конфигурации серверов (основной ↔ тестовый).** Конфигурация основного
-    (`my.rybnikov.su`) и тестового (`test.rybnikov.su`) серверов должна **совпадать**: любые
-    правки конфигурации (nginx-vhost'ы, `server/.env`, pm2, автозапуск `pm2-rybnikov.service`,
-    версии/зависимости, фиксы nginx — `.mjs`/`client_max_body_size` и т.п.) применяются
-    **синхронно к обоим хостам**. Отличия допустимы только там, где они неизбежны по назначению
-    хоста: `CORS_ORIGIN` и домен, пути `/var/www/<host>/`, имя pm2-приложения
-    (`family-backend`/`family-backend-test`); порт на обоих хостах одинаковый — `3000`. После правки на одном хосте — сразу применить на
-    другом и проверить (health, порт, nginx). Справочник — `docs/server.md`.
+14. **Конфигурация production-сервера.** `my.rybnikov.su` — единственная управляемая цель
+    публикации. Правки nginx, `server/.env`, pm2 и зависимостей проверять на production-хосте
+    командами health, порт и `nginx -t`. Справочник — `docs/server.md`.
 15. **Проверка ценовой политики перед анализом (см. `docs/pricing.md`).** Если выбрана
     одна из моделей DeepSeek — **первым шагом, ДО чтения файлов и начала анализа** запроса
     пользователя проверять текущую ценовую политику DeepSeek API: актуальные цены и действующее
@@ -195,12 +189,15 @@ Fullstack Dev — **владелец контракта и координато�
 
 ## Деплой (кратко)
 
-`scripts/deploy.mjs`: сборка → tar → scp → remote-скрипт (nginx не трогает). На сервере сохраняются: `server/.env`, `server/data/` (SQLite), `server/docs/` (загруженные PDF «Ремонта»), `server/images/` (изображения событий «Дневника»), `.well-known/`. Статичные страницы проектов не зеркалируются, `projects/` репозитория на сервер не копируется (папка — история; seed «Ремонта» убран). Бэкап папок проектов не выполняется. Бэкап runtime-данных (`data/`+`docs/`+`images/`+`.env`) — `npm run backup` (архив на сервере + локально, cron — `--install-cron`), восстановление на новый VPS — `npm run restore` (подробно — `docs/backup.md`). Хосты: основной `my.rybnikov.su` (данные мигрированы с прежнего хоста 2026-08-16; прежний домен редиректится), тестовый `test.rybnikov.su` (инстанс `family-backend-test` на порту 3000). `DEPLOY_PM2_HOME=/home/rybnikov/.pm2` задаёт стабильный путь pm2 (обязательно из-за грабли `HOME`). Автозапуск pm2 при загрузке включён на **обоих** хостах (systemd `pm2-rybnikov.service`, `pm2 save`). Конфигурация основного и тестового серверов синхронизируется (правило 14). **Единственное
-исключение из pipeline** (только после явного подтверждения пользователя): при недоступности
-тестового сервера (сеть/хост, например глобальные проблемы с интернетом) допустим прямой деплой
-на основной (`npm run deploy -- --no-pdf-setup`); тестовый сервер при этом остаётся
-несинхронизированным — дообновить pipeline'ом после его возвращения. Детали — в
-[README.md](README.md) «Деплой» и [docs/server.md](docs/server.md).
+`scripts/deploy.mjs`: сборка → tar → scp → remote-скрипт (nginx не трогает), публикация —
+только на `my.rybnikov.su` через `npm run deploy`. На сервере сохраняются `server/.env`,
+`server/data/` (SQLite), `server/docs/` (загруженные PDF «Ремонта»), `server/images/`
+(изображения «Дневника») и `.well-known/`. Статичные страницы проектов не зеркалируются;
+`projects/` репозитория — история и на сервер не копируется. Бэкап runtime-данных
+(`data/` + `docs/` + `images/` + `.env`) — `npm run backup`; восстановление — `npm run restore`
+(подробно — `docs/backup.md`). `DEPLOY_PM2_HOME=/home/rybnikov/.pm2` задаёт стабильный путь pm2;
+автозапуск обеспечен systemd `pm2-rybnikov.service` и `pm2 save`. Подробности — [README.md](README.md)
+и [docs/server.md](docs/server.md).
 
 ## Типичные грабли
 
@@ -211,21 +208,20 @@ Fullstack Dev — **владелец контракта и координато�
 - **`users.mjs`/`node` на сервере:** на текущих хостах node в PATH (`/usr/bin/node`) и доступен даже в неинтерактивной SSH-сессии; если на новом хосте node не в PATH — полный путь до бинаря (например `.../node scripts/users.mjs add ...` из `$SERVER`).
 - **Нет «тестового пароля» в документации:** пароли — только scrypt-хэши (не восстанавливаются), в dev `backend/.env` нет. Для проверки UI есть локальные учётки: `test` / `test123456` (роль admin) и `user` / `user123456` (роль user — вид не-админа, например на странице «Ремонт» нет карандаша «Изменить адрес объекта»), БД авторизации `backend/data/auth.sqlite`; пересоздать — `$env:AUTH_DB_PATH='backend/data/auth.sqlite'; node backend/scripts/users.mjs add test Тестовый admin --password test123456` (аналогично `add user User user --password user123456`; подробно — `docs/frontend-design.md` → «Проверка интерфейса (локально)»). Браузер при входе может автозаполнять поле пароля реальной учётки — очищать его.
 - **Backend 502 под pm2:** диагностика `ss -ltnp | grep 3000`, `curl -i http://127.0.0.1:3000/api/health`, `pm2 logs family-backend --lines 50 --nostream`. На текущих хостах pm2 в `/usr/bin/pm2` (в PATH и в неинтерактивной сессии); при нестандартной установке — полный путь до pm2.
-- **`pm2 update` после апгрейда node (apt install nodejs):** `pm2 update` (перезапуск демона под новым node) может оставить приложение в `stopping`/выкинуть из списка из-за гонки с SQLite-локом (новый процесс стартует, пока старый ещё держит БД). После `apt-get install nodejs` надёжнее обычный `pm2 restart <app>`; если приложение пропало из `pm2 ls` — запустить вручную `pm2 start dist/app.cjs --name <app> --cwd $SERVER` и `pm2 save` (проверено при выравнивании node на тестовом хосте 2026-08-21).
+- **`pm2 update` после апгрейда node (apt install nodejs):** `pm2 update` (перезапуск демона под новым node) может оставить приложение в `stopping`/выкинуть из списка из-за гонки с SQLite-локом (новый процесс стартует, пока старый ещё держит БД). После `apt-get install nodejs` надёжнее обычный `pm2 restart <app>`; если приложение пропало из `pm2 ls` — запустить вручную `pm2 start dist/app.cjs --name family-backend --cwd $SERVER` и `pm2 save`.
 - **Диагностика сервера — проверять утверждения реальными командами:** перед выводом «сервер не умеет X /
   окружение сломано» проверять каждый факт командой (`ls -la`, `which python`, `python -c "import …"`,
   путь venv, `node -e "require('…')"`). Если вывод противоречит заведомо рабочей настройке — перепроверить
   путь/команду, а не делать поспешный вывод (в прошлом модель по ошибке проверила не тот путь Python и
   заключила, что сервер не парсит PDF).
-- **Тестовый хост `test.rybnikov.su` (сервер 31.76.227.98, пользователь `rybnikov`, passwordless sudo):** отдельный инстанс `family-backend-test` на `127.0.0.1:3000` (`server/.env`: `PORT=3000`, `CORS_ORIGIN=https://test.rybnikov.su`), nginx `proxy_pass http://127.0.0.1:3000;`. Деплой — env `DEPLOY_HOST=test.rybnikov.su`, `DEPLOY_PM2_APP=family-backend-test`, `DEPLOY_PM2_HOME=/home/rybnikov/.pm2`. При «бэкенд оффлайн» — проверки `ss -ltnp | grep 3000`, `curl -i http://127.0.0.1:3000/api/health`, `NODE_ENV=production`; SSL — letsencrypt `/etc/letsencrypt/live/test.rybnikov.su/`.
 - **Windows OpenSSH шлёт на сервер `HOME=C:Usersalex` (все хосты):** на сервере `$HOME/...`/`~/...` резолвятся относительно CWD. **Фикс:** `deploy.mjs` поддерживает `DEPLOY_PM2_HOME` (remote-скрипт делает `export PM2_HOME=...`) — задавать абсолютный `DEPLOY_PM2_HOME=/home/rybnikov/.pm2`, тогда демон стабилен. Без него PM2_HOME=$CWD/C:Usersalex/.pm2, демон нестабилен (деплой делает `start` вместо `restart`, возможен конфликт портов). Ручное управление pm2 — `export PM2_HOME=/home/rybnikov/.pm2; pm2 ...`. `NODE_ENV=production` хранится в env pm2 (задаётся при `pm2 start`), обычный `pm2 restart` его сохраняет; запуск без него → процесс online, но порт не слушается (гейт `app.listen`). На новых хостах pdf-setup деплоя создаёт venv по битому пути `$SERVER/C:Usersalex/renov-venv`→`--no-pdf-setup` + ручная установка venv (см. docs/server.md §1.4).
 - **Windows-пути в Linux remote-командах:** не использовать `path.join()` для сборки команд, уходящих на
-  сервер (даёт `\`, Linux ломается) — использовать относительные пути и `/` (`publish-pipeline.mjs`:
-  первая ошибка была именно из-за `path.join()` → обратные слэши в Linux-команде).
+  сервер (даёт `\`, Linux ломается) — использовать относительные пути и `/` (`deploy.mjs` отправляет
+  remote shell-скрипт на сервер).
 - **nginx:** `proxy_pass http://127.0.0.1:3000;` без трейлинг-слэша, иначе срезается `/api` и Express отдаёт 404.
 - **pdf.js worker «Setting up fake worker failed: Failed to fetch dynamically imported module»:** `.mjs`-ассеты сборки Vite (в т.ч. `pdf.worker.min-*.mjs`) nginx отдаёт как `application/octet-stream`, пока в `/etc/nginx/mime.types` нет `application/javascript mjs;` — браузер отклоняет модуль. Проверять `curl -sI .../assets/*.mjs` → `Content-Type: application/javascript`. Фикс уже внесён (mime.types, бэкап `.bak`); при переустановке/пересборке nginx — проверить снова.
 - **pdf.js v6 в Samsung Browser: `this[#t].getOrInsertComputed is not a function`** — pdf.js v6 использует `Map.prototype.getOrInsertComputed` (ES2025), отсутствующий в Samsung Internet (Chromium < 130) и части старых WebView. Полифилл — `frontend/src/utils/pdfPolyfills.ts` (`installPdfPolyfills`), вызывается в `PdfViewerModal.tsx` до использования pdf.js. При апгрейде `pdfjs-dist` проверять необходимость полифиллов новых API (`Promise.withResolvers` — Chrome 119+/Safari 17.4+; для старых браузеров может понадобиться).
-- **`sharp` (превью изображений «Дневника»):** на новых серверах (`my.rybnikov.su` — Xeon Platinum 8260, `test.rybnikov.su` — E5-2697 v4; у обоих AVX2) работает **последняя `~0.35.3`** (`backend/package.json`). Прежний пин `~0.33.5` был нужен из-за слабого CPU старого сервера (QEMU x86-64-v1, без SSE4.2/POPCNT/AVX) — там sharp ≥0.34 падал с `Unsupported CPU` и давал 502 на весь API. **Правило:** перед апгрейдом sharp проверять CPU целевого сервера (`lscpu | grep -oE 'sse4_2|popcnt|avx|avx2'`) и `node -e "require('sharp')()..."`. Быстрый фикс при поломке: `cd $SERVER && npm install --omit=dev sharp@~0.33.5 && pm2 restart family-backend`.
+- **`sharp` (превью изображений «Дневника»):** на production-сервере (`my.rybnikov.su`, Xeon Platinum 8260, AVX2) работает последняя `~0.35.3` (`backend/package.json`). Прежний пин `~0.33.5` был нужен из-за слабого CPU старого сервера (QEMU x86-64-v1, без SSE4.2/POPCNT/AVX) — там sharp ≥0.34 падал с `Unsupported CPU` и давал 502 на весь API. Перед апгрейдом проверять CPU целевого сервера (`lscpu | grep -oE 'sse4_2|popcnt|avx|avx2'`) и `node -e "require('sharp')()..."`. Быстрый фикс при поломке: `cd $SERVER && npm install --omit=dev sharp@~0.33.5 && pm2 restart family-backend`.
 - **Модель без vision (Vision Proxy):** если `view_image` возвращает только URI без пикселей, а открытая
   вкладка приходит как «(not visible)» — у модели нет доступа к изображениям (настройка
   `github.copilot.chat.visionProxy` или модель с vision). Это **не повод** отказываться от проверки:

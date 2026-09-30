@@ -21,8 +21,7 @@ graph TD
 берётся из текущего хоста, а не захардкожен: `frontend/src/utils/brand.ts`
 (`APP_DOMAIN = window.location.hostname`, хелпер `pageTitle(section)`). Заголовки выставляют
 `RouteLayout` (`App.tsx`), `LoginPage` (`pageTitle('Вход')`); футер — `PageLayout` (`APP_DOMAIN`).
-Благодаря этому на любом хосте (основной `my.rybnikov.su`, тестовый `test.rybnikov.su`)
-заголовки и футер автоматически показывают фактический адрес публикации.
+Благодаря этому заголовки и футер автоматически показывают фактический адрес публикации.
 Статичный fallback `<title>` в `frontend/index.html` — «Семейное пространство • my.rybnikov.su»
 (перезаписывается приложением после загрузки).
 
