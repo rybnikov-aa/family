@@ -19,8 +19,8 @@ const IP_TIMEOUT_MS = 3_000;
 /** Время жизни кэша результатов проверки. */
 const CACHE_TTL_MS = 30_000;
 
-let cache: { statuses: VpsStatus[]; checkedAt: number } | null = null;
-let inflight: Promise<VpsStatus[]> | null = null;
+let cache: { entries: VpsEntry[]; statuses: VpsStatus[]; checkedAt: number } | null = null;
+let inflight: { entries: VpsEntry[]; promise: Promise<VpsStatus[]> } | null = null;
 
 /** Проверка доступности хоста/порта через TCP-соединение. */
 function tcpReachable(host: string, port: number, timeoutMs: number): Promise<boolean> {
@@ -308,19 +308,22 @@ async function checkVps(entry: VpsEntry): Promise<VpsStatus> {
  * Результат кэшируется на CACHE_TTL_MS; `force` принудительно обновляет.
  */
 export async function getVpsStatuses(force = false): Promise<VpsStatus[]> {
-  if (!force && cache && Date.now() - cache.checkedAt < CACHE_TTL_MS) {
+  const entries = vpsEntries;
+  if (!force && cache?.entries === entries && Date.now() - cache.checkedAt < CACHE_TTL_MS) {
     return cache.statuses;
   }
-  if (!inflight) {
-    inflight = (async () => {
-      const statuses = await Promise.all(vpsEntries.map((entry) => checkVps(entry)));
-      cache = { statuses, checkedAt: Date.now() };
+  if (!inflight || inflight.entries !== entries) {
+    const promise = (async () => {
+      const statuses = await Promise.all(entries.map((entry) => checkVps(entry)));
+      if (vpsEntries === entries) cache = { entries, statuses, checkedAt: Date.now() };
       return statuses;
     })();
+    inflight = { entries, promise };
   }
+  const promise = inflight.promise;
   try {
-    return await inflight;
+    return await promise;
   } finally {
-    inflight = null;
+    if (inflight?.promise === promise) inflight = null;
   }
 }

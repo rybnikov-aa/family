@@ -125,31 +125,34 @@ function normalizeSlug(raw: string): string {
   return slug;
 }
 
-/** Нормализованные необязательные поля проекта (всегда конкретные значения). */
+/** Нормализованные поля проекта; отсутствующие поля остаются `undefined`. */
 interface NormalizedOptional {
-  accent: string;
-  icon: string;
+  accent?: string;
+  icon?: string;
   order?: number;
-  content: string;
+  content?: string;
 }
 
 /** Нормализует необязательные поля (цвет/иконка/порядок/контент). */
 function normalizeOptional(input: ProjectInput): NormalizedOptional {
-  const accent = (input.accent ?? '').trim().toLowerCase() || DEFAULT_ACCENT;
-  const icon = (input.icon ?? '').trim() || 'projects';
+  const accent =
+    input.accent === undefined
+      ? undefined
+      : (input.accent ?? '').trim().toLowerCase() || DEFAULT_ACCENT;
+  const icon = input.icon === undefined ? undefined : (input.icon ?? '').trim() || 'projects';
   const { order, content } = input;
 
-  if (!ACCENT_RE.test(accent)) {
+  if (accent !== undefined && !ACCENT_RE.test(accent)) {
     throw new HttpError(400, 'Акцентный цвет должен быть в формате #RRGGBB');
   }
-  if (!PROJECT_ICONS.includes(icon)) {
+  if (icon !== undefined && !PROJECT_ICONS.includes(icon)) {
     throw new HttpError(400, 'Недопустимая иконка проекта');
   }
   if (order !== undefined && (!Number.isInteger(order) || order < 0)) {
     throw new HttpError(400, 'Порядок должен быть неотрицательным целым числом');
   }
 
-  return { accent, icon, order, content: content ?? '' };
+  return { accent, icon, order, content };
 }
 
 /**
@@ -185,7 +188,12 @@ export function createProject(input: ProjectInput): ProjectInfo {
   const slug = normalizeSlug(input.slug);
   const title = input.title.trim();
   const description = input.description.trim();
-  const { accent, icon, order, content } = normalizeOptional(input);
+  const {
+    accent = DEFAULT_ACCENT,
+    icon = 'projects',
+    order,
+    content = '',
+  } = normalizeOptional(input);
 
   if (title === '') {
     throw new HttpError(400, 'Укажите название проекта');

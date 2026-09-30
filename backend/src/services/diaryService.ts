@@ -14,6 +14,7 @@ import {
   removeEventImages,
   saveEventImage,
 } from './diary/imageStore';
+import { isValidIsoDate } from '../utils/date';
 
 /** Ошибка с HTTP-статусом — для ответов 400/404/409 и т.п. */
 export class HttpError extends Error {
@@ -26,12 +27,27 @@ export class HttpError extends Error {
   }
 }
 
-/** Дата в формате ГГГГ-ММ-ДД. */
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
 /** Проверка корректности даты (`2026-08-15` и т.п.). */
 function isValidDate(value: string): boolean {
-  return DATE_RE.test(value) && !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime());
+  return isValidIsoDate(value);
+}
+
+function cleanupEventImages(folder: string): void {
+  try {
+    removeEventImages(folder);
+  } catch (err) {
+    console.error('Не удалось очистить изображения дневника', err);
+  }
+}
+
+function cleanupNewImages(folder: string, names: string[]): void {
+  for (const name of names) {
+    try {
+      removeEventImage(folder, name);
+    } catch (err) {
+      console.error('Не удалось очистить новое изображение дневника', err);
+    }
+  }
 }
 
 /** Нормализует и валидирует дату; кидает `HttpError(400)` при некорректной. */
@@ -196,38 +212,35 @@ export function createDiaryEvent(input: DiaryEventUpload): DiaryEventDetail {
   }
 
   const folder = newEventFolder();
-  const savedNames: string[] = [];
+  const savedNames = input.files.map((file) => imageFileName(file.originalName));
+  let cover = resolveCover(input.cover, input.newIds, savedNames, []);
+  if (!cover && savedNames.length > 0) cover = savedNames[0];
+  const content = resolveContentImages(input.content, input.newIds, savedNames, savedNames).content;
+
   try {
-    for (const file of input.files) {
-      const name = imageFileName(file.originalName);
-      saveEventImage(folder, file.buffer, name);
-      savedNames.push(name);
+    for (const [index, file] of input.files.entries()) {
+      saveEventImage(folder, file.buffer, savedNames[index]);
     }
   } catch {
-    removeEventImages(folder);
+    cleanupEventImages(folder);
     throw new HttpError(400, 'Не удалось сохранить изображения');
   }
 
-  let cover: string | null;
-  let content: string;
+  let row: DiaryEventRow;
   try {
-    cover = resolveCover(input.cover, input.newIds, savedNames, []);
-    if (!cover && savedNames.length > 0) cover = savedNames[0];
-    content = resolveContentImages(input.content, input.newIds, savedNames, savedNames).content;
+    row = createDiaryEventRow({
+      title,
+      dateStart,
+      dateEnd,
+      summary,
+      content,
+      folder,
+      cover,
+    });
   } catch (err) {
-    removeEventImages(folder);
+    cleanupEventImages(folder);
     throw err;
   }
-
-  const row = createDiaryEventRow({
-    title,
-    dateStart,
-    dateEnd,
-    summary,
-    content,
-    folder,
-    cover,
-  });
   return { ...rowToSummary(row), content: row.content };
 }
 
@@ -246,34 +259,57 @@ export function updateDiaryEvent(id: number, input: DiaryEventUpload): DiaryEven
     throw new HttpError(400, 'Не совпадает число файлов и метаданных');
   }
 
-  // Синхронизация изображений: удалить не входящие в `keep`, сохранить новые.
   const existing = listEventImages(current.folder);
-  const keepSet = new Set(input.keep);
-  for (const name of existing) {
-    if (!keepSet.has(name)) removeEventImage(current.folder, name);
-  }
-  const savedNames: string[] = [];
-  for (const file of input.files) {
-    const name = imageFileName(file.originalName);
-    saveEventImage(current.folder, file.buffer, name);
-    savedNames.push(name);
+  const existingSet = new Set(existing);
+  if (
+    new Set(input.keep).size !== input.keep.length ||
+    input.keep.some((name) => !existingSet.has(name))
+  ) {
+    throw new HttpError(400, 'Список сохраняемых фотографий содержит неизвестные файлы');
   }
 
-  const cover = resolveCover(input.cover, input.newIds, savedNames, input.keep);
+  const savedNames = input.files.map((file) => imageFileName(file.originalName));
   const finalNames = [...input.keep, ...savedNames];
+  const cover = resolveCover(input.cover, input.newIds, savedNames, input.keep);
   const content = resolveContentImages(input.content, input.newIds, savedNames, finalNames).content;
+  const keepSet = new Set(input.keep);
+  try {
+    for (const [index, file] of input.files.entries()) {
+      saveEventImage(current.folder, file.buffer, savedNames[index]);
+    }
+  } catch {
+    cleanupNewImages(current.folder, savedNames);
+    throw new HttpError(400, 'Не удалось сохранить изображения');
+  }
 
-  const row = updateDiaryEventRow(id, {
-    title,
-    dateStart,
-    dateEnd,
-    summary,
-    content,
-    folder: current.folder,
-    cover,
-  });
+  let row: DiaryEventRow | null;
+  try {
+    row = updateDiaryEventRow(id, {
+      title,
+      dateStart,
+      dateEnd,
+      summary,
+      content,
+      folder: current.folder,
+      cover,
+    });
+  } catch (err) {
+    cleanupNewImages(current.folder, savedNames);
+    throw err;
+  }
   if (!row) {
+    cleanupNewImages(current.folder, savedNames);
     throw new HttpError(404, 'Событие не найдено');
+  }
+
+  for (const name of existing) {
+    if (!keepSet.has(name)) {
+      try {
+        removeEventImage(current.folder, name);
+      } catch (err) {
+        console.error('Не удалось удалить старое изображение дневника', err);
+      }
+    }
   }
   return { ...rowToSummary(row), content: row.content };
 }
@@ -287,6 +323,8 @@ export function deleteDiaryEvent(id: number): void {
   if (!row) {
     throw new HttpError(404, 'Событие не найдено');
   }
-  deleteDiaryEventRow(id);
-  removeEventImages(row.folder);
+  if (!deleteDiaryEventRow(id)) {
+    throw new HttpError(404, 'Событие не найдено');
+  }
+  cleanupEventImages(row.folder);
 }

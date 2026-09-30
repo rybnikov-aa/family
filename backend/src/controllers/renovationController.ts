@@ -51,6 +51,7 @@ import type {
   SettlementRow,
   SettlementType,
 } from '../services/renovation/domain/types';
+import { isValidIsoDate } from '../utils/date';
 
 /** Сводка «Ремонта» (Работы / Материалы): `GET /api/renovation`. */
 export function overviewController(_req: Request, res: Response): void {
@@ -83,7 +84,7 @@ export function updateMetaController(req: Request, res: Response): void {
       res.status(400).json({ message: 'Дата старта должна быть в формате ГГГГ-ММ-ДД' });
       return;
     }
-    if (Number.isNaN(new Date(`${body.startDate}T00:00:00Z`).getTime())) {
+    if (!isValidIsoDate(body.startDate)) {
       res.status(400).json({ message: 'Некорректная дата старта' });
       return;
     }
