@@ -882,6 +882,9 @@ export interface DiaryEventSummary {
   dateStart: string;
   dateEnd: string | null;
   summary: string;
+  place: string;
+  participants: string[];
+  tags: string[];
   /** Уникальная папка изображений события (в `server/images/`). */
   folder: string;
   /** Имя файла основной фотографии; `null` — нет обложки. */
@@ -907,8 +910,15 @@ export function diaryImageUrl(folder: string, file: string, preview = false): st
 }
 
 /** Список событий: `GET /api/diary`. */
-export async function fetchDiaryEvents(): Promise<DiaryEventSummary[]> {
-  const res = await apiFetch('/diary');
+export async function fetchDiaryEvents(
+  options: { year?: string; tag?: string; query?: string } = {},
+): Promise<DiaryEventSummary[]> {
+  const params = new URLSearchParams();
+  if (options.year) params.set('year', options.year);
+  if (options.tag) params.set('tag', options.tag);
+  if (options.query) params.set('q', options.query);
+  const query = params.toString();
+  const res = await apiFetch(`/diary${query ? `?${query}` : ''}`);
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<DiaryEventSummary[]>;
 }
@@ -918,6 +928,13 @@ export async function fetchDiaryEvent(id: number): Promise<DiaryEventDetail> {
   const res = await apiFetch(`/diary/${id}`);
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
   return res.json() as Promise<DiaryEventDetail>;
+}
+
+/** Скачивает экспорт события в JSON или Markdown. */
+export async function fetchDiaryExport(id: number, format: 'json' | 'markdown'): Promise<Blob> {
+  const res = await apiFetch(`/diary/${id}/export?format=${format}`);
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.blob();
 }
 
 /** Удаляет событие: `DELETE /api/diary/:id` (admin). */
@@ -944,6 +961,9 @@ export interface DiaryEventInput {
   dateStart: string;
   dateEnd: string | null;
   summary: string;
+  place: string;
+  participants: string[];
+  tags: string[];
   content: string;
   /** id выбранной обложки (см. `DiaryImageRef.id`); `null` — первое изображение. */
   cover: string | null;
@@ -962,6 +982,9 @@ export function buildDiaryFormData(input: DiaryEventInput): FormData {
   fd.set('dateStart', input.dateStart);
   fd.set('dateEnd', input.dateEnd ?? '');
   fd.set('summary', input.summary);
+  fd.set('place', input.place);
+  fd.set('participants', JSON.stringify(input.participants));
+  fd.set('tags', JSON.stringify(input.tags));
   fd.set('content', input.content);
   if (input.cover) fd.set('cover', input.cover);
   fd.set('keep', JSON.stringify(input.keep));

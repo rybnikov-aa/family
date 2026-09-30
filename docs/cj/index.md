@@ -21,6 +21,8 @@
 | CJ-013 | [Планировать и отслеживать задачи](cj-013-manage-plans.md)                         | user/admin    | FR-009         |
 | CJ-014 | [Найти запись глобальным поиском](cj-014-global-search.md)                         | user/admin    | FR-010         |
 | CJ-015 | [Проверить историю доступности VPS](cj-015-review-vps-history.md)                  | user/admin    | FR-003, FR-011 |
+| CJ-016 | [Найти событие в расширенном дневнике](cj-016-enrich-diary.md)                     | user/admin    | FR-012         |
+| CJ-017 | [Экспортировать событие дневника](cj-017-export-diary.md)                          | user/admin    | FR-013         |
 
 ## Границы
 

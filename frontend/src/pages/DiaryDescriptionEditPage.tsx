@@ -130,6 +130,9 @@ function DiaryDescriptionEditPage() {
       dateStart: detail.dateStart,
       dateEnd: detail.dateEnd,
       summary: detail.summary,
+      place: detail.place,
+      participants: detail.participants,
+      tags: detail.tags,
       content,
       cover: detail.cover,
       images: [

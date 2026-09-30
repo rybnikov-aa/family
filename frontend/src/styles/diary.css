@@ -32,6 +32,66 @@
 .diary-blocks--cards {
   grid-template-columns: repeat(3, 1fr);
 }
+.diary-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 150px 170px;
+  gap: 10px;
+  margin: 4px 0 18px;
+}
+.diary-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  color: var(--text-faint);
+  font-size: var(--font-size-2xs);
+}
+.diary-card__tag {
+  color: var(--color-accent-blue);
+}
+.diary-event__metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  color: var(--text-faint);
+  font-size: var(--font-size-caption);
+}
+.diary-event__gallery-item {
+  position: relative;
+  min-width: 0;
+}
+.diary-event__select-photo {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  color: var(--text-strong);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-2xs);
+  cursor: pointer;
+}
+.diary-event__select-photo input {
+  accent-color: var(--color-accent-blue);
+}
+.diary-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+.diary-timeline__year {
+  position: relative;
+}
+.diary-timeline__year h3 {
+  margin-bottom: 10px;
+  color: var(--text-strong);
+  font-size: var(--font-size-lg);
+  font-variant-numeric: tabular-nums;
+}
 
 /* Обёртка блока события (нужна для абсолютного позиционирования действий admin) */
 .diary-card-wrap {
@@ -742,6 +802,9 @@
 
 /* Адаптивность hero-блока страницы события: на узких экранах — колонкой */
 @media (max-width: 640px) {
+  .diary-filters {
+    grid-template-columns: 1fr;
+  }
   .diary-event__hero {
     flex-direction: column;
     gap: var(--space-4);

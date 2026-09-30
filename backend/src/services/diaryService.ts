@@ -4,6 +4,7 @@ import {
   getDiaryEventRow,
   listDiaryEventRows,
   updateDiaryEventRow,
+  replaceDiaryEventTags,
   type DiaryEventRow,
 } from '../db/diaryRepository';
 import {
@@ -66,6 +67,9 @@ export interface DiaryEventSummary {
   dateStart: string;
   dateEnd: string | null;
   summary: string;
+  place: string;
+  participants: string[];
+  tags: string[];
   /** Уникальная папка изображений события (в `images/`). */
   folder: string;
   /** Имя файла основной фотографии (в папке события); `null` — нет обложки. */
@@ -92,6 +96,9 @@ export interface DiaryEventUpload {
   dateStart: string;
   dateEnd: string | null;
   summary: string;
+  place: string;
+  participants: string[];
+  tags: string[];
   content: string;
   cover: string | null;
   newIds: string[];
@@ -136,10 +143,24 @@ function rowToSummary(row: DiaryEventRow): DiaryEventSummary {
     dateStart: row.date_start,
     dateEnd: row.date_end,
     summary: row.summary,
+    place: row.place,
+    participants: parseParticipants(row.participants_json),
+    tags: row.tags,
     folder: row.folder,
     cover,
     images: allImages,
   };
+}
+
+function parseParticipants(value: string): string[] {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string')
+      : [];
+  } catch {
+    return [];
+  }
 }
 
 /** Валидация текстовых полей + нормализация дат (общая для create/update). */
@@ -148,6 +169,9 @@ function normalizeFields(input: DiaryEventUpload): {
   dateStart: string;
   dateEnd: string | null;
   summary: string;
+  place: string;
+  participants: string[];
+  tags: string[];
 } {
   const title = input.title.trim();
   const summary = input.summary.trim();
@@ -165,7 +189,17 @@ function normalizeFields(input: DiaryEventUpload): {
   if (dateEnd && dateEnd < dateStart) {
     throw new HttpError(400, 'Дата окончания раньше даты начала');
   }
-  return { title, dateStart, dateEnd, summary };
+  return {
+    title,
+    dateStart,
+    dateEnd,
+    summary,
+    place: input.place.trim(),
+    participants: [...new Set(input.participants.map((item) => item.trim()).filter(Boolean))],
+    tags: [
+      ...new Set(input.tags.map((item) => item.trim().toLocaleLowerCase('ru')).filter(Boolean)),
+    ],
+  };
 }
 
 /**
@@ -187,8 +221,27 @@ function resolveCover(
 }
 
 /** Список событий (сводки, без контента): `GET /api/diary`. */
-export function listDiaryEvents(): DiaryEventSummary[] {
-  return listDiaryEventRows().map(rowToSummary);
+export function listDiaryEvents(
+  options: { year?: string; tag?: string; query?: string } = {},
+): DiaryEventSummary[] {
+  const query = options.query?.trim().toLocaleLowerCase('ru');
+  return listDiaryEventRows()
+    .filter((row) => !options.year || row.date_start.startsWith(options.year))
+    .filter(
+      (row) =>
+        !options.tag ||
+        row.tags.some(
+          (tag) => tag.toLocaleLowerCase('ru') === options.tag?.toLocaleLowerCase('ru'),
+        ),
+    )
+    .filter(
+      (row) =>
+        !query ||
+        [row.title, row.summary, row.content, row.place, row.participants_json, ...row.tags].some(
+          (value) => value.toLocaleLowerCase('ru').includes(query),
+        ),
+    )
+    .map(rowToSummary);
 }
 
 /** Полные данные события: `GET /api/diary/:id`. 404 — не найдено. */
@@ -206,7 +259,7 @@ export function getDiaryEvent(id: number): DiaryEventDetail {
  * событие (201). При ошибке папка изображений удаляется (откат).
  */
 export function createDiaryEvent(input: DiaryEventUpload): DiaryEventDetail {
-  const { title, dateStart, dateEnd, summary } = normalizeFields(input);
+  const { title, dateStart, dateEnd, summary, place, participants, tags } = normalizeFields(input);
   if (input.newIds.length !== input.files.length) {
     throw new HttpError(400, 'Не совпадает число файлов и метаданных');
   }
@@ -233,6 +286,8 @@ export function createDiaryEvent(input: DiaryEventUpload): DiaryEventDetail {
       dateStart,
       dateEnd,
       summary,
+      place,
+      participants,
       content,
       folder,
       cover,
@@ -241,6 +296,8 @@ export function createDiaryEvent(input: DiaryEventUpload): DiaryEventDetail {
     cleanupEventImages(folder);
     throw err;
   }
+  replaceDiaryEventTags(row.id, tags);
+  row = getDiaryEventRow(row.id) as DiaryEventRow;
   return { ...rowToSummary(row), content: row.content };
 }
 
@@ -254,7 +311,7 @@ export function updateDiaryEvent(id: number, input: DiaryEventUpload): DiaryEven
   if (!current) {
     throw new HttpError(404, 'Событие не найдено');
   }
-  const { title, dateStart, dateEnd, summary } = normalizeFields(input);
+  const { title, dateStart, dateEnd, summary, place, participants, tags } = normalizeFields(input);
   if (input.newIds.length !== input.files.length) {
     throw new HttpError(400, 'Не совпадает число файлов и метаданных');
   }
@@ -289,6 +346,8 @@ export function updateDiaryEvent(id: number, input: DiaryEventUpload): DiaryEven
       dateStart,
       dateEnd,
       summary,
+      place,
+      participants,
       content,
       folder: current.folder,
       cover,
@@ -301,6 +360,8 @@ export function updateDiaryEvent(id: number, input: DiaryEventUpload): DiaryEven
     cleanupNewImages(current.folder, savedNames);
     throw new HttpError(404, 'Событие не найдено');
   }
+  replaceDiaryEventTags(row.id, tags);
+  row = getDiaryEventRow(row.id) as DiaryEventRow;
 
   for (const name of existing) {
     if (!keepSet.has(name)) {

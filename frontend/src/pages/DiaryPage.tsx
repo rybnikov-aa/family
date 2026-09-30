@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import DiaryEventCard from '../components/DiaryEventCard';
 import DiaryEventModal from '../components/DiaryEventModal';
 import DiaryPhotosModal from '../components/DiaryPhotosModal';
 import ImmichPickerModal from '../components/ImmichPickerModal';
 import IconButton from '../components/IconButton';
-import { DiaryIcon, GridViewIcon, ListViewIcon, PlusIcon } from '../components/icons';
+import { DiaryIcon, GridViewIcon, ListViewIcon, PlusIcon, TimelineIcon } from '../components/icons';
 import {
   deleteDiaryEvent,
   fetchDiaryEvent,
@@ -18,12 +19,13 @@ import { useAuth } from '../hooks/useAuth';
 import { useImmichSettings } from '../hooks/useImmichSettings';
 
 /** Макет отображения событий. */
-type DiaryLayout = 'list' | 'cards';
+type DiaryLayout = 'list' | 'cards' | 'timeline';
 
 /** Варианты макета: кнопки с иконками без подписей (см. `diary-layout-toggle`). */
 const LAYOUTS: { value: DiaryLayout; label: string; icon: typeof ListViewIcon }[] = [
   { value: 'list', label: 'Список (на всю ширину)', icon: ListViewIcon },
   { value: 'cards', label: 'Карточки (сетка на 3 столбца)', icon: GridViewIcon },
+  { value: 'timeline', label: 'Временная шкала', icon: TimelineIcon },
 ];
 
 /**
@@ -34,7 +36,16 @@ const LAYOUTS: { value: DiaryLayout; label: string; icon: typeof ListViewIcon }[
  * подписей. Добавление/редактирование/удаление событий — только admin.
  */
 function DiaryPage() {
-  const { events, error, loading, refresh } = useDiaryEvents();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const year = searchParams.get('year') ?? '';
+  const tag = searchParams.get('tag') ?? '';
+  const query = searchParams.get('q') ?? '';
+  const filterOptions = {
+    year: year || undefined,
+    tag: tag || undefined,
+    query: query.length >= 2 ? query : undefined,
+  };
+  const { events, error, loading, refresh } = useDiaryEvents(filterOptions);
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const immichUrl = useImmichSettings();
@@ -50,6 +61,29 @@ function DiaryPage() {
       refresh();
     },
   );
+  const years = useMemo(
+    () => [...new Set(events.map((event) => event.dateStart.slice(0, 4)))].sort().reverse(),
+    [events],
+  );
+  const tags = useMemo(
+    () =>
+      [...new Set(events.flatMap((event) => event.tags))].sort((a, b) => a.localeCompare(b, 'ru')),
+    [events],
+  );
+  const timeline = useMemo(() => {
+    const groups = new Map<string, DiaryEventSummary[]>();
+    for (const event of events) {
+      const key = event.dateStart.slice(0, 4);
+      groups.set(key, [...(groups.get(key) ?? []), event]);
+    }
+    return [...groups.entries()].sort(([a], [b]) => b.localeCompare(a));
+  }, [events]);
+  const updateFilter = (key: 'year' | 'tag' | 'q', value: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    setSearchParams(next, { replace: true });
+  };
 
   // Редактирование: нужны полные данные (контент) — запрашиваем отдельно.
   const handleEdit = async (entry: DiaryEventSummary) => {
@@ -117,12 +151,69 @@ function DiaryPage() {
           </div>
         </div>
 
+        <div className="diary-filters">
+          <input
+            className="input"
+            value={query}
+            onChange={(event) => updateFilter('q', event.target.value)}
+            placeholder="Поиск по дневнику"
+            aria-label="Поиск по дневнику"
+          />
+          <select
+            className="input"
+            value={year}
+            onChange={(event) => updateFilter('year', event.target.value)}
+            aria-label="Год"
+          >
+            <option value="">Все годы</option>
+            {years.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+          <select
+            className="input"
+            value={tag}
+            onChange={(event) => updateFilter('tag', event.target.value)}
+            aria-label="Тег"
+          >
+            <option value="">Все теги</option>
+            {tags.map((value) => (
+              <option key={value} value={value}>
+                #{value}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {error ? (
           <div className="news-empty">Не удалось загрузить события: {error}</div>
         ) : loading && events.length === 0 ? (
           <div className="news-empty">Загрузка событий…</div>
         ) : events.length === 0 ? (
           <div className="news-empty">Событий пока нет — загляните позже.</div>
+        ) : layout === 'timeline' ? (
+          <div className="diary-timeline">
+            {timeline.map(([timelineYear, yearEvents]) => (
+              <section className="diary-timeline__year" key={timelineYear}>
+                <h3>{timelineYear}</h3>
+                <div className="diary-blocks diary-blocks--list">
+                  {yearEvents.map((entry) => (
+                    <DiaryEventCard
+                      key={entry.id}
+                      event={entry}
+                      layout="list"
+                      isAdmin={isAdmin}
+                      onEdit={(e) => void handleEdit(e)}
+                      onEditPhotos={(e) => void handleEditPhotos(e)}
+                      onDelete={(e) => void handleDelete(e)}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
         ) : (
           <div className={`diary-blocks diary-blocks--${layout}`}>
             {events.map((entry) => (

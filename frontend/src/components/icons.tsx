@@ -151,6 +151,30 @@ export function ChartIcon(props: IconProps) {
   );
 }
 
+/** Временная шкала */
+export function TimelineIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 5v14" />
+      <path d="M4 8h5" />
+      <path d="M4 16h8" />
+      <circle cx="12" cy="8" r="2" />
+      <circle cx="15" cy="16" r="2" />
+    </svg>
+  );
+}
+
+/** Скачать */
+export function DownloadIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 3v12" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M5 21h14" />
+    </svg>
+  );
+}
+
 /** Дом */
 export function HomeIcon(props: IconProps) {
   return (

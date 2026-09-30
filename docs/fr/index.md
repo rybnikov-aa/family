@@ -15,5 +15,7 @@
 | [FR-009](fr-009-plans.md)                           | Планы и задачи                                   | [domain plans](../domains/plans.md), [API](../layers/api.md)               | CJ-013         |
 | [FR-010](fr-010-global-search.md)                   | Глобальный поиск                                 | [domain search](../domains/search.md), [API](../layers/api.md)             | CJ-014         |
 | [FR-011](fr-011-vps-history.md)                     | История доступности VPS                          | [domain VPS](../domains/vps.md), [API](../layers/api.md)                   | CJ-015         |
+| [FR-012](fr-012-diary-enrichment.md)                | Расширенный дневник                              | [domain diary](../domains/diary.md), [API](../layers/api.md)               | CJ-016         |
+| [FR-013](fr-013-diary-export.md)                    | Экспорт дневника                                 | [domain diary](../domains/diary.md), [API](../layers/api.md)               | CJ-017         |
 
 Нефункциональные требования размещены отдельно в [`docs/nfr/`](../nfr/index.md); требования к процессу разработки и агентскому харнессу — в [`docs/hr/`](../hr/index.md).

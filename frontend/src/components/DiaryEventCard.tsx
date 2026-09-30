@@ -103,6 +103,16 @@ function DiaryEventCard({
           <h3 className="diary-card__title">{event.title}</h3>
           <span className="diary-pill">{dateLabel(event)}</span>
           <p className="diary-card__summary">{event.summary}</p>
+          {(event.place || event.tags.length > 0) && (
+            <div className="diary-card__meta">
+              {event.place && <span>{event.place}</span>}
+              {event.tags.slice(0, 3).map((tag) => (
+                <span className="diary-card__tag" key={tag}>
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </Link>
       {actions && <div className="diary-card__actions-pos">{actions}</div>}

@@ -49,6 +49,9 @@ export function useDiaryPhotosEditor(
         dateStart: event.dateStart,
         dateEnd: event.dateEnd,
         summary: event.summary,
+        place: event.place,
+        participants: event.participants,
+        tags: event.tags,
         content: changes.content ?? event.content,
         cover: changes.cover,
         images: [

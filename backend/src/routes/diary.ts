@@ -3,6 +3,7 @@ import {
   createDiaryEventController,
   deleteDiaryEventController,
   diaryEventController,
+  exportDiaryEventController,
   imageFileController,
   listDiaryEventsController,
   updateDiaryEventController,
@@ -20,6 +21,7 @@ export const diaryRouter = Router();
 
 diaryRouter.get('/', listDiaryEventsController);
 diaryRouter.get('/images/:folder/:file', imageFileController);
+diaryRouter.get('/:id/export', exportDiaryEventController);
 diaryRouter.get('/:id', diaryEventController);
 diaryRouter.post('/', requireAdmin, uploadImages, createDiaryEventController);
 diaryRouter.patch('/:id', requireAdmin, uploadImages, updateDiaryEventController);

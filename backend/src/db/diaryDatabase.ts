@@ -35,12 +35,39 @@ function openDatabase(): DatabaseSync {
       date_end    TEXT,                      -- ГГГГ-ММ-ДД (конец периода, опционально)
       summary     TEXT    NOT NULL DEFAULT '', -- краткое описание (карточка)
       content     TEXT    NOT NULL DEFAULT '', -- подробное описание (markdown)
+      place       TEXT    NOT NULL DEFAULT '', -- место события
+      participants_json TEXT NOT NULL DEFAULT '[]', -- участники события
       folder      TEXT    NOT NULL,          -- уникальная папка изображений события
       cover       TEXT,                      -- имя файла основной фотографии (в папке события)
       created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
       updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS diary_tags (
+      id   INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE COLLATE NOCASE
+    );
+
+    CREATE TABLE IF NOT EXISTS diary_event_tags (
+      event_id INTEGER NOT NULL REFERENCES diary_events(id) ON DELETE CASCADE,
+      tag_id   INTEGER NOT NULL REFERENCES diary_tags(id) ON DELETE CASCADE,
+      PRIMARY KEY (event_id, tag_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_diary_event_tags_tag_id ON diary_event_tags(tag_id);
   `);
+
+  // Миграция существующей БД, созданной до появления полей расширенного дневника.
+  for (const sql of [
+    "ALTER TABLE diary_events ADD COLUMN place TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE diary_events ADD COLUMN participants_json TEXT NOT NULL DEFAULT '[]'",
+  ]) {
+    try {
+      db.exec(sql);
+    } catch {
+      // Поле уже добавлено — база актуальна.
+    }
+  }
 
   return db;
 }

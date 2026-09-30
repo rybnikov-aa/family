@@ -5,8 +5,15 @@ import DiaryEventModal from '../components/DiaryEventModal';
 import DiaryPhotosModal from '../components/DiaryPhotosModal';
 import ImmichPickerModal from '../components/ImmichPickerModal';
 import IconButton from '../components/IconButton';
-import { DiaryIcon, DocIcon, EditIcon, ImageIcon, ImagesIcon } from '../components/icons';
-import { diaryImageUrl } from '../api/client';
+import {
+  DiaryIcon,
+  DocIcon,
+  DownloadIcon,
+  EditIcon,
+  ImageIcon,
+  ImagesIcon,
+} from '../components/icons';
+import { diaryImageUrl, fetchDiaryExport } from '../api/client';
 import { useDiaryEvent } from '../hooks/useDiaryEvent';
 import { useDiaryPhotosEditor } from '../hooks/useDiaryPhotosEditor';
 import { useAuth } from '../hooks/useAuth';
@@ -29,6 +36,8 @@ function DiaryEventPage() {
   const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
   const [photosOpen, setPhotosOpen] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [exporting, setExporting] = useState(false);
   const immichUrl = useImmichSettings();
   const { pickerOpen, setPickerOpen, contentImageNames, photosProps } = useDiaryPhotosEditor(
     event,
@@ -42,6 +51,38 @@ function DiaryEventPage() {
     : '';
 
   const galleryImages = event ? event.images.filter((name) => !contentImageNames.has(name)) : [];
+
+  const downloadBlob = (blob: Blob, fileName: string) => {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportEvent = async (format: 'json' | 'markdown') => {
+    if (!event || exporting) return;
+    setExporting(true);
+    try {
+      downloadBlob(
+        await fetchDiaryExport(event.id, format),
+        `diary-event-${event.id}.${format === 'json' ? 'json' : 'md'}`,
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const downloadSelected = () => {
+    if (!event) return;
+    for (const name of selectedImages) {
+      const anchor = document.createElement('a');
+      anchor.href = diaryImageUrl(event.folder, name);
+      anchor.download = name;
+      anchor.click();
+    }
+  };
 
   return (
     <PageLayout>
@@ -58,6 +99,33 @@ function DiaryEventPage() {
               </span>
               <div>
                 <h2>{event.title}</h2>
+              </div>
+              <div className="page__head-actions">
+                <IconButton
+                  label="Экспорт JSON"
+                  tooltip="Скачать событие в JSON"
+                  disabled={exporting}
+                  onClick={() => void exportEvent('json')}
+                >
+                  <DownloadIcon />
+                </IconButton>
+                <IconButton
+                  label="Экспорт Markdown"
+                  tooltip="Скачать событие в Markdown"
+                  disabled={exporting}
+                  onClick={() => void exportEvent('markdown')}
+                >
+                  <DocIcon />
+                </IconButton>
+                {selectedImages.length > 0 && (
+                  <IconButton
+                    label={`Скачать фото (${selectedImages.length})`}
+                    tooltip="Скачать выбранные фотографии"
+                    onClick={downloadSelected}
+                  >
+                    <ImagesIcon />
+                  </IconButton>
+                )}
               </div>
               {isAdmin && (
                 <div className="page__head-actions">
@@ -102,6 +170,19 @@ function DiaryEventPage() {
               <div className="diary-event__hero-info">
                 <span className="diary-pill">{dateLabel}</span>
                 <p className="diary-event__summary">{event.summary}</p>
+                {(event.place || event.participants.length > 0 || event.tags.length > 0) && (
+                  <div className="diary-event__metadata">
+                    {event.place && <span>{event.place}</span>}
+                    {event.participants.map((participant) => (
+                      <span key={participant}>{participant}</span>
+                    ))}
+                    {event.tags.map((tag) => (
+                      <span className="diary-card__tag" key={tag}>
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -124,21 +205,35 @@ function DiaryEventPage() {
                 </div>
                 <div className="diary-event__gallery">
                   {galleryImages.map((name) => (
-                    <a
-                      key={name}
-                      className="diary-event__photo"
-                      href={diaryImageUrl(event.folder, name)}
-                      target="_blank"
-                      rel="noreferrer"
-                      title="Открыть в полном размере"
-                    >
-                      {/* В галерее — превью; полный размер — только по клику (открытие на весь экран). */}
-                      <img
-                        src={diaryImageUrl(event.folder, name, true)}
-                        alt={event.title}
-                        loading="lazy"
-                      />
-                    </a>
+                    <div className="diary-event__gallery-item" key={name}>
+                      <label className="diary-event__select-photo">
+                        <input
+                          type="checkbox"
+                          checked={selectedImages.includes(name)}
+                          onChange={() =>
+                            setSelectedImages((current) =>
+                              current.includes(name)
+                                ? current.filter((item) => item !== name)
+                                : [...current, name],
+                            )
+                          }
+                        />
+                        <span>Выбрать</span>
+                      </label>
+                      <a
+                        className="diary-event__photo"
+                        href={diaryImageUrl(event.folder, name)}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="Открыть в полном размере"
+                      >
+                        <img
+                          src={diaryImageUrl(event.folder, name, true)}
+                          alt={event.title}
+                          loading="lazy"
+                        />
+                      </a>
+                    </div>
                   ))}
                 </div>
               </div>

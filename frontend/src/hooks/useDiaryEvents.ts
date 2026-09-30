@@ -15,12 +15,14 @@ interface UseDiaryEventsResult {
  * по дате начала (свежие — раньше); здесь сортировка дублируется как
  * защитный контракт фронтенда — порядок гарантирован независимо от API.
  */
-export function useDiaryEvents(): UseDiaryEventsResult {
+export function useDiaryEvents(
+  options: { year?: string; tag?: string; query?: string } = {},
+): UseDiaryEventsResult {
   const { data, error, loading, reload } = useApiData<DiaryEventSummary[]>(() =>
-    fetchDiaryEvents(),
+    fetchDiaryEvents(options),
   );
   const events = [...(data ?? [])].sort((a, b) =>
     a.dateStart < b.dateStart ? 1 : a.dateStart > b.dateStart ? -1 : b.id - a.id,
   );
-  return { events, error, loading, refresh: reload };
+  return { events, error, loading, refresh: () => reload(() => fetchDiaryEvents(options)) };
 }

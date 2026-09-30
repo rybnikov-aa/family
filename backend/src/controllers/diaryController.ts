@@ -37,6 +37,10 @@ function parseStringArray(value: unknown, field: string): string[] {
   }
 }
 
+function normalizeStringArray(values: string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))].slice(0, 50);
+}
+
 /** Собирает входные данные создания/обновления из multipart-запроса. */
 function parseDiaryUpload(req: Request): DiaryEventUpload {
   const body = (req.body ?? {}) as Record<string, unknown>;
@@ -53,6 +57,9 @@ function parseDiaryUpload(req: Request): DiaryEventUpload {
     dateStart: typeof body.dateStart === 'string' ? body.dateStart : '',
     dateEnd: typeof body.dateEnd === 'string' && body.dateEnd.trim() !== '' ? body.dateEnd : null,
     summary: typeof body.summary === 'string' ? body.summary : '',
+    place: typeof body.place === 'string' ? body.place : '',
+    participants: normalizeStringArray(parseStringArray(body.participants, 'participants')),
+    tags: normalizeStringArray(parseStringArray(body.tags, 'tags')),
     content: typeof body.content === 'string' ? body.content : '',
     cover: typeof body.cover === 'string' && body.cover.trim() !== '' ? body.cover : null,
     newIds,
@@ -62,8 +69,14 @@ function parseDiaryUpload(req: Request): DiaryEventUpload {
 }
 
 /** Список событий: `GET /api/diary`. */
-export function listDiaryEventsController(_req: Request, res: Response): void {
-  res.json(listDiaryEvents());
+export function listDiaryEventsController(req: Request, res: Response): void {
+  res.json(
+    listDiaryEvents({
+      year: typeof req.query.year === 'string' ? req.query.year : undefined,
+      tag: typeof req.query.tag === 'string' ? req.query.tag : undefined,
+      query: typeof req.query.q === 'string' ? req.query.q : undefined,
+    }),
+  );
 }
 
 /** Полные данные события: `GET /api/diary/:id`. 404 — не найдено. */
@@ -75,6 +88,70 @@ export function diaryEventController(req: Request, res: Response): void {
       return;
     }
     res.json(getDiaryEvent(id));
+  } catch (err) {
+    if (!handleHttpError(res, err)) throw err;
+  }
+}
+
+/** Экспорт события: `GET /api/diary/:id/export?format=json|markdown`. */
+export function exportDiaryEventController(req: Request, res: Response): void {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      res.status(404).json({ message: 'Событие не найдено' });
+      return;
+    }
+    const event = getDiaryEvent(id);
+    const format =
+      req.query.format === 'markdown'
+        ? 'markdown'
+        : req.query.format === 'json' || !req.query.format
+          ? 'json'
+          : null;
+    if (!format) {
+      res.status(400).json({ message: 'Формат экспорта должен быть json или markdown' });
+      return;
+    }
+    const baseName = `diary-event-${event.id}`;
+    if (format === 'markdown') {
+      const metadata = [
+        `# ${event.title}`,
+        '',
+        `Дата: ${event.dateStart}${event.dateEnd ? ` – ${event.dateEnd}` : ''}`,
+        event.place ? `Место: ${event.place}` : '',
+        event.participants.length > 0 ? `Участники: ${event.participants.join(', ')}` : '',
+        event.tags.length > 0 ? `Теги: ${event.tags.map((tag) => `#${tag}`).join(' ')}` : '',
+        '',
+        event.summary,
+        '',
+      ]
+        .filter(Boolean)
+        .join('\n');
+      res.type('text/markdown; charset=utf-8');
+      res.set('Content-Disposition', `attachment; filename="${baseName}.md"`);
+      res.send(`${metadata}${event.content}`);
+      return;
+    }
+    res.type('application/json; charset=utf-8');
+    res.set('Content-Disposition', `attachment; filename="${baseName}.json"`);
+    res.send(
+      JSON.stringify(
+        {
+          id: event.id,
+          title: event.title,
+          dateStart: event.dateStart,
+          dateEnd: event.dateEnd,
+          summary: event.summary,
+          place: event.place,
+          participants: event.participants,
+          tags: event.tags,
+          content: event.content,
+          images: event.images,
+        },
+        null,
+        2,
+      ),
+    );
   } catch (err) {
     if (!handleHttpError(res, err)) throw err;
   }

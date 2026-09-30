@@ -44,6 +44,9 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
   const [dateStart, setDateStart] = useState(event?.dateStart ?? '');
   const [dateEnd, setDateEnd] = useState(event?.dateEnd ?? '');
   const [summary, setSummary] = useState(event?.summary ?? '');
+  const [place, setPlace] = useState(event?.place ?? '');
+  const [participants, setParticipants] = useState(event?.participants.join(', ') ?? '');
+  const [tags, setTags] = useState(event?.tags.join(', ') ?? '');
   const [content, setContent] = useState(event?.content ?? '');
   // Изображения: существующие — из события, новые — добавляются при загрузке.
   const [images, setImages] = useState<FormImage[]>(() =>
@@ -149,6 +152,15 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
       dateStart,
       dateEnd: dateEnd || null,
       summary: summary.trim(),
+      place: place.trim(),
+      participants: participants
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
+      tags: tags
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
       content,
       cover,
       images: images.map((img) => ({ id: img.id, file: img.file })),
@@ -214,6 +226,35 @@ function DiaryEventModal({ event = null, onClose, onSaved }: DiaryEventModalProp
                   required
                 />
               </label>
+              <label className="field">
+                <span className="field__label">Место</span>
+                <input
+                  className="input"
+                  value={place}
+                  onChange={(event) => setPlace(event.target.value)}
+                  placeholder="Например, дача"
+                />
+              </label>
+              <div className="diary-dates">
+                <label className="field">
+                  <span className="field__label">Участники</span>
+                  <input
+                    className="input"
+                    value={participants}
+                    onChange={(event) => setParticipants(event.target.value)}
+                    placeholder="Через запятую"
+                  />
+                </label>
+                <label className="field">
+                  <span className="field__label">Теги</span>
+                  <input
+                    className="input"
+                    value={tags}
+                    onChange={(event) => setTags(event.target.value)}
+                    placeholder="Через запятую"
+                  />
+                </label>
+              </div>
 
               <div className="diary-dates">
                 <label className="field">
