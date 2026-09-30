@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Outlet, RouterProvider, createHashRouter, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
+import PlansPage from './pages/PlansPage';
 import DiaryPage from './pages/DiaryPage';
 import DiaryEventPage from './pages/DiaryEventPage';
 import ProjectsPage from './pages/ProjectsPage';
@@ -25,25 +26,27 @@ function RouteLayout() {
     const section =
       location.pathname === ROUTES.news
         ? 'Новости'
-        : location.pathname === ROUTES.diary
-          ? 'Дневник'
-          : location.pathname.startsWith('/diary/')
-            ? 'Событие'
-            : location.pathname === ROUTES.projects
-              ? 'Проекты'
-              : location.pathname === ROUTES.renovation
-                ? 'Ремонт'
-                : location.pathname === ROUTES.furniture
-                  ? 'Мебель'
-                  : location.pathname.startsWith('/projects/')
-                    ? 'Проект'
-                    : location.pathname === ROUTES.profile
-                      ? 'Профиль'
-                      : location.pathname === ROUTES.adminUsers
-                        ? 'Пользователи'
-                        : location.pathname === ROUTES.adminSettings
-                          ? 'Настройки'
-                          : 'Семейное пространство';
+        : location.pathname === ROUTES.plans
+          ? 'Планы'
+          : location.pathname === ROUTES.diary
+            ? 'Дневник'
+            : location.pathname.startsWith('/diary/')
+              ? 'Событие'
+              : location.pathname === ROUTES.projects
+                ? 'Проекты'
+                : location.pathname === ROUTES.renovation
+                  ? 'Ремонт'
+                  : location.pathname === ROUTES.furniture
+                    ? 'Мебель'
+                    : location.pathname.startsWith('/projects/')
+                      ? 'Проект'
+                      : location.pathname === ROUTES.profile
+                        ? 'Профиль'
+                        : location.pathname === ROUTES.adminUsers
+                          ? 'Пользователи'
+                          : location.pathname === ROUTES.adminSettings
+                            ? 'Настройки'
+                            : 'Семейное пространство';
     document.title = pageTitle(section);
   }, [location.pathname]);
 
@@ -86,6 +89,7 @@ const router = createHashRouter([
         children: [
           { path: ROUTES.home, element: <HomePage /> },
           { path: ROUTES.news, element: <NewsPage /> },
+          { path: ROUTES.plans, element: <PlansPage /> },
           { path: ROUTES.diary, element: <DiaryPage /> },
           { path: ROUTES.diaryEvent, element: <DiaryEventPage /> },
           { path: ROUTES.projects, element: <ProjectsPage /> },

@@ -300,6 +300,64 @@ export async function deleteProject(slug: string): Promise<void> {
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
 }
 
+// ── Планы ───────────────────────────────────────────────────────────────────
+
+export type PlanStatus = 'todo' | 'doing' | 'done';
+export type PlanPriority = 'low' | 'normal' | 'high';
+
+export interface PlanTask {
+  id: number;
+  title: string;
+  description: string;
+  status: PlanStatus;
+  priority: PlanPriority;
+  dueDate: string | null;
+  projectSlug: string | null;
+  projectTitle: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlanTaskInput {
+  title: string;
+  description?: string;
+  status?: PlanStatus;
+  priority?: PlanPriority;
+  dueDate?: string | null;
+  projectSlug?: string | null;
+}
+
+export async function fetchPlans(): Promise<PlanTask[]> {
+  const res = await apiFetch('/plans');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<PlanTask[]>;
+}
+
+export async function createPlan(input: PlanTaskInput): Promise<PlanTask> {
+  const res = await apiFetch('/plans', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<PlanTask>;
+}
+
+export async function updatePlan(id: number, input: PlanTaskInput): Promise<PlanTask> {
+  const res = await apiFetch(`/plans/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<PlanTask>;
+}
+
+export async function deletePlan(id: number): Promise<void> {
+  const res = await apiFetch(`/plans/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+}
+
 export interface VpsServiceStatus {
   name: string;
   type: string;

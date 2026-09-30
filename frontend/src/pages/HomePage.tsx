@@ -41,6 +41,7 @@ const sections = [
     title: 'Планы',
     description: 'Цели, задачи, дорожная карта развития.',
     tag: 'стратегия',
+    href: ROUTES.plans,
   },
 ];
 

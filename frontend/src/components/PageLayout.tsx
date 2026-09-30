@@ -75,6 +75,12 @@ function PageLayout({ children }: PageLayoutProps) {
               Новости
             </NavLink>
             <NavLink
+              to={ROUTES.plans}
+              className={({ isActive }) => (isActive ? 'active' : undefined)}
+            >
+              Планы
+            </NavLink>
+            <NavLink
               to={ROUTES.diary}
               className={({ isActive }) => (isActive ? 'active' : undefined)}
             >
@@ -132,6 +138,7 @@ function PageLayout({ children }: PageLayoutProps) {
         <span>
           <Link to={ROUTES.diary}>Дневник</Link>
           <Link to={ROUTES.news}>Новости</Link>
+          <Link to={ROUTES.plans}>Планы</Link>
           <Link to={ROUTES.projects}>Проекты</Link>
           {/* «Архив» — инстанс Immich из настроек; без адреса ссылка скрывается.
               Открывается в новой вкладке с переключением на неё. */}

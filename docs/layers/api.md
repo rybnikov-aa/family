@@ -18,7 +18,7 @@
 
 Кроме `/api/health` и `POST /api/auth/login` **все** эндпоинты требуют действующую сессию (httpOnly-cookie `sid`): отсутствие/истёкшая сессия → **401**.
 
-Мутирующие операции (`POST`/`PATCH`/`DELETE /api/vps*`, `POST`/`PATCH`/`DELETE /api/projects`, мутации «Ремонта» (`POST /api/renovation/pdf*`, `POST /estimate/addendum*`, `PUT /api/renovation/meta`, `PUT /api/renovation/materials-budget`), мутации `/api/diary`, все эндпоинты `/api/auth/admin/*`, `POST /api/settings/immich/check` и пикер `/api/immich/*`) доступны только роли `admin`; иначе — **403**. Чтение `/api/settings/immich` — любому авторизованному (адрес нужен для ссылок «Фотоархив»/«Архив» в UI; ключ не возвращается).
+Мутирующие операции (`POST`/`PATCH`/`DELETE /api/vps*`, `POST`/`PATCH`/`DELETE /api/projects`, `POST`/`PATCH`/`DELETE /api/plans*`, мутации «Ремонта» (`POST /api/renovation/pdf*`, `POST /estimate/addendum*`, `PUT /api/renovation/meta`, `PUT /api/renovation/materials-budget`), мутации `/api/diary`, все эндпоинты `/api/auth/admin/*`, `POST /api/settings/immich/check` и пикер `/api/immich/*`) доступны только роли `admin`; иначе — **403**. Чтение `/api/settings/immich` — любому авторизованному (адрес нужен для ссылок «Фотоархив»/«Архив» в UI; ключ не возвращается).
 
 - **Сессия:** cookie `sid` — httpOnly, `SameSite=Lax`, `Secure` в проде (`NODE_ENV=production`), срок `SESSION_TTL_HOURS` (по умолчанию 168 ч). В БД хранится только SHA-256 от токена.
 - **Пароли** проверяются через scrypt (constant-time).
@@ -54,6 +54,18 @@
 | POST   | `/api/projects`       | Создание проекта (admin)                     | JSON: `{slug, title, description, accent?, icon?, order?, content?}`; 201 — `Project`; 400 — невалидно; 409 — имя занято |
 | PATCH  | `/api/projects/:slug` | Обновление проекта (admin)                   | JSON: частичные поля (метаданные и/или `content`); 200 — `ProjectDetail`; 400 — встроенный; 404 — не найден              |
 | DELETE | `/api/projects/:slug` | Удаление проекта (admin)                     | 204; 400 — встроенный; 404 — не найден                                                                                   |
+
+### 2.3 Планы
+
+Раздел «Планы» хранит задачи в отдельной БД `plans.sqlite`. Чтение доступно любому
+авторизованному пользователю, мутации — только `admin`.
+
+| Метод  | Путь             | Назначение               | Параметры / ответ                                    |
+| ------ | ---------------- | ------------------------ | ---------------------------------------------------- |
+| GET    | `/api/plans`     | Список задач             | `projectSlug?`, `priority?`; 200 — массив `PlanTask` |
+| POST   | `/api/plans`     | Создание задачи (admin)  | JSON `PlanTaskInput`; 201 — `PlanTask`               |
+| PATCH  | `/api/plans/:id` | Изменение задачи (admin) | JSON частичного `PlanTaskInput`; 200 — `PlanTask`    |
+| DELETE | `/api/plans/:id` | Удаление задачи (admin)  | 204; 404 — не найдена                                |
 
 ### 2.3. VPS
 

@@ -11,6 +11,7 @@ import { renovationRouter } from './routes/renovation';
 import { diaryRouter } from './routes/diary';
 import { settingsRouter } from './routes/settings';
 import { immichRouter } from './routes/immich';
+import { plansRouter } from './routes/plans';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler';
 import { requireAdmin, requireAuth } from './middlewares/auth';
 import { ensureBootstrapAdmin, authMaintenance } from './services/authService';
@@ -31,6 +32,7 @@ app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/vps', requireAuth, vpsRouter);
 app.use('/api/projects', requireAuth, projectsRouter);
+app.use('/api/plans', requireAuth, plansRouter);
 // Модуль «Ремонт» (этап 2 — чтение отчётности из отдельной БД renovation.sqlite).
 app.use('/api/renovation', requireAuth, renovationRouter);
 // Раздел «Дневник»: события + изображения (своя БД diary.sqlite и каталог images/).
