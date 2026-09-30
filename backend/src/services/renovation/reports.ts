@@ -277,7 +277,7 @@ export function buildWorkReport(): ReportWork {
   // даже если у акта не разобраны строки «Итого по разделам»/«Накладные»
   // (total/overhead в БД null), а известен только grand-итог (total_with_overhead).
   // Правило: итог план = итог сметы, итог факт = сумма итогов ВСЕХ актов работ
-  // (см. docs/specification-renovation.md §5.3).
+  // (см. docs/domains/renovation.md §5.3).
   const worksPlan = items.reduce((s, i) => s + (i.sum ?? 0), 0);
   const worksFact = acts.reduce(
     (s, a) => s + a.items.reduce((s2, it) => s2 + (it.kind === 'row' ? (it.sum ?? 0) : 0), 0),

@@ -10,6 +10,8 @@
 
 ## 0. Контекст
 
+Архитектура backend/frontend и сквозных middleware описана в `docs/layers/`; полный HTTP-контракт — в `docs/layers/api.md`.
+
 Статичные страницы `projects/renovation/` содержали всю отчётность ремонта (смета, акты работ,
 заказы материалов, взаиморасчёты, отчёты). Цель модуля — перенести эти данные в **отдельную БД
 `data/renovation.sqlite`** и перевести просмотр и расчёт в приложение (React + Express).
@@ -106,7 +108,7 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   `services/renovation/overview.ts` (сводка),
   `controllers/renovationController.ts`, `routes/renovation.ts`; монтирование —
   `app.use('/api/renovation', requireAuth, renovationRouter)`.
-- Эндпоинты (полная таблица и форматы — `docs/specification-api.md` §2.5/3.3):
+- Эндпоинты (полная таблица и форматы — `docs/layers/api.md` §2.5/3.3):
   - `GET /api/renovation` — сводка (план/факт работ, % освоения, заказы, ведомости);
   - `GET /api/renovation/estimate/versions`, `GET /api/renovation/estimate?version=…`;
   - `GET /api/renovation/docs?type=…`, `GET /api/renovation/settlements?type=…`;
@@ -250,7 +252,7 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
   (`/^-?(\d+)-?…/`), иначе такие строки не распознаются как позиции и **теряются** (в доп.
   соглашении №4 сначала не распознались позиции 7–9, а до этого — вообще все позиции, т.к.
   `addendum` не входил в `ITEM_TYPES`).
-- **Эндпоинты** (admin, см. `docs/specification-api.md` §2.5):
+- **Эндпоинты** (admin, см. `docs/layers/api.md` §2.5):
   - `POST /api/renovation/pdf` (multipart) — извлечение + классификация → `{ draft }`;
   - `POST /api/renovation/pdf/:id/confirm` — запись в БД; для документов с номером
     (акт работ / заказ материалов) повторная загрузка с тем же номером **заменяет** предыдущую
@@ -351,7 +353,7 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
 2. создаётся новая `current` (`date=NULL`, итоги из `totalsAfter`, `addendum_ref = label`
    соглашения), позиции — из `newItemsAfter`.
 
-**Эндпоинты** (admin, `routes/renovation.ts`, детали — `docs/specification-api.md` §2.5):
+**Эндпоинты** (admin, `routes/renovation.ts`, детали — `docs/layers/api.md` §2.5):
 
 - `POST /api/renovation/estimate/addendum` — тело `{ addendumId }` → `{ proposal }` (дифф +
   новый итог), без записи;
@@ -518,7 +520,7 @@ read-API `/api/renovation/*`, страница приложения `#/projects/
 
 ## 7. Решения и находки (ADR + факты из данных)
 
-Общие ADR — в `docs/adr.md` (ADR-1…ADR-25). Здесь — факты о данных проекта и
+Общие ADR — в `docs/adr/index.md` (ADR-001…ADR-025). Здесь — факты о данных проекта и
 грабли, зафиксированные при импорте:
 
 - **Копейки (×100).** REAL в SQLite неточен; сверка «суммы сходятся» и пересчёт накладных должны

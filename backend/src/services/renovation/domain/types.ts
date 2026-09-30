@@ -7,7 +7,7 @@
  * (количество тоже ×100), см. `domain/money.ts`.
  *
  * Источник данных — отдельная БД `data/renovation.sqlite` (см.
- * `docs/specification-renovation.md`); наполняется штатно — через импорт PDF
+ * `docs/domains/renovation.md`); наполняется штатно — через импорт PDF
  * в приложении (POST /api/renovation/pdf).
  */
 

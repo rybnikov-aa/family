@@ -1,6 +1,6 @@
 ---
 name: harness-init
-description: 'Инициализация репозиторного харнесса и спецификации: .github/harness/guardrails.md, AGENTS.md, docs/specification*.md, docs/adr.md, .github/skills и .github/agents. Use when: «создай/инициализируй харнесс», «заведи спецификацию», онбординг нового монорепо в Spec-Driven Development. Не для правки спецификации одного модуля и не для деплоя.'
+description: 'Инициализация репозиторного харнесса и документов: guardrails.md, AGENTS.md, docs/layers, docs/domains, docs/adr, docs/cj, docs/fr, docs/nfr, docs/hr, .github/skills и .github/agents. Use when: «создай/инициализируй харнесс», «заведи спецификации или требования», онбординг нового монорепо. Не для правки существующей отдельной записи и не для деплоя.'
 argument-hint: 'Монореп: стек и модули'
 user-invocable: true
 ---
@@ -16,12 +16,13 @@ user-invocable: true
 - «создай/инициализируй харнесс», «заведи спецификацию», «сделай как в проекте family»;
 - в репозитории нет `AGENTS.md` / `docs/` и нужен каркас правил и спецификации с нуля;
 - онбординг нового монорепозитория (или нового устройства) в Spec-Driven Development;
-- нужны готовые шаблоны guardrails, `AGENTS.md`, спецификаций, ADR, навыков, агентов, README и
+- нужны шаблоны guardrails, layer/domain specs, CJ/FR/NFR/HR records, ADR, agent/skill, README и
    `.env.example`.
 
 ## Когда не использовать
 
-- правка существующей спецификации одного модуля → правится `docs/specification-<модуль>.md`;
+- правка существующей domain-спецификации → правится соответствующий `docs/domains/<домен>.md`;
+- правка layer-архитектуры → правится соответствующий `docs/layers/<слой>.md`;
 - деплой и серверная диагностика → навык `deploy`;
 - разовая мелкая задача («напиши README», «добавь раздел в доку») → обычный запрос без навыка.
 
@@ -35,7 +36,9 @@ user-invocable: true
    показать, что меняется; запрашивать согласование только перед перезаписью или расширением
    согласованного объема.
 3. **Разделение источников.** Общие конвенции принадлежат `AGENTS.md`, обязательные ограничения —
-   `.github/harness/guardrails.md`, поведение и критерии приемки — спецификациям. Навыки и агенты
+   `.github/harness/guardrails.md`, поведение — domain specs, технические слои — layer specs,
+   требования и journeys — соответствующим реестрам `docs/cj/`, `docs/fr/`, `docs/nfr/`, `docs/hr/`.
+   ADR фиксируют отдельные архитектурные решения. Навыки и агенты
    ссылаются на эти источники и описывают только свои процедуры и области ответственности.
 4. **Git — источник истины.** Долговременные факты фиксируются в подходящих версифицируемых
    документах; не синхронизировать их автоматически из локальной памяти.
@@ -52,7 +55,7 @@ user-invocable: true
 | --- | ----------------------------------------------------------------- | ------------------------------------ |
 | 0   | Разведка монорепа (read-only): layout, скрипты, слои, хранилища    | `references/recon.md`                |
 | 1   | Guardrails и `AGENTS.md` (корень) — ограничения и общие правила    | `references/guardrails.md`, `references/agents-md.md` |
-| 2   | `docs/specification.md` + `docs/specification-<модуль>.md` + ADR   | `references/specification.md`, `references/module-spec-and-adr.md` |
+| 2   | Root index, layer/domain specs, CJ/FR/NFR/HR catalogs и ADR | `references/specification.md`, `references/layer-spec.md`, `references/module-spec-and-adr.md`, `references/requirements-records.md` |
 | 3   | Навыки `.github/skills/<имя>/SKILL.md` — только процедуры          | `references/skill-and-agent.md`      |
 | 4   | Агенты `.github/agents/<роль>.agent.md` — роли с ограничением прав | `references/skill-and-agent.md`      |
 | 5   | `.github/harness/repo-memory.md` — только если нужны отдельные операционные заметки | `references/repo-memory-readme-env.md` |
@@ -60,8 +63,8 @@ user-invocable: true
 | 7   | Проверка и отчёт                                                  | `references/validation.md`           |
 
 **Минимальный набор** для маленького проекта: `.github/harness/guardrails.md` + `AGENTS.md` +
-`docs/specification.md` + `.env.example`. Модульные спецификации —
-когда появятся реальные процедуры и модули; пустых заготовок «на будущее» не создавать.
+`docs/specification.md` + `.env.example`. Layer- и domain-спецификации добавлять только для
+существующих границ; пустых заготовок «на будущее» не создавать.
 
 ## Антипаттерны
 

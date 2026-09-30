@@ -12,7 +12,7 @@ import type { MaterialsBudget, RenovationDoc, SettlementAct } from './domain/typ
  * Сводка проекта «Ремонт» (аналог Блоков 1/2 главной страницы
  * `projects/renovation/index.html`), посчитанная из БД `renovation.sqlite`.
  *
- * Правила (см. `docs/specification-renovation.md`, ADR-16):
+ * Правила (см. `docs/domains/renovation.md`, ADR-016):
  * - факт по работам = сумма итогов (с накладными) актов выполненных работ;
  * - закуплено материалов = сумма итогов заказов материалов;
  * - взаиморасчёты — **только последний акт на тип** (акты кумулятивные).

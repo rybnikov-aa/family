@@ -1,6 +1,6 @@
 ---
 name: 'Init Harness'
-description: 'Инициализировать репозиторный харнесс и стартовую спецификацию в монорепозитории: guardrails.md, AGENTS.md, docs/specification*.md, docs/adr.md, .github/skills, .github/agents, README, .env.example. Use when: нужен каркас правил/спецификации с нуля, «создай/инициализируй харнесс», «заведи спецификацию как в family», онбординг нового монорепо в Spec-Driven Development, «нет AGENTS.md и docs — сделай как в проекте family».'
+description: 'Инициализировать репозиторный харнесс и документы: guardrails.md, AGENTS.md, docs/layers, docs/domains, docs/adr, docs/cj, docs/fr, docs/nfr, docs/hr, .github/skills, .github/agents, README, .env.example. Use when: нужен каркас с нуля, «создай харнесс», «сделай как в family», онбординг нового монорепо в Spec-Driven Development.'
 argument-hint: 'Монореп: стек и модули (или пусто — определю по коду)'
 agent: 'agent'
 ---
@@ -15,7 +15,9 @@ agent: 'agent'
 | `references/guardrails.md`                        | `.github/harness/guardrails.md`                               |
 | `references/agents-md.md`                         | `AGENTS.md`                                                   |
 | `references/specification.md`                     | `docs/specification.md`                                       |
-| `references/module-spec-and-adr.md`               | `docs/specification-<модуль>.md`, `docs/adr.md`               |
+| `references/layer-spec.md`                        | `docs/layers/<слой>.md`                                       |
+| `references/module-spec-and-adr.md`               | `docs/domains/<домен>.md`, `docs/adr/adr-xxx-short-name.md`, `docs/adr/index.md` |
+| `references/requirements-records.md`              | `docs/cj/`, `docs/fr/`, `docs/nfr/`, `docs/hr/`                |
 | `references/skill-and-agent.md`                   | `.github/skills/*/SKILL.md`, `.github/agents/*.agent.md`      |
 | `references/repo-memory-readme-env.md`            | `.github/harness/repo-memory.md`, `README.md`, `.env.example` |
 | `references/recon.md`, `references/validation.md` | разведка (шаг 0) и проверка (шаг 7)                           |

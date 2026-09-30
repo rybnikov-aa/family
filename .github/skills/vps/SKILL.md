@@ -40,7 +40,7 @@ user-invocable: true
 1. `services/vpsChecker.ts`: добавить ветку в `checkService()` (диспетчеризация по `service.type`).
 2. Если нужны новые пробы портов — добавить их в `checkIp()` (`addTcp`/`addUdpDtls`; базовые порты «машина жива» 22/443/80 уже есть, они НЕ зависят от сервисов).
 3. `VpsServiceStatus`/`VpsStatus` уже универсальны (`online`/`latencyMs`/`error`) — менять типы обычно не нужно.
-4. Обновить `docs/specification-vps.md` (таблица типов проверки) и README при необходимости.
+4. Обновить `docs/domains/vps.md` (таблица типов проверки) и README при необходимости.
 
 ### Диагностика статусов VPS
 

@@ -9,7 +9,7 @@ import { env } from '../../../config/env';
  *
  * pdfplumber — Python-библиотека, рантайм приложения — Node, поэтому запускаем
  * скрипт `backend/scripts/extract_pdf.py` как subprocess и читаем JSON из stdout.
- * (Решение зафиксировано в ADR-19, `docs/specification.md` §12.)
+ * (Решение зафиксировано в ADR-019, `docs/adr/adr-019-pdfplumber-subprocess.md`.)
  *
  * Кросс-платформенно (разработка на Windows, сервер — Debian/Ubuntu). Пути по
  * умолчанию — относительно CWD (в dev — папка `backend/`; на сервере — каталог
