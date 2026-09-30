@@ -101,6 +101,7 @@ function NewsAdminModal({ post = null, onClose, onSaved }: NewsAdminModalProps) 
             className="input"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
+            capture="environment"
             multiple
             onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
           />

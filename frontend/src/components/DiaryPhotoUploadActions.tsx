@@ -45,6 +45,7 @@ function DiaryPhotoUploadActions({
         ref={inputRef}
         type="file"
         accept="image/*"
+        capture="environment"
         multiple
         hidden
         onChange={(event) => onAddFiles(Array.from(event.target.files ?? []))}

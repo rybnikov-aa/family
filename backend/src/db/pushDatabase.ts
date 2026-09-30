@@ -6,35 +6,28 @@ import { env } from '../config/env';
 let dbInstance: DatabaseSync | null = null;
 
 function openDatabase(): DatabaseSync {
-  const dbPath = resolve(env.PLANS_DB_PATH);
+  const dbPath = resolve(env.PUSH_DB_PATH);
   mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec('PRAGMA journal_mode = WAL');
   db.exec('PRAGMA foreign_keys = ON');
   db.exec('PRAGMA busy_timeout = 5000');
   db.exec(`
-    CREATE TABLE IF NOT EXISTS plan_tasks (
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      description TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'todo',
-      priority TEXT NOT NULL DEFAULT 'normal',
-      due_date TEXT,
-      recurrence TEXT NOT NULL DEFAULT 'none',
-      project_slug TEXT,
+      user_id INTEGER NOT NULL,
+      endpoint TEXT NOT NULL UNIQUE,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
+    CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON push_subscriptions(user_id);
   `);
-  try {
-    db.exec("ALTER TABLE plan_tasks ADD COLUMN recurrence TEXT NOT NULL DEFAULT 'none'");
-  } catch {
-    // Колонка уже существует.
-  }
   return db;
 }
 
-export function getPlansDb(): DatabaseSync {
+export function getPushDb(): DatabaseSync {
   if (!dbInstance) dbInstance = openDatabase();
   return dbInstance;
 }

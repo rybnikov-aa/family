@@ -70,6 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       /* сессия могла уже истечь — неважно, выходим в любом случае */
     }
+    if (navigator.serviceWorker?.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_PRIVATE_CACHE' });
+    }
     setUser(null);
   }, []);
 

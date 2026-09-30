@@ -304,6 +304,7 @@ export async function deleteProject(slug: string): Promise<void> {
 
 export type PlanStatus = 'todo' | 'doing' | 'done';
 export type PlanPriority = 'low' | 'normal' | 'high';
+export type PlanRecurrence = 'none' | 'daily' | 'weekly' | 'monthly';
 
 export interface PlanTask {
   id: number;
@@ -312,6 +313,7 @@ export interface PlanTask {
   status: PlanStatus;
   priority: PlanPriority;
   dueDate: string | null;
+  recurrence: PlanRecurrence;
   projectSlug: string | null;
   projectTitle: string | null;
   createdAt: string;
@@ -324,6 +326,7 @@ export interface PlanTaskInput {
   status?: PlanStatus;
   priority?: PlanPriority;
   dueDate?: string | null;
+  recurrence?: PlanRecurrence;
   projectSlug?: string | null;
 }
 
@@ -424,6 +427,27 @@ export async function deleteNews(id: number): Promise<void> {
 
 export async function markNewsRead(id: number): Promise<void> {
   const res = await apiFetch(`/news/${id}/read`, { method: 'POST' });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+}
+
+export interface PushConfig {
+  configured: boolean;
+  publicKey: string | null;
+}
+
+export async function fetchPushConfig(): Promise<PushConfig> {
+  const res = await apiFetch('/push/config');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<PushConfig>;
+}
+
+export async function subscribePush(subscription: PushSubscription): Promise<void> {
+  const res = await apiFetch('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(subscription.toJSON()) });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+}
+
+export async function unsubscribePush(endpoint: string): Promise<void> {
+  const res = await apiFetch('/push/subscribe', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint }) });
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
 }
 

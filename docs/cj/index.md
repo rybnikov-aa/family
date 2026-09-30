@@ -4,27 +4,30 @@
 
 ## Пользовательские пути
 
-| ID     | Journey                                                                            | Основная роль | Требования     |
-| ------ | ---------------------------------------------------------------------------------- | ------------- | -------------- |
-| CJ-001 | [Войти и перейти к разделам портала](cj-001-login-and-navigate.md)                 | user/admin    | FR-001, FR-008 |
-| CJ-002 | [Обновить профиль и управлять учетными записями](cj-002-profile-and-user-admin.md) | user/admin    | FR-002         |
-| CJ-003 | [Проверить доступность VPS](cj-003-monitor-vps.md)                                 | user/admin    | FR-003         |
-| CJ-004 | [Управлять списком VPS](cj-004-administer-vps.md)                                  | admin         | FR-003         |
-| CJ-005 | [Найти и открыть проект](cj-005-browse-projects.md)                                | user/admin    | FR-004         |
-| CJ-006 | [Просмотреть отчетность ремонта](cj-006-review-renovation.md)                      | user/admin    | FR-005         |
-| CJ-007 | [Импортировать документ ремонта](cj-007-import-renovation-document.md)             | admin         | FR-005         |
-| CJ-008 | [Применить дополнительное соглашение](cj-008-apply-estimate-addendum.md)           | admin         | FR-005         |
-| CJ-009 | [Найти событие семейного дневника](cj-009-browse-diary.md)                         | user/admin    | FR-006         |
-| CJ-010 | [Создать или изменить событие дневника](cj-010-manage-diary-event.md)              | admin         | FR-006         |
-| CJ-011 | [Отредактировать описание и фотографии события](cj-011-edit-diary-description.md)  | admin         | FR-006, FR-007 |
-| CJ-012 | [Подключить Immich и импортировать фото](cj-012-connect-immich-and-import.md)      | admin         | FR-007         |
-| CJ-013 | [Планировать и отслеживать задачи](cj-013-manage-plans.md)                         | user/admin    | FR-009         |
-| CJ-014 | [Найти запись глобальным поиском](cj-014-global-search.md)                         | user/admin    | FR-010         |
-| CJ-015 | [Проверить историю доступности VPS](cj-015-review-vps-history.md)                  | user/admin    | FR-003, FR-011 |
-| CJ-016 | [Найти событие в расширенном дневнике](cj-016-enrich-diary.md)                     | user/admin    | FR-012         |
-| CJ-017 | [Экспортировать событие дневника](cj-017-export-diary.md)                          | user/admin    | FR-013         |
-| CJ-018 | [Управлять альбомами дневника](cj-018-manage-diary-albums.md)                      | user/admin    | FR-014         |
-| CJ-019 | [Читать и публиковать новости](cj-019-manage-news.md)                              | user/admin    | FR-015         |
+| ID     | Journey                                                                              | Основная роль | Требования     |
+| ------ | ------------------------------------------------------------------------------------ | ------------- | -------------- |
+| CJ-001 | [Войти и перейти к разделам портала](cj-001-login-and-navigate.md)                   | user/admin    | FR-001, FR-008 |
+| CJ-002 | [Обновить профиль и управлять учетными записями](cj-002-profile-and-user-admin.md)   | user/admin    | FR-002         |
+| CJ-003 | [Проверить доступность VPS](cj-003-monitor-vps.md)                                   | user/admin    | FR-003         |
+| CJ-004 | [Управлять списком VPS](cj-004-administer-vps.md)                                    | admin         | FR-003         |
+| CJ-005 | [Найти и открыть проект](cj-005-browse-projects.md)                                  | user/admin    | FR-004         |
+| CJ-006 | [Просмотреть отчетность ремонта](cj-006-review-renovation.md)                        | user/admin    | FR-005         |
+| CJ-007 | [Импортировать документ ремонта](cj-007-import-renovation-document.md)               | admin         | FR-005         |
+| CJ-008 | [Применить дополнительное соглашение](cj-008-apply-estimate-addendum.md)             | admin         | FR-005         |
+| CJ-009 | [Найти событие семейного дневника](cj-009-browse-diary.md)                           | user/admin    | FR-006         |
+| CJ-010 | [Создать или изменить событие дневника](cj-010-manage-diary-event.md)                | admin         | FR-006         |
+| CJ-011 | [Отредактировать описание и фотографии события](cj-011-edit-diary-description.md)    | admin         | FR-006, FR-007 |
+| CJ-012 | [Подключить Immich и импортировать фото](cj-012-connect-immich-and-import.md)        | admin         | FR-007         |
+| CJ-013 | [Планировать и отслеживать задачи](cj-013-manage-plans.md)                           | user/admin    | FR-009         |
+| CJ-014 | [Найти запись глобальным поиском](cj-014-global-search.md)                           | user/admin    | FR-010         |
+| CJ-015 | [Проверить историю доступности VPS](cj-015-review-vps-history.md)                    | user/admin    | FR-003, FR-011 |
+| CJ-016 | [Найти событие в расширенном дневнике](cj-016-enrich-diary.md)                       | user/admin    | FR-012         |
+| CJ-017 | [Экспортировать событие дневника](cj-017-export-diary.md)                            | user/admin    | FR-013         |
+| CJ-018 | [Управлять альбомами дневника](cj-018-manage-diary-albums.md)                        | user/admin    | FR-014         |
+| CJ-019 | [Читать и публиковать новости](cj-019-manage-news.md)                                | user/admin    | FR-015         |
+| CJ-020 | [Установить и использовать портал на телефоне](cj-020-install-and-use-mobile-pwa.md) | user          | FR-016         |
+| CJ-021 | [Планировать и отслеживать повторяющиеся задачи](cj-021-use-plans-productivity.md)   | user/admin    | FR-017         |
+| CJ-022 | [Включить push-уведомления](cj-022-enable-push-notifications.md)                    | user          | FR-018         |
 
 ## Границы
 

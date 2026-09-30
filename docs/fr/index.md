@@ -19,5 +19,8 @@
 | [FR-013](fr-013-diary-export.md)                    | Экспорт дневника                                 | [domain diary](../domains/diary.md), [API](../layers/api.md)               | CJ-017         |
 | [FR-014](fr-014-diary-albums.md)                    | Альбомы и подборки дневника                      | [domain diary](../domains/diary.md), [API](../layers/api.md)               | CJ-018         |
 | [FR-015](fr-015-news-management.md)                 | Управляемые новости                              | [domain news](../domains/news.md), [API](../layers/api.md)                 | CJ-019         |
+| [FR-016](fr-016-pwa-mobile.md)                      | PWA и мобильный режим                            | [domain PWA](../domains/pwa.md), [frontend layer](../layers/frontend.md)   | CJ-020         |
+| [FR-017](fr-017-plans-productivity.md)              | Расширенные планы                                | [domain plans](../domains/plans.md), [API](../layers/api.md)               | CJ-021         |
+| [FR-018](fr-018-web-push.md)                        | Web Push уведомления                             | [domain PWA](../domains/pwa.md), [API](../layers/api.md)                   | CJ-022         |
 
 Нефункциональные требования размещены отдельно в [`docs/nfr/`](../nfr/index.md); требования к процессу разработки и агентскому харнессу — в [`docs/hr/`](../hr/index.md).

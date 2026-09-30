@@ -34,6 +34,8 @@
 - Статическая проверка слоя: `npm run typecheck -w frontend`.
 - Общий статический gate репозитория: `npm run typecheck`.
 - Изменения пользовательского интерфейса проверяются в браузере по процедуре из `docs/layers/design-system.md`.
+- PWA-контур: `public/manifest.webmanifest`, `public/sw.js`, регистрация service worker в `main.tsx`,
+  install prompt в `usePwaInstall`; приватный cache очищается при logout.
 
 ## Доменные страницы
 

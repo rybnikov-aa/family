@@ -153,7 +153,14 @@ multipart-поля `title`, `tag`, `text`, `publishAt`, `pinned` и изобра
 `POST /api/news/:id/read` отмечает запись прочитанной, `GET /api/news/attachments/:folder/:file`
 отдаёт защищённое изображение. Admin-CRUD доступен только роли `admin`.
 
-### 2.10. Настройки (settings)
+### 2.10. Web Push
+
+`GET /api/push/config` возвращает `{configured, publicKey}` без приватного ключа.
+`POST /api/push/subscribe` сохраняет subscription текущего пользователя,
+`DELETE /api/push/subscribe` удаляет его endpoint. Все endpoints требуют авторизацию;
+отправка выполняется backend VAPID sender при настроенных `VAPID_*`.
+
+### 2.11. Настройки (settings)
 
 Настройки подключения к внешним сервисам (сейчас — Immich, фотоархив). Хранятся
 в общей таблице `settings` основной БД (`DB_PATH`); API-ключ клиенту не возвращается.
@@ -165,7 +172,7 @@ multipart-поля `title`, `tag`, `text`, `publishAt`, `pinned` и изобра
 | GET   | `/api/settings/immich`       | Текущие настройки Immich (любой авторизованный)                    | —; ответ — `{baseUrl: string\|null, apiKeyConfigured: boolean}` (API-ключ не возвращается!)                                                                                                                                                                       |
 | POST  | `/api/settings/immich/check` | Проверка соединения; при успехе — сохраняет реквизиты в БД (admin) | Тело — `{baseUrl, apiKey?}` (пустой `apiKey` = проверять сохранённым ключом); успех → `{ok: true, version: {major, minor, patch}}` и сохранение `baseUrl` (+ `apiKey`, если передан); ошибка → `{ok: false, error}` (HTTP 200 — бизнес-результат, БД не меняется) |
 
-### 2.11. Immich: пикер фото (вариант B2)
+### 2.12. Immich: пикер фото (вариант B2)
 
 Прокси к инстансу Immich для выбора фото при создании/редактировании события «Дневника»
 (кнопка «Из Immich» в форме события, admin). Все вызовы идут с бэкенда — API-ключ хранится

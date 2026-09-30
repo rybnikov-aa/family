@@ -6,6 +6,7 @@ import {
   listPlanRows,
   updatePlanRow,
   type PlanPriority,
+  type PlanRecurrence,
   type PlanRow,
   type PlanStatus,
 } from '../db/plansRepository';
@@ -17,6 +18,7 @@ export interface PlanInput {
   status?: PlanStatus;
   priority?: PlanPriority;
   dueDate?: string | null;
+  recurrence?: PlanRecurrence;
   projectSlug?: string | null;
 }
 
@@ -27,6 +29,7 @@ export interface PlanTask {
   status: PlanStatus;
   priority: PlanPriority;
   dueDate: string | null;
+  recurrence: PlanRecurrence;
   projectSlug: string | null;
   projectTitle: string | null;
   createdAt: string;
@@ -35,6 +38,7 @@ export interface PlanTask {
 
 const STATUSES: PlanStatus[] = ['todo', 'doing', 'done'];
 const PRIORITIES: PlanPriority[] = ['low', 'normal', 'high'];
+const RECURRENCES: PlanRecurrence[] = ['none', 'daily', 'weekly', 'monthly'];
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function normalizeDate(value: string | null | undefined): string | null | undefined {
@@ -67,6 +71,7 @@ function mapRow(row: PlanRow): PlanTask {
     status: row.status,
     priority: row.priority,
     dueDate: row.due_date,
+    recurrence: row.recurrence,
     projectSlug: row.project_slug,
     projectTitle: project?.title ?? null,
     createdAt: row.created_at,
@@ -84,6 +89,9 @@ function normalizePatch(input: PlanInput, creating: boolean) {
   if (input.priority !== undefined && !PRIORITIES.includes(input.priority)) {
     throw new HttpError(400, 'Недопустимый приоритет задачи');
   }
+  if (input.recurrence !== undefined && !RECURRENCES.includes(input.recurrence)) {
+    throw new HttpError(400, 'Недопустимое повторение задачи');
+  }
   const dueDate = normalizeDate(input.dueDate);
   const projectSlug = normalizeProject(input.projectSlug);
   return {
@@ -91,6 +99,7 @@ function normalizePatch(input: PlanInput, creating: boolean) {
     ...(input.description !== undefined ? { description: input.description.trim() } : {}),
     ...(input.status !== undefined ? { status: input.status } : {}),
     ...(input.priority !== undefined ? { priority: input.priority } : {}),
+    ...(input.recurrence !== undefined ? { recurrence: input.recurrence } : {}),
     ...(dueDate !== undefined ? { dueDate } : {}),
     ...(projectSlug !== undefined ? { projectSlug } : {}),
   };
@@ -108,6 +117,7 @@ export function createPlan(input: PlanInput): PlanTask {
     status: patch.status ?? 'todo',
     priority: patch.priority ?? 'normal',
     dueDate: patch.dueDate ?? null,
+    recurrence: patch.recurrence ?? 'none',
     projectSlug: patch.projectSlug ?? null,
   });
   return mapRow(row);
@@ -115,9 +125,29 @@ export function createPlan(input: PlanInput): PlanTask {
 
 export function updatePlan(id: number, input: PlanInput): PlanTask {
   const patch = normalizePatch(input, false);
+  const current = getPlanRow(id);
+  if (!current) throw new HttpError(404, 'Задача не найдена');
+  if (
+    (patch.status ?? current.status) === 'done' &&
+    (patch.recurrence ?? current.recurrence) !== 'none'
+  ) {
+    const dueDate = patch.dueDate ?? current.due_date;
+    if (dueDate) {
+      patch.status = 'todo';
+      patch.dueDate = advanceDueDate(dueDate, patch.recurrence ?? current.recurrence);
+    }
+  }
   const row = updatePlanRow(id, patch);
   if (!row) throw new HttpError(404, 'Задача не найдена');
   return mapRow(row);
+}
+
+function advanceDueDate(value: string, recurrence: PlanRecurrence): string {
+  const date = new Date(`${value}T00:00:00Z`);
+  if (recurrence === 'daily') date.setUTCDate(date.getUTCDate() + 1);
+  if (recurrence === 'weekly') date.setUTCDate(date.getUTCDate() + 7);
+  if (recurrence === 'monthly') date.setUTCMonth(date.getUTCMonth() + 1);
+  return date.toISOString().slice(0, 10);
 }
 
 export function deletePlan(id: number): void {

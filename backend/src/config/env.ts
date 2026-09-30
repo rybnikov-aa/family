@@ -34,6 +34,12 @@ export const env = {
   /** Каталог изображений-вложений новостей. */
   NEWS_ATTACHMENTS_DIR: process.env.NEWS_ATTACHMENTS_DIR ?? 'news-attachments',
 
+  /** Хранилище Web Push подписок и VAPID sender. */
+  PUSH_DB_PATH: process.env.PUSH_DB_PATH ?? 'data/push.sqlite',
+  VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY ?? '',
+  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY ?? '',
+  VAPID_SUBJECT: process.env.VAPID_SUBJECT ?? '',
+
   // ── Дневник (diary) ────────────────────────────────────────────────────────
   /**
    * Путь к отдельной БД событий «Дневника». Это НЕ `DB_PATH` (база VPS) —

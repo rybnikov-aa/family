@@ -10,6 +10,7 @@ import {
   type NewsUpload,
 } from '../services/newsService';
 import { newsAttachmentPath } from '../services/newsStore';
+import { sendPushToAll } from '../services/pushService';
 
 function handleError(res: Response, error: unknown): boolean {
   if (error instanceof NewsHttpError) {
@@ -46,7 +47,9 @@ export function adminNewsController(req: Request, res: Response): void {
 
 export function createNewsController(req: Request, res: Response): void {
   try {
-    res.status(201).json(createNews(parseUpload(req)));
+    const post = createNews(parseUpload(req));
+    void sendPushToAll({ title: 'Новая новость', body: post.title, url: '/news' });
+    res.status(201).json(post);
   } catch (error) {
     if (!handleError(res, error)) throw error;
   }

@@ -15,6 +15,7 @@ function PlanTaskModal({ task, projects, onClose, onSaved }: PlanTaskModalProps)
   const [description, setDescription] = useState(task?.description ?? '');
   const [status, setStatus] = useState(task?.status ?? 'todo');
   const [priority, setPriority] = useState(task?.priority ?? 'normal');
+  const [recurrence, setRecurrence] = useState(task?.recurrence ?? 'none');
   const [dueDate, setDueDate] = useState(task?.dueDate ?? '');
   const [projectSlug, setProjectSlug] = useState(task?.projectSlug ?? '');
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +30,7 @@ function PlanTaskModal({ task, projects, onClose, onSaved }: PlanTaskModalProps)
       description,
       status,
       priority,
+      recurrence,
       dueDate: dueDate || null,
       projectSlug: projectSlug || null,
     };
@@ -92,6 +94,19 @@ function PlanTaskModal({ task, projects, onClose, onSaved }: PlanTaskModalProps)
             </select>
           </label>
         </div>
+        <label className="field">
+          <span className="field__label">Повторение</span>
+          <select
+            className="input"
+            value={recurrence}
+            onChange={(event) => setRecurrence(event.target.value as typeof recurrence)}
+          >
+            <option value="none">Не повторять</option>
+            <option value="daily">Каждый день</option>
+            <option value="weekly">Каждую неделю</option>
+            <option value="monthly">Каждый месяц</option>
+          </select>
+        </label>
         <div className="plans-form__grid">
           <label className="field">
             <span className="field__label">Срок</span>

@@ -2,6 +2,7 @@ import { getPlansDb } from './plansDatabase';
 
 export type PlanStatus = 'todo' | 'doing' | 'done';
 export type PlanPriority = 'low' | 'normal' | 'high';
+export type PlanRecurrence = 'none' | 'daily' | 'weekly' | 'monthly';
 
 export interface PlanRow {
   id: number;
@@ -10,6 +11,7 @@ export interface PlanRow {
   status: PlanStatus;
   priority: PlanPriority;
   due_date: string | null;
+  recurrence: PlanRecurrence;
   project_slug: string | null;
   created_at: string;
   updated_at: string;
@@ -50,6 +52,7 @@ export interface PlanRowInput {
   status: PlanStatus;
   priority: PlanPriority;
   dueDate: string | null;
+  recurrence: PlanRecurrence;
   projectSlug: string | null;
 }
 
@@ -57,8 +60,8 @@ export function createPlanRow(input: PlanRowInput): PlanRow {
   const db = getPlansDb();
   const result = db
     .prepare(
-      `INSERT INTO plan_tasks (title, description, status, priority, due_date, project_slug)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO plan_tasks (title, description, status, priority, due_date, recurrence, project_slug)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       input.title,
@@ -66,6 +69,7 @@ export function createPlanRow(input: PlanRowInput): PlanRow {
       input.status,
       input.priority,
       input.dueDate,
+      input.recurrence,
       input.projectSlug,
     );
   return getPlanRow(Number(result.lastInsertRowid)) as PlanRow;
@@ -80,12 +84,13 @@ export function updatePlanRow(id: number, patch: Partial<PlanRowInput>): PlanRow
     status: patch.status ?? current.status,
     priority: patch.priority ?? current.priority,
     dueDate: patch.dueDate === undefined ? current.due_date : patch.dueDate,
+    recurrence: patch.recurrence ?? current.recurrence,
     projectSlug: patch.projectSlug === undefined ? current.project_slug : patch.projectSlug,
   };
   getPlansDb()
     .prepare(
       `UPDATE plan_tasks SET title = ?, description = ?, status = ?, priority = ?,
-       due_date = ?, project_slug = ?, updated_at = datetime('now') WHERE id = ?`,
+      due_date = ?, recurrence = ?, project_slug = ?, updated_at = datetime('now') WHERE id = ?`,
     )
     .run(
       next.title,
@@ -93,6 +98,7 @@ export function updatePlanRow(id: number, patch: Partial<PlanRowInput>): PlanRow
       next.status,
       next.priority,
       next.dueDate,
+      next.recurrence,
       next.projectSlug,
       id,
     );
