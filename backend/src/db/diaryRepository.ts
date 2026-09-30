@@ -15,6 +15,7 @@ export interface DiaryEventRow {
   place: string;
   participants_json: string;
   tags: string[];
+  album_ids: number[];
   folder: string;
   cover: string | null;
   created_at: string;
@@ -38,6 +39,7 @@ export interface DiaryEventRowInput {
 const toRow = (value: unknown): DiaryEventRow => ({
   ...(value as unknown as Omit<DiaryEventRow, 'tags'>),
   tags: [],
+  album_ids: [],
 });
 
 function withTags(row: DiaryEventRow): DiaryEventRow {
@@ -48,7 +50,35 @@ function withTags(row: DiaryEventRow): DiaryEventRow {
        WHERE et.event_id = ? ORDER BY t.name COLLATE NOCASE`,
     )
     .all(row.id) as unknown as { name: string }[];
-  return { ...row, tags: tags.map((tag) => tag.name) };
+  const albums = getDiaryDb()
+    .prepare('SELECT album_id FROM diary_album_events WHERE event_id = ?')
+    .all(row.id) as unknown as { album_id: number }[];
+  return {
+    ...row,
+    tags: tags.map((tag) => tag.name),
+    album_ids: albums.map((album) => album.album_id),
+  };
+}
+
+export interface DiaryAlbumRow {
+  id: number;
+  title: string;
+  description: string;
+  event_ids: number[];
+  created_at: string;
+  updated_at: string;
+}
+
+const toAlbumRow = (value: unknown): DiaryAlbumRow => ({
+  ...(value as unknown as Omit<DiaryAlbumRow, 'event_ids'>),
+  event_ids: [],
+});
+
+function withAlbumEvents(row: DiaryAlbumRow): DiaryAlbumRow {
+  const events = getDiaryDb()
+    .prepare('SELECT event_id FROM diary_album_events WHERE album_id = ?')
+    .all(row.id) as unknown as { event_id: number }[];
+  return { ...row, event_ids: events.map((event) => event.event_id) };
 }
 
 /**
@@ -186,4 +216,57 @@ export function deleteDiaryEventRow(id: number): boolean {
   const db = getDiaryDb();
   const result = db.prepare('DELETE FROM diary_events WHERE id = ?').run(id);
   return result.changes > 0;
+}
+
+export function listDiaryAlbumRows(): DiaryAlbumRow[] {
+  return getDiaryDb()
+    .prepare('SELECT * FROM diary_albums ORDER BY title COLLATE NOCASE')
+    .all()
+    .map((row) => withAlbumEvents(toAlbumRow(row)));
+}
+
+export function getDiaryAlbumRow(id: number): DiaryAlbumRow | null {
+  const row = getDiaryDb().prepare('SELECT * FROM diary_albums WHERE id = ?').get(id);
+  return row ? withAlbumEvents(toAlbumRow(row)) : null;
+}
+
+export function createDiaryAlbumRow(title: string, description: string): DiaryAlbumRow {
+  const db = getDiaryDb();
+  const result = db
+    .prepare('INSERT INTO diary_albums (title, description) VALUES (?, ?)')
+    .run(title, description);
+  return getDiaryAlbumRow(Number(result.lastInsertRowid)) as DiaryAlbumRow;
+}
+
+export function updateDiaryAlbumRow(
+  id: number,
+  title: string,
+  description: string,
+): DiaryAlbumRow | null {
+  const db = getDiaryDb();
+  if (!getDiaryAlbumRow(id)) return null;
+  db.prepare(
+    "UPDATE diary_albums SET title = ?, description = ?, updated_at = datetime('now') WHERE id = ?",
+  ).run(title, description, id);
+  return getDiaryAlbumRow(id);
+}
+
+export function deleteDiaryAlbumRow(id: number): boolean {
+  return getDiaryDb().prepare('DELETE FROM diary_albums WHERE id = ?').run(id).changes > 0;
+}
+
+export function replaceDiaryAlbumEvents(id: number, eventIds: number[]): void {
+  const db = getDiaryDb();
+  db.exec('BEGIN');
+  try {
+    db.prepare('DELETE FROM diary_album_events WHERE album_id = ?').run(id);
+    const insert = db.prepare(
+      'INSERT OR IGNORE INTO diary_album_events (album_id, event_id) VALUES (?, ?)',
+    );
+    for (const eventId of [...new Set(eventIds)]) insert.run(id, eventId);
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
 }

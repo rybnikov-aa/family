@@ -10,6 +10,13 @@ import {
   type DiaryEventUpload,
 } from '../services/diaryService';
 import { ensurePreview, resolveEventImage } from '../services/diary/imageStore';
+import {
+  createDiaryAlbum,
+  deleteDiaryAlbum,
+  DiaryAlbumError,
+  listDiaryAlbums,
+  updateDiaryAlbum,
+} from '../services/diaryAlbumsService';
 
 /** Ловит `HttpError` и отвечает статусом; прочие ошибки уходят в errorHandler (500). */
 function handleHttpError(res: Response, err: unknown): boolean {
@@ -74,9 +81,58 @@ export function listDiaryEventsController(req: Request, res: Response): void {
     listDiaryEvents({
       year: typeof req.query.year === 'string' ? req.query.year : undefined,
       tag: typeof req.query.tag === 'string' ? req.query.tag : undefined,
+      albumId:
+        typeof req.query.album === 'string' && Number.isInteger(Number(req.query.album))
+          ? Number(req.query.album)
+          : undefined,
       query: typeof req.query.q === 'string' ? req.query.q : undefined,
     }),
   );
+}
+
+export function listDiaryAlbumsController(_req: Request, res: Response): void {
+  res.json(listDiaryAlbums());
+}
+
+export function createDiaryAlbumController(req: Request, res: Response): void {
+  try {
+    res.status(201).json(createDiaryAlbum(req.body ?? {}));
+  } catch (err) {
+    if (err instanceof DiaryAlbumError) {
+      res.status(err.status).json({ message: err.message });
+      return;
+    }
+    throw err;
+  }
+}
+
+export function updateDiaryAlbumController(req: Request, res: Response): void {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) throw new DiaryAlbumError(400, 'Некорректный id альбома');
+    res.json(updateDiaryAlbum(id, req.body ?? {}));
+  } catch (err) {
+    if (err instanceof DiaryAlbumError) {
+      res.status(err.status).json({ message: err.message });
+      return;
+    }
+    throw err;
+  }
+}
+
+export function deleteDiaryAlbumController(req: Request, res: Response): void {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) throw new DiaryAlbumError(400, 'Некорректный id альбома');
+    deleteDiaryAlbum(id);
+    res.status(204).end();
+  } catch (err) {
+    if (err instanceof DiaryAlbumError) {
+      res.status(err.status).json({ message: err.message });
+      return;
+    }
+    throw err;
+  }
 }
 
 /** Полные данные события: `GET /api/diary/:id`. 404 — не найдено. */

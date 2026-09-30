@@ -885,6 +885,7 @@ export interface DiaryEventSummary {
   place: string;
   participants: string[];
   tags: string[];
+  albumIds: number[];
   /** Уникальная папка изображений события (в `server/images/`). */
   folder: string;
   /** Имя файла основной фотографии; `null` — нет обложки. */
@@ -909,13 +910,60 @@ export function diaryImageUrl(folder: string, file: string, preview = false): st
   return preview ? `${base}?preview=1` : base;
 }
 
+/** Список альбомов: `GET /api/diary/albums`. */
+export interface DiaryAlbum {
+  id: number;
+  title: string;
+  description: string;
+  eventIds: number[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function fetchDiaryAlbums(): Promise<DiaryAlbum[]> {
+  const res = await apiFetch('/diary/albums');
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<DiaryAlbum[]>;
+}
+
+export async function createDiaryAlbum(
+  input: Omit<DiaryAlbum, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<DiaryAlbum> {
+  const res = await apiFetch('/diary/albums', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<DiaryAlbum>;
+}
+
+export async function updateDiaryAlbum(
+  id: number,
+  input: Omit<DiaryAlbum, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<DiaryAlbum> {
+  const res = await apiFetch(`/diary/albums/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+  return res.json() as Promise<DiaryAlbum>;
+}
+
+export async function deleteDiaryAlbum(id: number): Promise<void> {
+  const res = await apiFetch(`/diary/albums/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
+}
+
 /** Список событий: `GET /api/diary`. */
 export async function fetchDiaryEvents(
-  options: { year?: string; tag?: string; query?: string } = {},
+  options: { year?: string; tag?: string; albumId?: string; query?: string } = {},
 ): Promise<DiaryEventSummary[]> {
   const params = new URLSearchParams();
   if (options.year) params.set('year', options.year);
   if (options.tag) params.set('tag', options.tag);
+  if (options.albumId) params.set('album', options.albumId);
   if (options.query) params.set('q', options.query);
   const query = params.toString();
   const res = await apiFetch(`/diary${query ? `?${query}` : ''}`);

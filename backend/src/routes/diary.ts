@@ -5,6 +5,10 @@ import {
   diaryEventController,
   exportDiaryEventController,
   imageFileController,
+  listDiaryAlbumsController,
+  createDiaryAlbumController,
+  updateDiaryAlbumController,
+  deleteDiaryAlbumController,
   listDiaryEventsController,
   updateDiaryEventController,
 } from '../controllers/diaryController';
@@ -21,6 +25,10 @@ export const diaryRouter = Router();
 
 diaryRouter.get('/', listDiaryEventsController);
 diaryRouter.get('/images/:folder/:file', imageFileController);
+diaryRouter.get('/albums', listDiaryAlbumsController);
+diaryRouter.post('/albums', requireAdmin, createDiaryAlbumController);
+diaryRouter.patch('/albums/:id', requireAdmin, updateDiaryAlbumController);
+diaryRouter.delete('/albums/:id', requireAdmin, deleteDiaryAlbumController);
 diaryRouter.get('/:id/export', exportDiaryEventController);
 diaryRouter.get('/:id', diaryEventController);
 diaryRouter.post('/', requireAdmin, uploadImages, createDiaryEventController);

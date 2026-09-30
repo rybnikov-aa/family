@@ -16,7 +16,7 @@ interface UseDiaryEventsResult {
  * защитный контракт фронтенда — порядок гарантирован независимо от API.
  */
 export function useDiaryEvents(
-  options: { year?: string; tag?: string; query?: string } = {},
+  options: { year?: string; tag?: string; albumId?: string; query?: string } = {},
 ): UseDiaryEventsResult {
   const { data, error, loading, reload } = useApiData<DiaryEventSummary[]>(() =>
     fetchDiaryEvents(options),

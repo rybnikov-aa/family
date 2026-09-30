@@ -70,6 +70,7 @@ export interface DiaryEventSummary {
   place: string;
   participants: string[];
   tags: string[];
+  albumIds: number[];
   /** Уникальная папка изображений события (в `images/`). */
   folder: string;
   /** Имя файла основной фотографии (в папке события); `null` — нет обложки. */
@@ -146,6 +147,7 @@ function rowToSummary(row: DiaryEventRow): DiaryEventSummary {
     place: row.place,
     participants: parseParticipants(row.participants_json),
     tags: row.tags,
+    albumIds: row.album_ids,
     folder: row.folder,
     cover,
     images: allImages,
@@ -222,7 +224,7 @@ function resolveCover(
 
 /** Список событий (сводки, без контента): `GET /api/diary`. */
 export function listDiaryEvents(
-  options: { year?: string; tag?: string; query?: string } = {},
+  options: { year?: string; tag?: string; albumId?: number; query?: string } = {},
 ): DiaryEventSummary[] {
   const query = options.query?.trim().toLocaleLowerCase('ru');
   return listDiaryEventRows()
@@ -234,6 +236,7 @@ export function listDiaryEvents(
           (tag) => tag.toLocaleLowerCase('ru') === options.tag?.toLocaleLowerCase('ru'),
         ),
     )
+    .filter((row) => options.albumId === undefined || row.album_ids.includes(options.albumId))
     .filter(
       (row) =>
         !query ||

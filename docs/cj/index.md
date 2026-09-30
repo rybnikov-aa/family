@@ -23,6 +23,7 @@
 | CJ-015 | [Проверить историю доступности VPS](cj-015-review-vps-history.md)                  | user/admin    | FR-003, FR-011 |
 | CJ-016 | [Найти событие в расширенном дневнике](cj-016-enrich-diary.md)                     | user/admin    | FR-012         |
 | CJ-017 | [Экспортировать событие дневника](cj-017-export-diary.md)                          | user/admin    | FR-013         |
+| CJ-018 | [Управлять альбомами дневника](cj-018-manage-diary-albums.md)                      | user/admin    | FR-014         |
 
 ## Границы
 

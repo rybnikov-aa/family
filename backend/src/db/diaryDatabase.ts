@@ -55,6 +55,22 @@ function openDatabase(): DatabaseSync {
     );
 
     CREATE INDEX IF NOT EXISTS idx_diary_event_tags_tag_id ON diary_event_tags(tag_id);
+
+    CREATE TABLE IF NOT EXISTS diary_albums (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      title       TEXT NOT NULL UNIQUE,
+      description TEXT NOT NULL DEFAULT '',
+      created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS diary_album_events (
+      album_id INTEGER NOT NULL REFERENCES diary_albums(id) ON DELETE CASCADE,
+      event_id INTEGER NOT NULL REFERENCES diary_events(id) ON DELETE CASCADE,
+      PRIMARY KEY (album_id, event_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_diary_album_events_event_id ON diary_album_events(event_id);
   `);
 
   // Миграция существующей БД, созданной до появления полей расширенного дневника.

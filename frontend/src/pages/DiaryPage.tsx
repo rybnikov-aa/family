@@ -1,15 +1,25 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import DiaryEventCard from '../components/DiaryEventCard';
 import DiaryEventModal from '../components/DiaryEventModal';
 import DiaryPhotosModal from '../components/DiaryPhotosModal';
+import DiaryAlbumsModal from '../components/DiaryAlbumsModal';
 import ImmichPickerModal from '../components/ImmichPickerModal';
 import IconButton from '../components/IconButton';
-import { DiaryIcon, GridViewIcon, ListViewIcon, PlusIcon, TimelineIcon } from '../components/icons';
+import {
+  DiaryIcon,
+  GridViewIcon,
+  ImagesIcon,
+  ListViewIcon,
+  PlusIcon,
+  TimelineIcon,
+} from '../components/icons';
 import {
   deleteDiaryEvent,
+  fetchDiaryAlbums,
   fetchDiaryEvent,
+  type DiaryAlbum,
   type DiaryEventDetail,
   type DiaryEventSummary,
 } from '../api/client';
@@ -39,10 +49,12 @@ function DiaryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const year = searchParams.get('year') ?? '';
   const tag = searchParams.get('tag') ?? '';
+  const albumId = searchParams.get('album') ?? '';
   const query = searchParams.get('q') ?? '';
   const filterOptions = {
     year: year || undefined,
     tag: tag || undefined,
+    albumId: albumId || undefined,
     query: query.length >= 2 ? query : undefined,
   };
   const { events, error, loading, refresh } = useDiaryEvents(filterOptions);
@@ -51,6 +63,8 @@ function DiaryPage() {
   const immichUrl = useImmichSettings();
   const [layout, setLayout] = useState<DiaryLayout>('list');
   const [createOpen, setCreateOpen] = useState(false);
+  const [albumsOpen, setAlbumsOpen] = useState(false);
+  const [albums, setAlbums] = useState<DiaryAlbum[]>([]);
   const [editing, setEditing] = useState<DiaryEventDetail | null>(null);
   // Мгновенный редактор фотосета (модалка «Фотографии») — из карточки списка.
   const [photosEvent, setPhotosEvent] = useState<DiaryEventDetail | null>(null);
@@ -61,6 +75,12 @@ function DiaryPage() {
       refresh();
     },
   );
+  const loadAlbums = () => {
+    void fetchDiaryAlbums()
+      .then(setAlbums)
+      .catch(() => setAlbums([]));
+  };
+  useEffect(() => loadAlbums(), []);
   const years = useMemo(
     () => [...new Set(events.map((event) => event.dateStart.slice(0, 4)))].sort().reverse(),
     [events],
@@ -78,7 +98,7 @@ function DiaryPage() {
     }
     return [...groups.entries()].sort(([a], [b]) => b.localeCompare(a));
   }, [events]);
-  const updateFilter = (key: 'year' | 'tag' | 'q', value: string) => {
+  const updateFilter = (key: 'year' | 'tag' | 'album' | 'q', value: string) => {
     const next = new URLSearchParams(searchParams);
     if (value) next.set(key, value);
     else next.delete(key);
@@ -148,6 +168,15 @@ function DiaryPage() {
                 <PlusIcon />
               </IconButton>
             )}
+            {isAdmin && (
+              <IconButton
+                label="Управлять альбомами"
+                tooltip="Управлять альбомами"
+                onClick={() => setAlbumsOpen(true)}
+              >
+                <ImagesIcon />
+              </IconButton>
+            )}
           </div>
         </div>
 
@@ -169,6 +198,19 @@ function DiaryPage() {
             {years.map((value) => (
               <option key={value} value={value}>
                 {value}
+              </option>
+            ))}
+          </select>
+          <select
+            className="input"
+            value={albumId}
+            onChange={(event) => updateFilter('album', event.target.value)}
+            aria-label="Альбом"
+          >
+            <option value="">Все альбомы</option>
+            {albums.map((album) => (
+              <option key={album.id} value={album.id}>
+                {album.title}
               </option>
             ))}
           </select>
@@ -232,6 +274,17 @@ function DiaryPage() {
       </section>
 
       {createOpen && <DiaryEventModal onClose={() => setCreateOpen(false)} onSaved={refresh} />}
+      {albumsOpen && (
+        <DiaryAlbumsModal
+          albums={albums}
+          events={events}
+          onClose={() => setAlbumsOpen(false)}
+          onChanged={() => {
+            loadAlbums();
+            refresh();
+          }}
+        />
+      )}
       {editing && (
         <DiaryEventModal event={editing} onClose={() => setEditing(null)} onSaved={refresh} />
       )}

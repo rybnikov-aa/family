@@ -78,6 +78,76 @@
 .diary-event__select-photo input {
   accent-color: var(--color-accent-blue);
 }
+.diary-albums {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 18px;
+}
+.diary-albums__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.diary-albums__item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--text);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+.diary-albums__item--active {
+  border-color: var(--link-hover);
+  background: var(--surface-hover);
+}
+.diary-albums__item small {
+  color: var(--text-faint);
+  font-size: var(--font-size-2xs);
+}
+.diary-albums__empty {
+  color: var(--text-faint);
+  font-size: var(--font-size-caption);
+}
+.diary-albums__form {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.diary-albums__form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.diary-albums__form-head h4 {
+  color: var(--text-strong);
+  font-size: var(--font-size-md);
+}
+.diary-albums__events {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 260px;
+  overflow: auto;
+}
+.diary-albums__event {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: var(--font-size-caption);
+}
+.diary-albums__event input {
+  accent-color: var(--color-accent-blue);
+}
+@media (max-width: 640px) {
+  .diary-albums {
+    grid-template-columns: 1fr;
+  }
+}
 .diary-timeline {
   display: flex;
   flex-direction: column;
