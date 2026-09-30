@@ -24,12 +24,14 @@ graph TD
 │   │   ├── frontend-dev.agent.md     # фронтенд-разработчик (React/TS/Vite)
 │   │   ├── backend-dev.agent.md      # бэкенд-разработчик (Express/SQLite)
 │   │   └── fullstack-dev.agent.md    # сквозные фичи (бэкенд + фронтенд)
-│   └── skills/               # скиллы (загружаются по запросу)
+│   ├── skills/               # скиллы (загружаются по запросу)
 │       ├── vps/              # VPS-мониторинг: SKILL.md, справочник, scripts/list-vps.mjs
 │       ├── deploy/           # деплой и диагностика сервера: SKILL.md, справочник
 │       ├── project-import/   # создание проекта (через UI/БД, не статика)
 │       └── harness-init/     # каркас харнесса и спецификации для нового проекта (SKILL.md + шаблоны references/*)
 │       # Архивные навыки (parse-pdf, project-renovation-*): projects/skills-archive/ (история)
+│   ├── harness/              # обязательные ограничения и заметки репозитория
+│   └── prompts/              # prompt-обертки для задач инициализации
 ├── README.md
 ├── docs/                     # спецификация и справочники (см. «Документация»)
 │   ├── specification.md      # общая спецификация (SDD) + модульные specification-{vps,projects,auth,renovation,diary}.md

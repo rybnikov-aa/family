@@ -7,7 +7,10 @@ user-invocable: true
 
 # Деплой и сервер (family)
 
-Публикация фронтенда/бэкенда/проектов на сервер через `scripts/deploy.mjs` и диагностика после деплоя. Полный справочник по серверу/nginx/SSL — в [docs/server.md](../../docs/server.md) и [README.md](../../README.md) «Деплой».
+Публикация фронтенда/бэкенда/проектов на сервер через `scripts/deploy.mjs` и диагностика после деплоя. Полный справочник по серверу/nginx/SSL — в [docs/server.md](../../../docs/server.md) и [README.md](../../../README.md) «Деплой».
+
+Обязательные ограничения на production-действия, секреты и сохранение данных — в
+[guardrails.md](../../harness/guardrails.md); этот навык не разрешает деплой без явного запроса.
 
 ## Когда использовать
 
@@ -97,5 +100,5 @@ node .github/skills/deploy/scripts/check-server.mjs [--host <хост>] [--user 
 ## Справочник
 
 - [Архитектура деплоя](./references/deploy-architecture.md) — этапы `deploy.mjs`, переменные `DEPLOY_*`, шаги remote-скрипта, грабли.
-- [docs/server.md](../../docs/server.md) — пути на сервере, полный nginx vhost, SSL, хосты, команды диагностики.
-- [README.md](../../README.md) — раздел «Деплой на my.rybnikov.su» (флаги, настройка, требования).
+- [docs/server.md](../../../docs/server.md) — пути на сервере, полный nginx vhost, SSL, хосты, команды диагностики.
+- [README.md](../../../README.md) — раздел «Деплой на my.rybnikov.su» (флаги, настройка, требования).

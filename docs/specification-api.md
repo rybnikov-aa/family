@@ -10,7 +10,7 @@
 
 ## 0. Общие положения
 
-Общие сведения о портале, архитектуре, конфигурации окружения (`.env`), темы/роутинге и решениях (ADR) — в [docs/specification.md](specification.md). Модульные спецификации (требования, критерии приёмки, сценарии) — [docs/specification-vps.md](specification-vps.md), [docs/specification-projects.md](specification-projects.md), [docs/specification-auth.md](specification-auth.md). Здесь — **единый справочник по HTTP API**: все эндпоинты, матрица доступа, форматы ответов и примечания.
+Общие сведения о портале, архитектуре, конфигурации окружения (`.env`), темы/роутинге и решениях (ADR) — в [docs/specification.md](specification.md). Модульные спецификации (требования, критерии приёмки, сценарии) — [docs/specification-vps.md](specification-vps.md), [docs/specification-projects.md](specification-projects.md), [docs/specification-auth.md](specification-auth.md), [docs/specification-diary.md](specification-diary.md) и [docs/specification-renovation.md](specification-renovation.md). Здесь — **единый справочник по HTTP API**: все эндпоинты, матрица доступа, форматы ответов и примечания.
 
 ---
 
