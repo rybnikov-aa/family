@@ -1,11 +1,11 @@
 # HR-001: Владение документами и трассируемость
 
 - **Статус:** действует
-- **Источники:** `AGENTS.md`, `docs/specification.md`, `docs/layers/`, `docs/domains/`, `docs/integrations/`, `docs/operations/`, `docs/policies/`.
+- **Источники:** `AGENTS.md`, [.github/harness/guardrails.md](../../.github/harness/guardrails.md), `docs/specification.md`, `docs/layers/`, `docs/domains/`, `docs/integrations/`, `docs/operations/`, `docs/policies/`.
 
 ## Требования
 
-- **HR-001.1** Git repository является источником долговременных проектных фактов; local repo memory не используется как нормативный источник.
+- **HR-001.1** Все проектные факты, ограничения, решения и процедуры, необходимые агенту между сессиями, восстанавливаются из Git; локальная, профильная, сессионная и облачная память вне Git не является источником проектного контекста. `repo-memory.md`, если используется, хранится в Git.
 - **HR-001.2** `docs/specification.md` — индекс и общие системные положения, не копия layer/domain/API specifications.
 - **HR-001.3** `docs/layers/` владеет сквозной технической архитектурой и общей frontend design system; `docs/domains/` владеет продуктовыми правилами, доменными данными, поведением и acceptance criteria.
 - **HR-001.4** `docs/layers/api.md` — единый HTTP контракт; изменения доступа/schema отражаются также в затронутых domain documents.

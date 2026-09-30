@@ -1,5 +1,5 @@
 ---
-description: 'Сквозная разработка фич приложения family (полный стек). Use when: задача затрагивает и бэкенд, и фронтенд (новый API-эндпоинт + UI, фикс «VPS не видна», новый тип проверки с отображением, изменение контракта API), синхронная актуализация документации (docs/specification*.md, README.md), связка backend/src/** + frontend/src/**. Для задач строго в одной области — используй агентов Frontend Dev или Backend Dev.'
+description: 'Сквозная разработка фич приложения family (полный стек). Use when: задача затрагивает и бэкенд, и фронтенд (новый API-эндпоинт + UI, фикс «VPS не видна», новый тип проверки с отображением, изменение контракта API), синхронная актуализация документации (docs/domains/, docs/layers/, docs/traceability.md, README.md), связка backend/src/** + frontend/src/**. Для задач строго в одной области — используй агентов Frontend Dev или Backend Dev.'
 name: 'Fullstack Dev'
 argument-hint: 'Сквозная задача (бэкенд + фронтенд)'
 tools:

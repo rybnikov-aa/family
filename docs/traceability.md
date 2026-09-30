@@ -57,14 +57,14 @@ FR acceptance detail remains in linked domain/API specifications. No claim of au
 
 ## HR → owner and check
 
-| HR                                                         | Normative owner                                   | Check/evidence                                                          |
-| ---------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------- |
-| [HR-001](hr/hr-001-document-ownership-and-traceability.md) | `AGENTS.md`, this matrix, `docs/specification.md` | Domain/layer ownership links and trace IDs maintained                   |
-| [HR-002](hr/hr-002-artifact-naming-and-ids.md)             | `AGENTS.md`, category indexes                     | Filename regex, sequential IDs, index covers every record               |
-| [HR-003](hr/hr-003-agent-safety-and-guardrails.md)         | [guardrails](../.github/harness/guardrails.md)    | Agent/skill instructions do not weaken guardrails                       |
-| [HR-004](hr/hr-004-agent-roles-and-skills.md)              | `.github/agents/`, `.github/skills/`              | Role scope, owner layers, skill trigger and tool scope                  |
-| [HR-005](hr/hr-005-validation-and-completion.md)           | `AGENTS.md`, layer/domain acceptance              | Run applicable typecheck/browser/API checks and report observed results |
-| [HR-006](hr/hr-006-environment-and-change-control.md)      | `AGENTS.md`, server/backup guides                 | Env ownership, deployment authorization, backup/recovery process        |
+| HR                                                         | Normative owner                                                                                   | Check/evidence                                                          |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| [HR-001](hr/hr-001-document-ownership-and-traceability.md) | `AGENTS.md`, [guardrails](../.github/harness/guardrails.md), this matrix, `docs/specification.md` | Document ownership, Git-only context and trace links maintained         |
+| [HR-002](hr/hr-002-artifact-naming-and-ids.md)             | `AGENTS.md`, category indexes                                                                     | Filename regex, sequential IDs, index covers every record               |
+| [HR-003](hr/hr-003-agent-safety-and-guardrails.md)         | [guardrails](../.github/harness/guardrails.md)                                                    | Agent/skill instructions do not weaken guardrails                       |
+| [HR-004](hr/hr-004-agent-roles-and-skills.md)              | `.github/agents/`, `.github/skills/`                                                              | Role scope, owner layers, skill trigger and tool scope                  |
+| [HR-005](hr/hr-005-validation-and-completion.md)           | `AGENTS.md`, layer/domain acceptance                                                              | Run applicable typecheck/browser/API checks and report observed results |
+| [HR-006](hr/hr-006-environment-and-change-control.md)      | `AGENTS.md`, server/backup guides                                                                 | Env ownership, deployment authorization, backup/recovery process        |
 
 ## Непокрытая/ограниченная функциональность
 

@@ -7,10 +7,11 @@ user-invocable: true
 
 # Деплой и сервер (family)
 
-Публикация фронтенда/бэкенда/проектов на сервер через `scripts/deploy.mjs` и диагностика после деплоя. Полный справочник по серверу/nginx/SSL — в [server operations](../../../docs/operations/server.md) и [README.md](../../../README.md) «Деплой».
+Публикация фронтенда/бэкенда/проектов на сервер через `scripts/deploy.mjs` и диагностика после деплоя. Полный справочник по серверу/nginx/SSL — в [server operations](../../../docs/operations/server.md), по сохранению данных — в [backup/restore guide](../../../docs/operations/backup.md), команды — в [README.md](../../../README.md) «Деплой».
 
 Обязательные ограничения на production-действия, секреты и сохранение данных — в
 [guardrails.md](../../harness/guardrails.md); этот навык не разрешает деплой без явного запроса.
+Общие правила изменений и проверок — в [AGENTS.md](../../../AGENTS.md).
 
 ## Когда использовать
 
@@ -46,15 +47,11 @@ user-invocable: true
 ### Деплой на основной хост (my.rybnikov.su)
 
 - **Основной хост по умолчанию** (корневой `.env`: `DEPLOY_HOST=my.rybnikov.su`, `DEPLOY_PM2_HOME=/home/rybnikov/.pm2`). Команда — просто `npm run deploy -- --no-pdf-setup`.
-- Пользователь `rybnikov`, SSH без пароля, passwordless `sudo`. node v24.19.0 `/usr/bin/node`, pm2 7.0.3 `/usr/bin/pm2`. CPU Xeon Platinum 8260 (AVX2) — sharp `~0.35.3`.
-- **Обязательно `--no-pdf-setup`:** из-за грабли `HOME` (см. ниже) pdf-setup создаёт venv по битому пути. venv ставится вручную: `export HOME=/home/rybnikov; python3 -m venv /home/rybnikov/renov-venv; /home/rybnikov/renov-venv/bin/pip install pdfplumber`, затем `RENOVATION_*` дописываются в `server/.env`.
+- Пользователь `rybnikov`, SSH без пароля, passwordless `sudo`. node v24.19.0 `/usr/bin/node`, pm2 7.0.3 `/usr/bin/pm2`. CPU Xeon Platinum 8260 (AVX2) поддерживает текущий sharp `~0.35.3`; при обновлении проверять CPU целевого хоста: старый QEMU x86-64-v1 без SSE4.2/POPCNT/AVX не поддерживал sharp ≥0.34.
+- **Обязательно `--no-pdf-setup`:** на основном хосте из-за особенностей `HOME` venv ставится вручную. Порядок проверки и установки описан в [server guide §1.4](../../../docs/operations/server.md).
 - Данные перенесены с прежнего основного хоста (2026-08-16): `data/`, `docs/`, `images/`, `server/.env` (адаптирован под домен). Учётка `admin` уже в БД; старые сессии невалидны — вход заново.
 
-### Грабли: Windows OpenSSH передаёт на сервер `HOME=C:Usersalex`
-
-- ssh из этого Windows-окружения всегда шлёт локальный `HOME=C:Usersalex` → на сервере `$HOME/...`/`~/...` резолвятся относительно CWD (удаление `$env:HOME` локально не помогает).
-- **Фикс — `DEPLOY_PM2_HOME`:** `deploy.mjs` экспортирует `PM2_HOME` в remote-скрипт (`export PM2_HOME=...`). Задавать абсолютный `DEPLOY_PM2_HOME=/home/rybnikov/.pm2` — тогда демон pm2 стабилен. Без него `PM2_HOME=$CWD/C:Usersalex/.pm2`: демон нестабилен (умирает между сессиями), деплой делает `start` вместо `restart`, возможен конфликт портов. Ручное управление pm2 — `export PM2_HOME=/home/rybnikov/.pm2; pm2 ...`.
-- `NODE_ENV=production` хранится в env приложения pm2 (задаётся при `pm2 start`), обычный `pm2 restart` его сохраняет; ручной запуск без `NODE_ENV=production` → процесс online, но порт не слушается (гейт `app.listen`).
+Подробности о Windows OpenSSH, `HOME`, `PM2_HOME`, `NODE_ENV` и pdf-setup — в [server guide §1.4](../../../docs/operations/server.md).
 
 ### Управление пользователями на сервере
 

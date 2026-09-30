@@ -8,6 +8,7 @@ user-invocable: true
 # VPS-мониторинг (family)
 
 Подсистема проверки доступности VPS: конфигурация в SQLite (`node:sqlite`), API `/api/vps`, фоновая проверка IP + сервисов с кэшем 30с, виджеты на главной и модалка детализации.
+Нормативное поведение домена — в [VPS specification](../../../docs/domains/vps.md); HTTP форматы и доступ — в [API contract](../../../docs/layers/api.md).
 
 ## Когда использовать
 
@@ -23,7 +24,6 @@ user-invocable: true
 авторизация (раздел «Авторизация»), live-binding VPS (раздел «Backend»). VPS-специфичное здесь:
 
 - **Кэш 30с**: `GET /api/vps` кэшируется на 30с. Чтобы UI сразу увидел изменения — `fetchVps(true)` (`?refresh=1`), обычно через `onRefresh()`.
-- **curl к защищённым API**: сначала логин с cookie (`curl -c ck -X POST http://127.0.0.1:3000/api/auth/login -H 'Content-Type: application/json' -d '{"username":"…","password":"…"}'`), затем `curl -b ck …`; мутации (`POST /api/vps`, импорт, `DELETE`) — только `admin` (иначе 403).
 
 ## Процедуры
 
