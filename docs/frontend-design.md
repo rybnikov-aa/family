@@ -187,6 +187,8 @@ CSS: `.modal-backdrop`, `.modal`, `.modal--wide`, `.modal--pdf`, `.modal__head`,
 Встроенный просмотр PDF (pdf.js / `pdfjs-dist`, ленивый чанк через `React.lazy`): открывается по
 клику на ссылку-кнопку документа «Ремонта» (`renov-link`). Скачивает файл через `fetchFileBytes`
 (`api/client.ts`), рисует страницы на `<canvas>` с листанием, масштабом и индикатором страницы.
+В верхней панели есть переключатель «На весь экран»: он разворачивает диалог через Fullscreen API;
+иконка обновляется по `fullscreenchange`, а Escape сначала выходит из fullscreen, не закрывая PDF.
 Использует `Modal` с `className="modal--pdf"` (шире и компактнее). Воркер pdf.js подключается
 через `import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'`.
 

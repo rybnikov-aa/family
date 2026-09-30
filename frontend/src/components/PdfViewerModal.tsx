@@ -3,6 +3,8 @@ import * as pdfjsLib from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { fetchFileBytes } from '../api/client';
 import { installPdfPolyfills } from '../utils/pdfPolyfills';
+import IconButton from './IconButton';
+import { ExitFullscreenIcon, FullscreenIcon } from './icons';
 import Modal from './Modal';
 
 // Samsung Internet и часть старых WebView не имеют Map.prototype.getOrInsertComputed,
@@ -46,6 +48,7 @@ const PDF_BACKDROP_X = 24 * 2 + 8;
  * обычным fetch). Компонент грузится лениво (pdfjs — тяжёлый чанк).
  */
 function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerModalProps) {
+  const viewerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const taskRef = useRef<pdfjsLib.PDFDocumentLoadingTask | null>(null);
@@ -58,6 +61,35 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
   const [scale, setScale] = useState(1);
   /** Ширина самой широкой страницы на масштабе 1 (для fitToWidth), px. */
   const [pageWidth, setPageWidth] = useState<number | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenError, setFullscreenError] = useState('');
+
+  useEffect(() => {
+    const syncFullscreen = () => {
+      const modal = viewerRef.current?.closest('.modal--pdf');
+      setIsFullscreen(Boolean(modal && document.fullscreenElement === modal));
+    };
+    document.addEventListener('fullscreenchange', syncFullscreen);
+    return () => document.removeEventListener('fullscreenchange', syncFullscreen);
+  }, []);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const exitOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (document.fullscreenElement) {
+        void document.exitFullscreen().catch(() => {
+          setFullscreenError('Не удалось выйти из полноэкранного режима');
+        });
+      } else {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', exitOnEscape, true);
+    return () => window.removeEventListener('keydown', exitOnEscape, true);
+  }, [isFullscreen]);
 
   // Загрузка документа по url (перезагружается при смене url).
   useEffect(() => {
@@ -158,6 +190,25 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
   const zoomOut = () => setScale((s) => Math.max(MIN_SCALE, +(s - ZOOM_STEP).toFixed(2)));
   const prevPage = () => setPage((p) => Math.max(1, p - 1));
   const nextPage = () => setPage((p) => Math.min(numPages, p + 1));
+  const toggleFullscreen = async () => {
+    const modal = viewerRef.current?.closest<HTMLElement>('.modal--pdf');
+    if (!modal) return;
+
+    setFullscreenError('');
+    try {
+      if (document.fullscreenElement === modal) {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      } else if (typeof modal.requestFullscreen === 'function') {
+        await modal.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        setFullscreenError('Полноэкранный режим не поддерживается этим браузером');
+      }
+    } catch {
+      setFullscreenError('Не удалось открыть полноэкранный режим');
+    }
+  };
 
   // Автовписывание по ширине сцены: на узких экранах (мобильные) страница
   // уменьшается так, чтобы помещаться по ширине целиком — иначе её левый край
@@ -198,7 +249,7 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
 
   return (
     <Modal title={title} onClose={onClose} className="modal--pdf" style={modalStyle}>
-      <div className="pdf-viewer">
+      <div className="pdf-viewer" ref={viewerRef}>
         <div className="pdf-viewer__toolbar">
           <span className="pdf-viewer__file">{url}</span>
           <div className="pdf-viewer__toolbar-group">
@@ -221,9 +272,23 @@ function PdfViewerModal({ url, title, onClose, fitToWidth = false }: PdfViewerMo
             >
               +
             </button>
+            <IconButton
+              size="sm"
+              label={isFullscreen ? 'Выйти из полноэкранного режима' : 'На весь экран'}
+              tooltip={isFullscreen ? 'Выйти из полноэкранного режима' : 'На весь экран'}
+              aria-pressed={isFullscreen}
+              onClick={toggleFullscreen}
+            >
+              {isFullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
+            </IconButton>
           </div>
         </div>
 
+        {fullscreenError && (
+          <div className="pdf-viewer__error" role="status">
+            {fullscreenError}
+          </div>
+        )}
         {status === 'loading' && <div className="pdf-viewer__hint">Загружаем PDF…</div>}
         {status === 'error' && <div className="pdf-viewer__error">{errorText}</div>}
 
