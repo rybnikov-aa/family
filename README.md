@@ -30,10 +30,10 @@ graph TD
 │       ├── project-import/   # создание проекта (через UI/БД, не статика)
 │       └── harness-init/     # каркас харнесса и спецификации для нового проекта (SKILL.md + шаблоны references/*)
 │       # Архивные навыки (parse-pdf, project-renovation-*): projects/skills-archive/ (история)
-│   ├── harness/              # обязательные guardrails проекта
 │   └── prompts/              # prompt-обертки для задач инициализации
 ├── README.md
 ├── docs/                     # спецификация и справочники (см. «Документация»)
+│   ├── guardrails.md         # обязательные ограничения проекта
 │   ├── specification.md      # общий индекс спецификаций
 │   ├── layers/               # технические слои и дизайн-система фронтенда
 │   ├── domains/              # спецификации VPS, projects, auth, diary, renovation

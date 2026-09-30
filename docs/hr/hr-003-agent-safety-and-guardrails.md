@@ -1,7 +1,7 @@
 # HR-003: Safety requirements for agents
 
 - **Статус:** действует
-- **Нормативный источник:** [repository guardrails](../../.github/harness/guardrails.md).
+- **Нормативный источник:** [repository guardrails](../guardrails.md).
 
 ## Требования
 

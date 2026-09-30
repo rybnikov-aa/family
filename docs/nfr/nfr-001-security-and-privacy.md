@@ -2,7 +2,7 @@
 
 - **Статус:** действует
 - **Область:** все API, учетные данные, пользовательские файлы и данные ремонта.
-- **Источники:** `docs/layers/middleware.md`, `docs/domains/auth.md`, `docs/adr/adr-012-cookie-session-auth.md`, `docs/adr/adr-024-persisted-pdf-documents.md`, `.github/harness/guardrails.md`.
+- **Источники:** `docs/layers/middleware.md`, `docs/domains/auth.md`, `docs/adr/adr-012-cookie-session-auth.md`, `docs/adr/adr-024-persisted-pdf-documents.md`, `docs/guardrails.md`.
 
 ## Требования
 
@@ -15,4 +15,4 @@
 
 ## Проверка
 
-Матрица доступа и cookie/security behavior — `docs/layers/api.md` и `docs/domains/auth.md`; файловые ограничения — `docs/layers/middleware.md` и domain specs; privacy gate — `.github/harness/guardrails.md`.
+Матрица доступа и cookie/security behavior — `docs/layers/api.md` и `docs/domains/auth.md`; файловые ограничения — `docs/layers/middleware.md` и domain specs; privacy gate — `docs/guardrails.md`.

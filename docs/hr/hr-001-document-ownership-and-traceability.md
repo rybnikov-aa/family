@@ -1,7 +1,7 @@
 # HR-001: Владение документами и трассируемость
 
 - **Статус:** действует
-- **Источники:** `AGENTS.md`, [.github/harness/guardrails.md](../../.github/harness/guardrails.md), `docs/specification.md`, `docs/layers/`, `docs/domains/`, `docs/integrations/`, `docs/operations/`, `docs/policies/`.
+- **Источники:** `AGENTS.md`, [guardrails](../guardrails.md), `docs/specification.md`, `docs/layers/`, `docs/domains/`, `docs/integrations/`, `docs/operations/`, `docs/policies/`.
 
 ## Требования
 

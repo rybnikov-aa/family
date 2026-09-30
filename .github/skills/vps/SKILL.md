@@ -19,11 +19,11 @@ user-invocable: true
 
 ## Конвенции
 
-Обязательные ограничения — в [guardrails.md](../../harness/guardrails.md). Общие конвенции и правила — в [AGENTS.md](../../../AGENTS.md): документация синхронно с кодом
+Обязательные ограничения — в [guardrails.md](../../../docs/guardrails.md). Общие конвенции и правила — в [AGENTS.md](../../../AGENTS.md): документация синхронно с кодом
 (правило 1), `npm run typecheck` — единственный gate (правило 3), node:sqlite-грабли (правило 4),
 авторизация (раздел «Авторизация»), live-binding VPS (раздел «Backend»). VPS-специфичное здесь:
 
-- **Кэш 30с**: `GET /api/vps` кэшируется на 30с. Чтобы UI сразу увидел изменения — `fetchVps(true)` (`?refresh=1`), обычно через `onRefresh()`.
+- **Кэш 30с**: `GET /api/vps` кэшируется на 30с. Чтобы UI сразу увидел изменения — `fetchVps(true)` (`?refresh=1`), обычно через `onRefresh()`. Ограничения проекта — в [docs/guardrails.md](../../../docs/guardrails.md).
 
 ## Процедуры
 

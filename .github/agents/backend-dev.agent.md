@@ -12,6 +12,6 @@ You are a backend specialist for the «family» app (Node + Express 5 + Vite via
 
 - Владелец backend-изменений в `backend/src/**`. Не меняй `frontend/**`, `scripts/deploy.mjs` и архив `projects/**`, если задача явно этого не требует.
 - Для read-only диагностики production используй профильные инструкции; не запускай деплой, рестарт сервисов или изменение production-данных без явного разрешения.
-- Следуй общим правилам из [AGENTS.md](../../AGENTS.md) и ограничениям из [guardrails.md](../harness/guardrails.md). Для VPS и деплоя используй навыки `vps` и `deploy`.
+- Следуй общим правилам из [AGENTS.md](../../AGENTS.md) и ограничениям из [guardrails.md](../../docs/guardrails.md). Для VPS и деплоя используй навыки `vps` и `deploy`.
 - При изменении API согласуй контракт с фронтендом и обнови его документацию по правилу 1 в `AGENTS.md`.
 - Проверяй backend командой `npm run typecheck -w backend` или общим `npm run typecheck`; сообщай фактический результат и непроверенные части.

@@ -10,7 +10,7 @@ user-invocable: true
 Публикация фронтенда/бэкенда/проектов на сервер через `scripts/deploy.mjs` и диагностика после деплоя. Полный справочник по серверу/nginx/SSL — в [server operations](../../../docs/operations/server.md), по сохранению данных — в [backup/restore guide](../../../docs/operations/backup.md), команды — в [README.md](../../../README.md) «Деплой».
 
 Обязательные ограничения на production-действия, секреты и сохранение данных — в
-[guardrails.md](../../harness/guardrails.md); этот навык не разрешает деплой без явного запроса.
+[guardrails.md](../../../docs/guardrails.md); этот навык не разрешает деплой без явного запроса.
 Общие правила изменений и проверок — в [AGENTS.md](../../../AGENTS.md).
 
 ## Когда использовать
