@@ -349,16 +349,14 @@ export function confirmPdfController(req: Request, res: Response): void {
       // Повторная загрузка документа с тем же номером заменяет предыдущую версию:
       // удаляем её разобранное содержимое (запись БД + сохранённый PDF) и импортируем
       // новую версию. Для документов без номера — прежняя идемпотентность (тип+дата → 409).
-      let replaced = false;
       if (cls.number) {
         const existing = findDocByTypeAndNumber(cls.type, cls.number);
         if (existing) {
           const removed = deleteRenovationDoc(existing.id);
           discardPdfByPath(removed?.pdfPath ?? null);
-          replaced = true;
         }
       }
-      if (!replaced && findDocByTypeAndDate(cls.type, cls.date)) {
+      if (!cls.number && findDocByTypeAndDate(cls.type, cls.date)) {
         res.status(409).json({ message: 'Документ этого типа с такой датой уже импортирован' });
         return;
       }
