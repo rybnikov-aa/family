@@ -10,6 +10,8 @@ interface RenovationSettlementProps {
   /** Подпись строки «Внесено» (заказчиком). */
   paidInLabel: string;
   paidIn: number | null;
+  /** Сумма по актам из сводной части ведомости, если распознана. */
+  actsTotal?: number | null;
   /** Итоговая сумма «Учтено всего», копейки. */
   used: number | null;
   balance: number | null;
@@ -38,6 +40,7 @@ function RenovationSettlement({
   date,
   paidInLabel,
   paidIn,
+  actsTotal,
   used,
   balance,
   foremenAmount,
@@ -82,7 +85,10 @@ function RenovationSettlement({
             'Учтено по актам'
           )
         }
-        value={formatKopecks(used == null ? null : used - (foremenAmount ?? 0), true)}
+        value={formatKopecks(
+          actsTotal ?? (used == null ? null : used - (foremenAmount ?? 0)),
+          true,
+        )}
       />
       <StatRow
         sub

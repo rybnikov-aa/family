@@ -102,13 +102,15 @@ function RenovationPage() {
   const materialsSettledAt = overview?.settlements.materials?.date ?? null;
   // «Учтено по актам» в ведомостях: использовано минус подотчётные.
   const worksUsedByActs =
-    overview?.settlements.works?.used != null
+    overview?.settlements.works?.actsTotal ??
+    (overview?.settlements.works?.used != null
       ? overview.settlements.works.used - (overview.settlements.works.foremenAmount ?? 0)
-      : null;
+      : null);
   const materialsUsedByActs =
-    overview?.settlements.materials?.used != null
+    overview?.settlements.materials?.actsTotal ??
+    (overview?.settlements.materials?.used != null
       ? overview.settlements.materials.used - (overview.settlements.materials.foremenAmount ?? 0)
-      : null;
+      : null);
   // Сумма документов, учтённых в ведомости (дата ≤ даты последней ведомости по типу).
   const worksSettledSum =
     works && worksSettledAt
@@ -457,6 +459,7 @@ function RenovationPage() {
                     onOpenPdf={openPdf}
                     paidInLabel="Внесено заказчиком"
                     paidIn={overview.settlements.works.paidIn}
+                    actsTotal={overview.settlements.works.actsTotal}
                     used={overview.settlements.works.used}
                     balance={overview.settlements.works.balance}
                     foremenAmount={worksNote?.amount ?? null}
@@ -517,6 +520,7 @@ function RenovationPage() {
                     onOpenPdf={openPdf}
                     paidInLabel="Внесено заказчиком"
                     paidIn={overview.settlements.materials.paidIn}
+                    actsTotal={overview.settlements.materials.actsTotal}
                     used={overview.settlements.materials.used}
                     balance={overview.settlements.materials.balance}
                     foremenAmount={materialsNote?.amount ?? null}

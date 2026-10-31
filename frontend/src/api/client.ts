@@ -661,6 +661,7 @@ export interface RenovationOverview {
     works: {
       date: string;
       paidIn: number | null;
+      actsTotal: number | null;
       used: number | null;
       balance: number | null;
       /** URL исходного PDF ведомости (просмотр в приложении). */
@@ -673,6 +674,7 @@ export interface RenovationOverview {
     materials: {
       date: string;
       paidIn: number | null;
+      actsTotal: number | null;
       used: number | null;
       balance: number | null;
       /** URL исходного PDF ведомости (просмотр в приложении). */
@@ -776,12 +778,25 @@ export async function uploadRenovationPdf(file: File): Promise<{ draft: Renovati
 /** Подтверждает импорт черновика: `POST /api/renovation/pdf/:id/confirm` (admin). */
 export async function confirmRenovationPdf(
   draftId: string,
-): Promise<{ id: number; type: string; date: string }> {
+  replaceExisting = false,
+): Promise<{ id: number; type: string; date: string; conflict: false } | { conflict: true }> {
   const res = await apiFetch(`/renovation/pdf/${encodeURIComponent(draftId)}/confirm`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ replaceExisting }),
   });
+  if (res.status === 409) {
+    const body = (await res.json().catch(() => null)) as { code?: string; message?: string } | null;
+    if (body?.code === 'SETTLEMENT_EXISTS') return { conflict: true };
+    throw new Error(body?.message ?? `Request failed with status ${res.status}`);
+  }
   if (!res.ok) throw new Error(await errorMessage(res, `Request failed with status ${res.status}`));
-  return res.json() as Promise<{ id: number; type: string; date: string }>;
+  return { ...(await res.json()), conflict: false } as {
+    id: number;
+    type: string;
+    date: string;
+    conflict: false;
+  };
 }
 
 // ── Доп. соглашения к смете (этап 4) ─────────────────────────────────────────

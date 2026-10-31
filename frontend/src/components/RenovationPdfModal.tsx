@@ -47,6 +47,7 @@ function RenovationPdfModal({ onClose, onImported }: RenovationPdfModalProps) {
   const [draft, setDraft] = useState<RenovationDraftSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+  const [replacementPrompt, setReplacementPrompt] = useState(false);
 
   const handleUpload = async () => {
     const file = fileInputRef.current?.files?.[0];
@@ -66,12 +67,17 @@ function RenovationPdfModal({ onClose, onImported }: RenovationPdfModalProps) {
     }
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (replaceExisting = false) => {
     if (!draft) return;
     setError(null);
     setPhase('confirming');
     try {
-      const res = await confirmRenovationPdf(draft.id);
+      const res = await confirmRenovationPdf(draft.id, replaceExisting);
+      if (res.conflict) {
+        setReplacementPrompt(true);
+        setPhase('draft');
+        return;
+      }
       setResult(`Импортировано: ${typeLabel(draft)}, дата ${formatDateIso(res.date)}`);
       setPhase('done');
       onImported();
@@ -100,6 +106,11 @@ function RenovationPdfModal({ onClose, onImported }: RenovationPdfModalProps) {
             </label>
 
             {error && <div className="renov-pdf__error">{error}</div>}
+            {replacementPrompt && (
+              <div className="renov-pdf__warn" role="alert">
+                Ведомость этого типа и даты уже загружена. Заменить её распознанными данными и PDF?
+              </div>
+            )}
 
             {phase === 'uploading' && (
               <div className="renov-pdf__hint">Распознаём документ (pdfplumber)…</div>
@@ -157,15 +168,31 @@ function RenovationPdfModal({ onClose, onImported }: RenovationPdfModalProps) {
             <div className="renov-pdf__actions">
               {phase === 'draft' ? (
                 <>
-                  <Button
-                    variant="primary"
-                    icon={<CheckIcon />}
-                    onClick={handleConfirm}
-                    disabled={!draft}
-                  >
-                    Подтвердить импорт
-                  </Button>
-                  <Button onClick={onClose}>Отмена</Button>
+                  {replacementPrompt ? (
+                    <>
+                      <Button
+                        variant="primary"
+                        icon={<CheckIcon />}
+                        onClick={() => handleConfirm(true)}
+                        disabled={!draft}
+                      >
+                        Заменить ведомость
+                      </Button>
+                      <Button onClick={onClose}>Оставить текущую</Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="primary"
+                        icon={<CheckIcon />}
+                        onClick={() => handleConfirm()}
+                        disabled={!draft}
+                      >
+                        Подтвердить импорт
+                      </Button>
+                      <Button onClick={onClose}>Отмена</Button>
+                    </>
+                  )}
                 </>
               ) : (
                 <>

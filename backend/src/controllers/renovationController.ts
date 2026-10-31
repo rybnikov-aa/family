@@ -236,10 +236,11 @@ function draftSummary(d: RenovationDraft) {
 function finalizeDraftPdf(
   draft: RenovationDraft,
   finalized: { name: string | null },
+  fileName?: string,
 ): string | null {
   if (finalized.name) return pdfUrl(finalized.name);
   if (!draft.pendingPdf) return null;
-  const name = finalizePdf(draft.pendingPdf, pdfFileName(draft.cls));
+  const name = finalizePdf(draft.pendingPdf, fileName ?? pdfFileName(draft.cls));
   if (name) finalized.name = name;
   return name ? pdfUrl(name) : null;
 }
@@ -314,11 +315,19 @@ export function confirmPdfController(req: Request, res: Response): void {
         res.status(400).json({ message: 'Не определена дата документа' });
         return;
       }
-      if (findSettlementByTypeAndDate(cls.subtype, cls.date)) {
-        res.status(409).json({ message: 'Ведомость этого типа с такой датой уже импортирована' });
+      const existing = findSettlementByTypeAndDate(cls.subtype, cls.date);
+      const replaceExisting = req.body?.replaceExisting === true;
+      if (existing && !replaceExisting) {
+        res.status(409).json({
+          code: 'SETTLEMENT_EXISTS',
+          message: 'Ведомость этого типа с такой датой уже импортирована',
+        });
         return;
       }
-      const pdfPath = finalizeDraftPdf(draft, finalized);
+      const replacementFileName = existing
+        ? pdfFileName(cls).replace(/\.pdf$/i, `_${draft.id}.pdf`)
+        : undefined;
+      const pdfPath = finalizeDraftPdf(draft, finalized, replacementFileName);
       const act: SettlementAct = {
         id: 0,
         type: cls.subtype,
@@ -336,7 +345,14 @@ export function confirmPdfController(req: Request, res: Response): void {
           balance: r.balance,
         })),
       };
-      const id = insertSettlementAct(act);
+      const id = insertSettlementAct(act, existing?.id);
+      if (existing) {
+        try {
+          discardPdfByPath(existing.pdfPath);
+        } catch {
+          console.warn('Не удалось удалить старый PDF ведомости');
+        }
+      }
       res.status(201).json({ id, type: act.type, date: act.date });
       return;
     }

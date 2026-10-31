@@ -68,7 +68,7 @@ function isRowEmpty(row: string[]): boolean {
 
 function findHeaderRow(table: PdfTable): number {
   const re =
-    /наименование|сумма|количество|объем|объём|цена|внесено|использовано|остаток|обоснование|единиц/i;
+    /наименование|сумма|количество|объем|объём|цена|внесено|использовано|учтено\s+всего|итого\s+по\s+актам|остаток|обоснование|единиц/i;
   for (let i = 0; i < table.rows.length; i += 1) {
     if (table.rows[i].some((c) => re.test(c))) return i;
   }
@@ -84,6 +84,7 @@ interface ColMap {
   date: number;
   reason: number;
   paid: number;
+  actsTotal: number;
   used: number;
   balance: number;
 }
@@ -104,7 +105,8 @@ function mapColumns(header: string[]): ColMap {
     date: colIndex(header, /дата/i),
     reason: colIndex(header, /обоснование/i),
     paid: colIndex(header, /внесено/i),
-    used: colIndex(header, /использовано/i),
+    actsTotal: colIndex(header, /итого\s+по\s+актам/i),
+    used: colIndex(header, /использовано|учтено\s+всего/i),
     balance: colIndex(header, /остаток/i),
   };
 }
@@ -176,7 +178,7 @@ function parsePosition(first: string | undefined): number | null {
 
 /** Регэксп шапки таблицы (как в `findHeaderRow`): после неё идут позиции. */
 const HEADER_RE =
-  /наименование|сумма|количество|объем|объём|цена|внесено|использовано|остаток|обоснование|единиц/i;
+  /наименование|сумма|количество|объем|объём|цена|внесено|использовано|учтено\s+всего|итого\s+по\s+актам|остаток|обоснование|единиц/i;
 
 /** Одна строка: «2. Провод ПВС 4х0.75 мм ГОСТ ККЗ м.п. 71,40 45,00 3 213,00». */
 // Номер позиции в PDF шаблона подрядчика может быть обёрнут дефисами
@@ -469,7 +471,12 @@ function parseSettlementTables(
     const headerIdx = findHeaderRow(table);
     if (table.rows.length <= headerIdx) continue;
     const cols = mapColumns(table.rows[headerIdx]);
-    const hasSettlementCols = cols.date >= 0 || cols.paid >= 0 || cols.balance >= 0;
+    const header = table.rows[headerIdx].map(cellText);
+    const hasSummaryHeaders = header.some((value) =>
+      /внесено\s+заказчиком|итого\s+по\s+актам|учтено\s+всего/i.test(value),
+    );
+    const hasSettlementCols =
+      cols.date >= 0 || cols.paid >= 0 || cols.balance >= 0 || cols.actsTotal >= 0;
     if (!hasSettlementCols) continue;
 
     for (let r = headerIdx + 1; r < table.rows.length; r += 1) {
@@ -478,15 +485,51 @@ function parseSettlementTables(
       const reason = cell(row, cols.reason) || (cols.name >= 0 ? cell(row, cols.name) : '');
       const rowDate = cell(row, cols.date);
       const paid = parseKopecks(cell(row, cols.paid));
+      const actsTotal = parseKopecks(cell(row, cols.actsTotal));
       const used = parseKopecks(cell(row, cols.used));
       const balance = parseKopecks(cell(row, cols.balance));
+
+      if (hasSummaryHeaders && reason === '' && rowDate === '') {
+        if (paid != null || used != null || balance != null) {
+          rows.push({
+            position: null,
+            kind: 'total',
+            rowDate: null,
+            reason: 'Всего',
+            paidIn: paid,
+            used,
+            balance,
+          });
+        }
+        if (actsTotal != null) {
+          rows.push({
+            position: null,
+            kind: 'subtotal',
+            rowDate: null,
+            reason: 'Итого по актам',
+            paidIn: null,
+            used: actsTotal,
+            balance: null,
+          });
+        }
+        continue;
+      }
+
       // Строки с одним номером без данных (пустые номера ведомости) — пропускаем.
-      if (reason === '' && rowDate === '' && paid == null && used == null && balance == null)
+      if (
+        reason === '' &&
+        rowDate === '' &&
+        paid == null &&
+        actsTotal == null &&
+        used == null &&
+        balance == null
+      )
         continue;
 
       const lower = reason.toLowerCase();
       let kind: DraftSettlementRow['kind'] = 'row';
-      if (lower.includes('всего')) kind = 'total';
+      if (lower.includes('итого по актам')) kind = 'subtotal';
+      else if (lower.includes('всего')) kind = 'total';
       else if (lower.includes('подотчет') || lower.includes('подотчёт')) kind = 'subtotal';
 
       pos += 1;
@@ -496,7 +539,7 @@ function parseSettlementTables(
         rowDate: rowDate || null,
         reason: reason || null,
         paidIn: paid,
-        used,
+        used: actsTotal ?? used,
         balance,
       });
     }
@@ -504,6 +547,109 @@ function parseSettlementTables(
 
   if (rows.length === 0) needsReview = true;
   return { rows, needsReview };
+}
+
+/** Сводные суммы, которые pdfplumber мог извлечь отдельно от таблицы строк. */
+function parseSettlementSummaryText(text: string): {
+  paidIn: number | null;
+  actsTotal: number | null;
+  used: number | null;
+  balance: number | null;
+} {
+  const summary: {
+    paidIn: number | null;
+    actsTotal: number | null;
+    used: number | null;
+    balance: number | null;
+  } = { paidIn: null, actsTotal: null, used: null, balance: null };
+  const labels = [
+    { key: 'paidIn', pattern: /внесено\s+заказчиком/i },
+    { key: 'actsTotal', pattern: /итого\s+по\s+актам/i },
+    { key: 'used', pattern: /учтено\s+всего/i },
+    { key: 'balance', pattern: /остаток/i },
+  ] as const;
+  const lines = text.split('\n').map((line) => line.trim());
+
+  const totalLineIndex = lines.findIndex((line) => /^всего(?:\s|$)/i.test(line));
+  if (totalLineIndex >= 0) {
+    let amounts = moneyTokens(lines[totalLineIndex].replace(/^всего\b/i, ''));
+    for (let index = totalLineIndex + 1; amounts.length < 3 && index < lines.length; index += 1) {
+      const nextAmounts = moneyTokens(lines[index]);
+      if (nextAmounts.length === 0) break;
+      amounts = [...amounts, ...nextAmounts].slice(0, 3);
+    }
+    summary.paidIn = amounts[0] == null ? null : parseKopecks(amounts[0]);
+    summary.used = amounts[1] == null ? null : parseKopecks(amounts[1]);
+    summary.balance = amounts[2] == null ? null : parseKopecks(amounts[2]);
+  }
+
+  for (let index = 0; index < lines.length; index += 1) {
+    for (const { key, pattern } of labels) {
+      const match = pattern.exec(lines[index]);
+      if (!match) continue;
+      const afterLabel = lines[index].slice(match.index + match[0].length);
+      const nextLine = lines[index + 1]?.replace(/₽|руб(?:лей)?\.?/gi, '').trim();
+      const amountText =
+        moneyTokens(afterLabel)[0] ??
+        (nextLine && /^[-−]?\d/.test(nextLine) ? moneyTokens(nextLine)[0] : undefined);
+      const amount = parseKopecks(amountText?.replace(/−/g, '-') ?? null);
+      if (amount != null) summary[key] = amount;
+    }
+  }
+  return summary;
+}
+
+/** Денежные токены с пробелами-разделителями тысяч. */
+function moneyTokens(text: string): string[] {
+  return text.match(/[-−]?\d[\d\s\u00a0]*(?:[.,]\d{1,2})?/g) ?? [];
+}
+
+/** Добавляет значения подвала PDF и дополняет неполную строку «Всего» из таблицы. */
+function mergeSettlementSummary(
+  rows: DraftSettlementRow[],
+  summary: ReturnType<typeof parseSettlementSummaryText>,
+): DraftSettlementRow[] {
+  const result = [...rows];
+  const totalIndex = result.findIndex((row) => row.kind === 'total');
+  if (totalIndex >= 0) {
+    const total = result[totalIndex];
+    result[totalIndex] = {
+      ...total,
+      paidIn: total.paidIn ?? summary.paidIn,
+      used: total.used ?? summary.used,
+      balance: total.balance ?? summary.balance,
+    };
+  } else if (summary.paidIn != null || summary.used != null || summary.balance != null) {
+    result.push({
+      position: null,
+      kind: 'total',
+      rowDate: null,
+      reason: 'Всего',
+      paidIn: summary.paidIn,
+      used: summary.used,
+      balance: summary.balance,
+    });
+  }
+
+  const actsTotalIndex = result.findIndex((row) => /итого\s+по\s+актам/i.test(row.reason ?? ''));
+  if (summary.actsTotal != null && actsTotalIndex >= 0) {
+    const actsTotalRow = result[actsTotalIndex];
+    result[actsTotalIndex] = {
+      ...actsTotalRow,
+      used: actsTotalRow.used ?? actsTotalRow.balance ?? actsTotalRow.paidIn ?? summary.actsTotal,
+    };
+  } else if (summary.actsTotal != null) {
+    result.push({
+      position: null,
+      kind: 'subtotal',
+      rowDate: null,
+      reason: 'Итого по актам',
+      paidIn: null,
+      used: summary.actsTotal,
+      balance: null,
+    });
+  }
+  return result;
 }
 
 /** Построчный разбор ведомости из текста (без таблицы). */
@@ -522,7 +668,7 @@ function parseSettlementText(
     if (line.startsWith('[')) continue;
 
     if (/^всего/i.test(line)) {
-      const nums = line.match(/([\d\s.,-]+)/g) ?? [];
+      const nums = moneyTokens(line.replace(/^всего\b/i, ''));
       rows.push({
         position: null,
         kind: 'total',
@@ -612,7 +758,9 @@ export function buildDraft(
     const res = hasTables
       ? parseSettlementTables(extraction, warnings)
       : parseSettlementText(extraction.text, warnings);
-    settlementRows.push(...res.rows);
+    settlementRows.push(
+      ...mergeSettlementSummary(res.rows, parseSettlementSummaryText(extraction.text)),
+    );
     const rowDate = lastRowDate(settlementRows);
     if (rowDate) effectiveCls = { ...cls, date: rowDate };
     needsReview = res.needsReview;

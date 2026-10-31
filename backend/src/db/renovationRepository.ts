@@ -446,10 +446,14 @@ export function insertRenovationDoc(doc: RenovationDoc): number {
 }
 
 /** Вставляет ведомость взаиморасчётов со строками; возвращает id. */
-export function insertSettlementAct(act: SettlementAct): number {
+export function insertSettlementAct(act: SettlementAct, replaceId?: number): number {
   const db = getRenovationDb();
   db.exec('BEGIN');
   try {
+    if (replaceId != null) {
+      const deleted = db.prepare('DELETE FROM settlement_acts WHERE id = ?').run(replaceId);
+      if (deleted.changes === 0) throw new Error('Заменяемая ведомость больше не найдена');
+    }
     const res = db
       .prepare(
         'INSERT INTO settlement_acts (type, date, source_path, pdf_path, note) VALUES (?, ?, ?, ?, ?)',
