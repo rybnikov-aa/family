@@ -87,6 +87,6 @@ user-invocable: true
 
 ## Связанное
 
-- Промпт-обёртка: `.github/prompts/init-harness.prompt.md` (в профиле пользователя —
-  `init-harness.prompt.md`, для работы в произвольном проекте).
+- Навык-обёртка: `.github/skills/init-harness/SKILL.md` (в профиле пользователя —
+  `init-harness`, для работы в произвольном проекте).
 - Референс-реализация харнесса: `AGENTS.md`, `docs/`, `.github/` проекта `family`.

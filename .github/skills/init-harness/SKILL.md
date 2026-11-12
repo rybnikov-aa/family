@@ -1,10 +1,9 @@
 ---
-name: 'Init Harness'
+name: init-harness
 description: 'Инициализировать репозиторный харнесс и документы: guardrails.md, AGENTS.md, docs/layers, docs/domains, docs/adr, docs/cj, docs/fr, docs/nfr, docs/hr, traceability, integrations/operations/policies (если применимо), .github/skills, .github/agents, README, .env.example. Use when: нужен каркас с нуля, «создай харнесс», «сделай как в family», онбординг нового монорепо в Spec-Driven Development.'
+disable-model-invocation: true
 argument-hint: 'Монореп: стек и модули (или пусто — определю по коду)'
-agent: 'agent'
 ---
-
 # Инициализация харнесса и спецификации (монорепозиторий)
 
 Загрузи и выполни навык **`.github/skills/harness-init/SKILL.md`** — там процедура (шаги 0–7),
