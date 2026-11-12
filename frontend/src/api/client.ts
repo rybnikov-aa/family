@@ -758,6 +758,8 @@ export interface RenovationDraftSummary {
   label: string;
   itemsCount: number;
   settlementsCount: number;
+  /** Строки с отрицательным количеством (удаление работ, доп. соглашение). */
+  removalsCount: number;
   /** Итог (копейки) либо null. */
   total: number | null;
   /** Требует ручной проверки (автоматический разбор неполный). */

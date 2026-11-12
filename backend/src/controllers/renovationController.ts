@@ -19,6 +19,7 @@ import {
   updateRenovationMeta,
 } from '../db/renovationRepository';
 import {
+  addendumRemovalIndexes,
   buildAddendumProposal,
   historyItemsAfter,
   newItemsAfter,
@@ -222,6 +223,7 @@ function draftSummary(d: RenovationDraft) {
     reasons: d.cls.reasons,
     itemsCount: d.items.length,
     settlementsCount: d.settlementRows.length,
+    removalsCount: d.items.filter((i) => (i.qty ?? 0) < 0 || (i.sum ?? 0) < 0).length,
     total: d.total,
     needsReview: d.needsReview,
     warnings: d.warnings,
@@ -504,9 +506,13 @@ export function addendumConfirmController(req: Request, res: Response): void {
   }
 
   try {
-    const newItems = newItemsAfter(current, addendum, removeKeys);
-    const historyItems = historyItemsAfter(current, removeKeys);
-    const totals = totalsAfter(current, addendum, removeKeys);
+    // Удаления, заданные самим соглашением (строки с отрицательным количеством),
+    // определяются на сервере по позициям сметы: подтверждение не должно зависеть
+    // от того, передал ли клиент эти ключи.
+    const removedIndexes = new Set(addendumRemovalIndexes(current, addendum));
+    const newItems = newItemsAfter(current, addendum, removeKeys, removedIndexes);
+    const historyItems = historyItemsAfter(current, removeKeys, removedIndexes);
+    const totals = totalsAfter(current, addendum, removeKeys, removedIndexes);
     const { currentId } = applyAddendumVersion({
       oldCurrentId: current.id,
       oldCurrentLabel: current.label,

@@ -142,6 +142,12 @@ function RenovationPdfModal({ onClose, onImported }: RenovationPdfModalProps) {
                       <span>Позиций</span>
                       <strong>{draft.itemsCount}</strong>
                     </div>
+                    {draft.removalsCount > 0 && (
+                      <div className="renov-pdf__line">
+                        <span>Удаление работ</span>
+                        <strong>{draft.removalsCount}</strong>
+                      </div>
+                    )}
                     <div className="renov-pdf__line">
                       <span>Итог</span>
                       <strong>{formatKopecks(draft.total, true)}</strong>

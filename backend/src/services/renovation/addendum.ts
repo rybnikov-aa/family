@@ -46,6 +46,101 @@ export function targetSection(section: string): string {
 
 export type AddendumDiffKind = 'update' | 'new' | 'keep' | 'remove';
 
+/** Строка доп. соглашения с отрицательным количеством/суммой — удаление работы. */
+export function isRemovalItem(item: EstimateItem): boolean {
+  return (item.qty ?? 0) < 0 || (item.sum ?? 0) < 0;
+}
+
+/** Позиция сметы, которую удаляет строка доп. соглашения с отрицательным количеством. */
+export interface AddendumRemoval {
+  /** Индекс позиции в `current.items` — точная идентификация (имена могут повторяться). */
+  index: number;
+  /** Нормализованное имя позиции сметы (для отображения и `key` строки диффа). */
+  key: string;
+  /** Строка соглашения (отрицательная). */
+  addendumItem: EstimateItem;
+  /** Найденная позиция актуальной сметы. */
+  currentItem: EstimateItem;
+}
+
+/** Одно наименование — часть другого (в соглашении добавляются уточнения в скобках). */
+function namesOverlap(a: string, b: string): boolean {
+  if (a === '' || b === '') return false;
+  return a.includes(b) || b.includes(a);
+}
+
+/** Единственный кандидат из отфильтрованного списка (или null — если 0 или неоднозначно). */
+function only(items: EstimateItem[]): EstimateItem | null {
+  return items.length === 1 ? items[0] : null;
+}
+
+/**
+ * Поиск позиции сметы для удаления по строке соглашения с отрицательным количеством.
+ * Порядок: точное имя → цена + |количество| → цена → вхождение наименования.
+ * Количество в PDF подрядчика повторяет количество удаляемой позиции сметы, а
+ * наименование часто дополнено уточнением («… | в керамограните, керамической плитке»),
+ * поэтому одного сопоставления по имени недостаточно.
+ */
+function matchRemovalTarget(item: EstimateItem, freeItems: EstimateItem[]): EstimateItem | null {
+  const key = normalizeName(item.name);
+  const byName = freeItems.filter((c) => normalizeName(c.name) === key);
+  if (byName.length > 0) {
+    const narrowed =
+      byName.length > 1 && item.price != null
+        ? byName.filter((c) => c.price === item.price)
+        : byName;
+    return only(narrowed);
+  }
+
+  if (item.price == null) return null;
+  const samePrice = freeItems.filter((c) => c.price === item.price);
+  if (samePrice.length === 0) return null;
+  const sameQty = samePrice.filter((c) => Math.abs(c.qty ?? 0) === Math.abs(item.qty ?? 0));
+  const pool = sameQty.length > 0 ? sameQty : samePrice;
+  const unique = only(pool);
+  if (unique) return unique;
+  return only(pool.filter((c) => namesOverlap(normalizeName(c.name), key)));
+}
+
+/**
+ * Строки соглашения с отрицательным количеством → позиции сметы на удаление.
+ * `unmatched` — строки, для которых позиция в смете не найдена (требуют проверки).
+ */
+export function resolveAddendumRemovals(
+  current: EstimateVersion,
+  addendum: EstimateVersion,
+): { removals: AddendumRemoval[]; unmatched: EstimateItem[] } {
+  const removals: AddendumRemoval[] = [];
+  const unmatched: EstimateItem[] = [];
+  const used = new Set<number>();
+  for (const item of addendum.items) {
+    if (!isRemovalItem(item)) continue;
+    const freeItems = current.items.filter((_, idx) => !used.has(idx));
+    const target = matchRemovalTarget(item, freeItems);
+    const index = target ? current.items.indexOf(target) : -1;
+    if (!target || index < 0) {
+      unmatched.push(item);
+      continue;
+    }
+    used.add(index);
+    removals.push({
+      index,
+      key: normalizeName(target.name),
+      addendumItem: item,
+      currentItem: target,
+    });
+  }
+  return { removals, unmatched };
+}
+
+/** Индексы позиций сметы, удаляемых самим соглашением (без пользовательских пометок). */
+export function addendumRemovalIndexes(
+  current: EstimateVersion,
+  addendum: EstimateVersion,
+): number[] {
+  return resolveAddendumRemovals(current, addendum).removals.map((r) => r.index);
+}
+
 /** Строка диффа: что будет с позицией сметы/доп. соглашения. */
 export interface AddendumDiff {
   /** Нормализованное имя — стабильный ключ строки. */
@@ -102,22 +197,57 @@ export function buildAddendumProposal(
   current: EstimateVersion,
   addendum: EstimateVersion,
 ): AddendumProposal {
-  const byKey = new Map<string, EstimateItem>();
-  for (const item of current.items) byKey.set(normalizeName(item.name), item);
-
   const warnings: string[] = [];
   const diffs: AddendumDiff[] = [];
-  const consumed = new Set<string>();
 
+  // Строки с отрицательным количеством — удаление работ: они не добавляются в смету,
+  // а исключают соответствующие позиции актуальной сметы (по индексу позиции:
+  // наименования в смете могут повторяться в разных разделах).
+  const { removals, unmatched } = resolveAddendumRemovals(current, addendum);
+  const removedIndexes = new Set(removals.map((r) => r.index));
+  for (const r of removals) {
+    diffs.push({
+      key: r.key,
+      kind: 'remove',
+      section: r.currentItem.section,
+      name: r.currentItem.name,
+      unit: r.currentItem.unit,
+      price: r.currentItem.price,
+      qty: r.currentItem.qty,
+      // Отрицательная сумма — вклад удаления в итог раздела (в UI «Стало» — «—»).
+      sum: r.currentItem.sum == null ? null : -r.currentItem.sum,
+      oldPrice: r.currentItem.price,
+      oldQty: r.currentItem.qty,
+      oldSum: r.currentItem.sum,
+    });
+  }
+  if (removals.length > 0) {
+    warnings.push(
+      `Строк с отрицательным количеством (удаление работ): ${removals.length} — ` +
+        'соответствующие позиции сметы будут удалены',
+    );
+  }
+  if (unmatched.length > 0) {
+    warnings.push(
+      `Строки с отрицательным количеством без пары в смете (${unmatched.length}): ` +
+        unmatched.map((i) => `«${i.name}»`).join(', '),
+    );
+  }
+
+  const updatedIndexes = new Set<number>();
   for (const item of addendum.items) {
+    if (isRemovalItem(item)) continue;
     const key = normalizeName(item.name);
     if (key === '') {
       warnings.push('Пустое наименование позиции доп. соглашения');
       continue;
     }
-    const existing = byKey.get(key);
-    if (existing) {
-      consumed.add(key);
+    const idx = current.items.findIndex(
+      (c, i) => !removedIndexes.has(i) && !updatedIndexes.has(i) && normalizeName(c.name) === key,
+    );
+    if (idx >= 0) {
+      updatedIndexes.add(idx);
+      const existing = current.items[idx];
       diffs.push(itemDiff({ ...item, section: existing.section }, 'update', existing));
     } else {
       diffs.push(itemDiff(item, 'new'));
@@ -125,13 +255,12 @@ export function buildAddendumProposal(
   }
 
   // Позиции сметы, не затронутые доп. соглашением — сохраняются (по умолчанию).
-  for (const item of current.items) {
-    if (!consumed.has(normalizeName(item.name))) {
-      diffs.push(itemDiff(item, 'keep'));
-    }
-  }
+  current.items.forEach((item, idx) => {
+    if (removedIndexes.has(idx) || updatedIndexes.has(idx)) return;
+    diffs.push(itemDiff(item, 'keep'));
+  });
 
-  const totals = totalsAfter(current, addendum, new Set<string>());
+  const totals = totalsAfter(current, addendum, new Set<string>(), removedIndexes);
 
   return {
     addendum: {
@@ -150,22 +279,32 @@ export function buildAddendumProposal(
   };
 }
 
-/** Новые позиции после применения (перенумерованные), с учётом `removeKeys`. */
+/**
+ * Новые позиции после применения (перенумерованные). Удаляются позиции из
+ * `removeKeys` (пометки пользователя по нормализованному имени) и `removedIndexes`
+ * (удаления самим соглашением — точные индексы позиций `current.items`).
+ */
 export function newItemsAfter(
   current: EstimateVersion,
   addendum: EstimateVersion,
   removeKeys: ReadonlySet<string>,
+  removedIndexes: ReadonlySet<number> = new Set<number>(),
 ): EstimateItem[] {
   const addendumByKey = new Map<string, EstimateItem>();
-  for (const item of addendum.items) addendumByKey.set(normalizeName(item.name), item);
+  // Строки с отрицательным количеством — удаление работ: в смету они не попадают
+  // (их влияние — через `removedIndexes`), поэтому в сопоставление/добавление не идут.
+  for (const item of addendum.items) {
+    if (isRemovalItem(item)) continue;
+    addendumByKey.set(normalizeName(item.name), item);
+  }
 
   const matched = new Set<string>();
   const result: EstimateItem[] = [];
 
   // 1) Позиции сметы в исходном порядке: обновлённые из доп. соглашения / сохранённые.
-  for (const item of current.items) {
+  for (const [idx, item] of current.items.entries()) {
     const key = normalizeName(item.name);
-    if (removeKeys.has(key)) continue;
+    if (removedIndexes.has(idx) || removeKeys.has(key)) continue;
     const add = addendumByKey.get(key);
     if (add) {
       matched.add(key);
@@ -178,7 +317,10 @@ export function newItemsAfter(
   // 2) Новые позиции из доп. соглашения — в конец своей секции
   //    (кроме помеченных на удаление — иначе они вернулись бы обратно).
   const newItems = addendum.items.filter(
-    (i) => !matched.has(normalizeName(i.name)) && !removeKeys.has(normalizeName(i.name)),
+    (i) =>
+      !isRemovalItem(i) &&
+      !matched.has(normalizeName(i.name)) &&
+      !removeKeys.has(normalizeName(i.name)),
   );
   for (const ni of newItems) {
     const section = targetSection(ni.section);
@@ -195,9 +337,12 @@ export function newItemsAfter(
 export function historyItemsAfter(
   current: EstimateVersion,
   removeKeys: ReadonlySet<string>,
+  removedIndexes: ReadonlySet<number> = new Set<number>(),
 ): EstimateItem[] {
-  return current.items.map((item) =>
-    removeKeys.has(normalizeName(item.name)) ? { ...item, change: 'removed' as const } : item,
+  return current.items.map((item, idx) =>
+    removedIndexes.has(idx) || removeKeys.has(normalizeName(item.name))
+      ? { ...item, change: 'removed' as const }
+      : item,
   );
 }
 
@@ -206,8 +351,9 @@ export function totalsAfter(
   current: EstimateVersion,
   addendum: EstimateVersion,
   removeKeys: ReadonlySet<string>,
+  removedIndexes: ReadonlySet<number> = new Set<number>(),
 ): { totalNoOverhead: number | null; overhead: number | null; total: number | null } {
-  const items = newItemsAfter(current, addendum, removeKeys);
+  const items = newItemsAfter(current, addendum, removeKeys, removedIndexes);
   const totalNoOverhead = sumKopecks(items.map((i) => i.sum));
   const overhead = totalNoOverhead == null ? null : overheadOf(totalNoOverhead);
   const total = totalNoOverhead != null && overhead != null ? totalNoOverhead + overhead : null;

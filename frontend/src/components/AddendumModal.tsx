@@ -122,7 +122,9 @@ function AddendumModal({ onClose, onApplied }: AddendumModalProps) {
     if (!proposal) return null;
     const c: Record<string, number> = { update: 0, new: 0, keep: 0, remove: 0 };
     for (const d of proposal.diffs) c[d.kind] += 1;
-    c.remove = removeKeys.size;
+    // `remove` — удаления из доп. соглашения (строки с отрицательным количеством),
+    // уже посчитаны в цикле; плюс позиции «keep», помеченные пользователем.
+    c.remove += removeKeys.size;
     return c;
   }, [proposal, removeKeys]);
 
@@ -255,7 +257,12 @@ function AddendumModal({ onClose, onApplied }: AddendumModalProps) {
                                 >
                                   {d.kind === 'new'
                                     ? '—'
-                                    : formatKopecks(d.kind === 'update' ? d.oldSum : d.sum, true)}
+                                    : formatKopecks(
+                                        d.kind === 'update' || d.kind === 'remove'
+                                          ? d.oldSum
+                                          : d.sum,
+                                        true,
+                                      )}
                                 </span>
                               </td>
                               <td className="renov-rp__num">
